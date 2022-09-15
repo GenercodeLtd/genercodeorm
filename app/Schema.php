@@ -1,12 +1,12 @@
 <?php
 
-namespace GenerCodeOrm;
+namespace PressToJamCore;
 
-use GenerCodeOrm\Cells as Cells;
+use PressToJamCore\Cells as Cells;
 
-class Schema
+class Schema extends Mapper
 {
-  
+    protected $container;
     protected $slug = "";
     protected $table = "";
     protected $alias;
@@ -23,6 +23,7 @@ class Schema
         $this->table = $table;
         $this->alias = "t" . self::$num;
         ++self::$num;
+        $this->container->reg($this->slug, $this);
     }
 
 

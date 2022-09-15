@@ -1,6 +1,6 @@
 <?php
 
-namespace GenerCodeOrm\Cells;
+namespace PressToJamCore\Cells;
 
 
 class AggregatorStringCell {

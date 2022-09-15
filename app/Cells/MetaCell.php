@@ -1,131 +1,139 @@
 <?php
 
-namespace GenerCodeOrm\Cells;
+namespace PressToJamCore\Cells;
 
 abstract class CellValueType
 {
-    const range = 0;
-    const min = 1;
-    const max = 2;
-    const set = 3;
-    const fixed = 4;
+    public const range = 0;
+    public const min = 1;
+    public const max = 2;
+    public const set = 3;
+    public const fixed = 4;
 }
 
 
-class MetaCell {
-
+class MetaCell
+{
     protected $max = null;
     protected $min = null;
-    protected $contains = "";
-    protected $not_contains = "";
+    protected $contains = null;
+    protected $not_contains = null;
     protected $name;
-    protected $type = CellValueType::fixed;
     protected $default;
-    protected $validation_tests = [];
     protected $alias;
-    protected $slug;
     protected $immutable = false;
     protected $system = false;
     protected $background = false;
-    protected $last_error = null;
     protected $model;
     protected $states = [];
-    
     protected $summary = false;
-
-
-    function __construct() {
-        
-    }
-
-    function __set($name, $value) {
-        if (property_exists($this, $name)) $this->$name = $value;
-    }
-
-    function __get($name) {
-        if (property_exists($this, $name)) return $this->$name;
-        else return null;
-    }
- 
-
-    function setType($data) {
-        $this->type = CellValueType::fixed;
-    }
-
-    function mapOutput($val) {
-        return $val;
-    }
-
     
-    function validateSize($size) {
-        if ($this->min !== null AND $size < $this->min) {
-            $this->last_error = ValidationRules::OutOfRangeMin;
-        } else if ($this->max !== null AND $size > $this->max) {
-            $this->last_error = ValidationRules::OutOfRangeMax;
+
+    public function __construct()
+    {
+    }
+
+    public function __set($name, $value)
+    {
+        if (property_exists($this, $name)) {
+            $this->$name = $value;
+        }
+    }
+
+    public function __get($name)
+    {
+        if (property_exists($this, $name)) {
+            return $this->$name;
         } else {
-            $this->last_error = ValidationRules::OK;
+            return null;
         }
     }
 
 
-    function validateValue($value) {
-        if ($this->contains != "" AND !preg_match("/" . $this->contains . "/", $value)) {
-            $this->last_error = ValidationRules::Characters;
-        } else if ($this->not_contains != "" AND preg_match("/" . $this->not_contains . "/", $value)) {
-            $this->last_error = ValidationRules::CharactersNegative;
+    public function setValidation($min, $max, $contains = null, $not_contains = null) {
+        $this->min = $min;
+        $this->max = $max;
+        $this->contains = $contains;
+        $this->not_contains = $not_contains;
+    }
+
+
+    public function validateSize($size)
+    {
+        if ($this->min !== null and $size <= $this->min) {
+            return ValidationRules::OutOfRangeMin;
+        } elseif ($this->max !== null and $size >= $this->max) {
+            return ValidationRules::OutOfRangeMax;
         } else {
-            $this->last_error = ValidationRules::OK;
+            return ValidationRules::OK;
         }
     }
 
-    function mapToGetStmt() {
-        return $this->alias . "." . $this->name;
+
+    public function validateValue($value)
+    {
+        if ($this->contains != "" and !preg_match("/" . $this->contains . "/", $value)) {
+            return ValidationRules::Characters;
+        } elseif ($this->not_contains != "" and preg_match("/" . $this->not_contains . "/", $value)) {
+            return ValidationRules::CharactersNegative;
+        } else {
+            return ValidationRules::OK;
+        }
     }
 
 
-    function mapToStmtFilter($col) {
-        return $col . " = ?";
+    public function validate($value, $contains_value = null)
+    {
+        if ($this->max !== null or $this->min !== null) {
+            $error = $this->validateSize($value);
+            if ($error != ValidationRules::OK) {
+                return $error;
+            }
+        }
+
+        if ($contains_value !== null) {
+            $error = $this->validateValue($contains_value);
+            if ($error != ValidationRules::OK) {
+                return $error;
+            }
+        }
     }
 
-    function export($val) {
-        return $val;
+
+    public function clean($value)
+    {
+        return $value;
     }
 
-    function toArg($val) {
-        return $val;
-    }
-
-    function registerValidationTest($test){ 
-        $this->validation_tests[] = $test;
-    }
-
-
-    function toSchema() {
+    public function toSchema()
+    {
         $arr=[];
         $arr["model"] = $this->model;
-        $arr["validation"] = [
-            "min"=>$this->min, 
-            "max"=>$this->max, 
-            "contains"=>$this->contains, 
-            "notcontains"=>$this->notcontains
-        ];
-     
+        $arr["min"]=$this->min;
+        $arr["max"]=$this->max;
+        $arr["contains"]=$this->contains;
+        $arr["notcontains"]=$this->notcontains;
+
         $arr["immutable"] = $this->immutable;
-        if ($this->default) $arr["default"] = $this->default;
-        if ($this->summary) $arr["summary"] = true;
-        if ($this->system) $arr["system"] = true;
-        if ($this->background) $arr["background"] = true;
+        if ($this->default) {
+            $arr["default"] = $this->default;
+        }
+        if ($this->summary) {
+            $arr["summary"] = true;
+        }
+        if ($this->system) {
+            $arr["system"] = true;
+        }
+        if ($this->background) {
+            $arr["background"] = true;
+        }
         if ($this->states) {
             $arr["states"] = [];
-            foreach($this->states as $state) {
+            foreach ($this->states as $state) {
                 $arr["states"][] = $state->toSchema();
             }
         }
 
         return $arr;
-    }
- 
-    function getLastError() {
-        return $this->last_error;
     }
 }

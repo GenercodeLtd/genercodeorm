@@ -1,6 +1,6 @@
 <?php
 
-namespace GenerCodeOrm;
+namespace PressToJamCore;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Illuminate\Support\Str;

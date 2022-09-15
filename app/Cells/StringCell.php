@@ -1,11 +1,12 @@
 <?php
 
-namespace GenerCodeOrm\Cells;
+namespace PressToJamCore\Cells;
 
 class StringCell extends MetaCell {
 
     protected $encrypted = false;
-    protected $tests=[];
+    protected $list = [];
+   // protected $
 
     function __construct() {
         parent::__construct();
@@ -18,9 +19,8 @@ class StringCell extends MetaCell {
     }
     
 
-    function setType($data) {
-        if (is_array($data)) $this->type = CellValueType::set;
-        else $this->type = CellValueType::fixed;
+    function clean($value) {
+        return trim($value);
     }
 
 
@@ -52,27 +52,11 @@ class StringCell extends MetaCell {
     }
 
 
-    function validate($value) {
-        $value = trim($value);
-        $this->validateSize(strlen($value));
-        if ($this->last_error == ValidationRules::OK) {
-            $this->validateValue($value);
-        }
+    function validate($value, $contains_value = null) {
+        return $this->validate(strlen($value), $value);
     }
 
 
-    function mapToStmtFilter($col) {
-        if ($this->type == CellValueType::set) {
-            return $col . " LIKE ?";
-        } else {
-            return $col . " = ?";
-        }
-    }
-
-    function export($val) {
-        if ($this->encrypted) return "xxxxxxxx";
-        else return $val;
-    }
 
     function toSchema() {
         $arr = parent::toSchema();
@@ -88,10 +72,6 @@ class StringCell extends MetaCell {
 		$code = $salt . substr(str_shuffle($permitted_chars), 0, $size);
 		return $code;
 	}
-
-    function registerUniqueTest($test) {
-        $this->tests[] = $test;
-    }
 
 
     function toArg($val) {

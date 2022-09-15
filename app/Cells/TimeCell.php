@@ -1,15 +1,11 @@
 <?php
 
-namespace GenerCodeOrm\Cells;
+namespace PressToJamCore\Cells;
 
 class TimeCell extends MetaCell {
 
     protected $format;
 
-    function setValidation($min, $max) {
-        $this->min = $min;
-        $this->max = $max;
-    }
 
 
     function map($value) {

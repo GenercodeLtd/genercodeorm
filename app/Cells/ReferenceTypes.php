@@ -1,5 +1,5 @@
 <?php
-namespace GenerCodeOrm\Cells;
+namespace PressToJamCore\Cells;
 
 abstract class ReferenceTypes
 {
