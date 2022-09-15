@@ -36,7 +36,6 @@ class IdCell extends MetaCell {
             $arr["reference_to"] = $this->reference->model; 
         } else if ($this->reference) {
             $arr["reference_to"] = $this->reference->model;
-            $arr["includes"] = $this->reference->getSummaryAliases();
         }
         return $arr;
     }
