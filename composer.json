@@ -14,5 +14,13 @@
         "illuminate/database": "^9.30",
         "illuminate/container": "^9.30",
         "illuminate/queue": "^9.30"
-    }
+    },
+    "autoload" : {
+        "psr-4" : {
+            "GenerCodeOrm\\" : "app/"
+        },
+        "files" : [
+            "app/standardfunctions.php"
+        ]
+    },
 }
