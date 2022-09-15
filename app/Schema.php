@@ -4,7 +4,7 @@ namespace GenerCodeOrm;
 
 use GenerCodeOrm\Cells as Cells;
 
-class Schema extends Mapper
+class Schema
 {
   
     protected $slug = "";
