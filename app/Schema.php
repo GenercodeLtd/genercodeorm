@@ -4,9 +4,9 @@ namespace PressToJamCore;
 
 use PressToJamCore\Cells as Cells;
 
-class Schema extends Mapper
+class Schema
 {
-    protected $container;
+ 
     protected $slug = "";
     protected $table = "";
     protected $alias;
@@ -23,7 +23,6 @@ class Schema extends Mapper
         $this->table = $table;
         $this->alias = "t" . self::$num;
         ++self::$num;
-        $this->container->reg($this->slug, $this);
     }
 
 
