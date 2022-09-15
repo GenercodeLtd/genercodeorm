@@ -1,4 +1,12 @@
 {
+    "name": "genercodeltd/genercodeorm",
+    "description": "Core Genercode ORM functionality for API builder",
+    "authors": [
+        {
+            "name": "Suzanne Clifford",
+            "email": "suzanne.clifford@presstojam.com"
+        }
+    ],
     "require-dev": {
         "phpunit/phpunit": "^9.5"
     },
