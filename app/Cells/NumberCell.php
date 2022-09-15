@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\Cells;
+namespace GenerCodeOrm\Cells;
 
 class NumberCell extends MetaCell {
 

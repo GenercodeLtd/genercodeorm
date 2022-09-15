@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\Cells;
+namespace GenerCodeOrm\Cells;
 
 abstract class CellValueType
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\Cells;
+namespace GenerCodeOrm\Cells;
 
 class AssetCell extends MetaCell {
 
@@ -58,7 +58,7 @@ class AssetCell extends MetaCell {
         if (!$ext) {
             throw new \Exception("No extension for file");
         }
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         if (!is_string($data)) {
             $data =  pack('C*', ...$data);
         }
@@ -84,26 +84,26 @@ class AssetCell extends MetaCell {
             unlink($this->tmp_file_dir);
         }
 
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         $writer->push($key, file_get_contents($big_file));
         unlink($big_file);
     }
 
 
     public function removeAsset($key) {
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         $writer->remove($key);
     }
 
 
     public function copyAsset($key, $old_file) {
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         $writer->copy($key, $old_file);
     }
 
 
     public function uniqueKey($ext) {
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         $key = "";
         do {
             $key = uniqid($this->dir) . "." . $ext;
@@ -113,12 +113,12 @@ class AssetCell extends MetaCell {
 
     public function view($key) {
         //can set header from extension
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         return $writer->get($key);
     }
 
     function reserve($key) {
-        $writer = \PressToJamCore\WrapperFactory::createS3();
+        $writer = \GenerCodeOrm\WrapperFactory::createS3();
         if (!$writer->fileExists($key)) {
             $this->writeFile($key, "");
         }

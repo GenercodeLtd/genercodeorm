@@ -1,8 +1,8 @@
 <?php
 
-namespace PressToJamCore;
+namespace GenerCodeOrm;
 
-use PressToJamCore\Cells as Cells;
+use GenerCodeOrm\Cells as Cells;
 
 class Schema
 {

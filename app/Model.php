@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore;
+namespace GenerCodeOrm;
 
 use Psr\Http\Message\ServerRequestInterface;
 use GenercodeCore\Facades\Schema;

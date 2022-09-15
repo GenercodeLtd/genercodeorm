@@ -1,6 +1,6 @@
 <?php
 
-namespace PressToJamCore\Cells;
+namespace GenerCodeOrm\Cells;
 
 class FlagCell extends MetaCell {
 

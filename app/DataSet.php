@@ -1,5 +1,5 @@
 <?php
-namespace PressToJamCore;
+namespace GenerCodeOrm;
 
 
 class DataValue {
