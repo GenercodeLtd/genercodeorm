@@ -6,14 +6,17 @@ use GenerCodeOrm\MetaCollection;
 use GenerCodeOrm\Cells\IdCell;
 use GenerCodeOrm\Cells\ReferenceTypes;
 
-require_once(__DIR__ . "/metacollections/Fields.php");
-require_once(__DIR__ . "/metacollections/Models.php");
-require_once(__DIR__ . "/metacollections/Projects.php");
-require_once(__DIR__ . "/metacollections/Pages.php");
-require_once(__DIR__ . "/metacollections/Sections.php");
+require_once(__DIR__ . "/testsetup.php");
+require_once(__DIR__ . "/testproject/Fields.php");
+require_once(__DIR__ . "/testproject/Models.php");
+require_once(__DIR__ . "/testproject/Projects.php");
+require_once(__DIR__ . "/testproject/Sections.php");
 
 
-final class MetaCollectionTest extends TestCase
+
+use \GenerCodeOrm\Schema;
+
+final class SchemaTest extends TestCase
 {
     private $collection;
 
@@ -23,9 +26,11 @@ final class MetaCollectionTest extends TestCase
     }
 
 
-    public function testChildren() {
-        $container = new \GenerCodeOrm\MetaCollectionContainer();
-        $collection = new \PressToJam\MetaCollections\Projects($container);
+    public function testSchema() {
+        $schema = new \GenerCode\Schemas\Projects();
+        var_dump($schema->getSchema());
+        exit;
+
         $collection->activateChildren(["models/", "fields/", "pages/"]);
         
         $container = $collection->getContainer();
@@ -34,10 +39,9 @@ final class MetaCollectionTest extends TestCase
         $this->assertSame(4, count($collections));
     }
 
-
+/*
     public function testParent() {
-        $container = new \GenerCodeOrm\MetaCollectionContainer();
-        $collection = new \PressToJam\MetaCollections\Fields($container);
+        $collection = new \GenerCode\Schemas\Fields();
         $collection->activateTo("models/");
 
         $container = $collection->getContainer();
@@ -47,8 +51,7 @@ final class MetaCollectionTest extends TestCase
     }
 
     public function testMultipleParent() {
-        $container = new \GenerCodeOrm\MetaCollectionContainer();
-        $collection = new \PressToJam\MetaCollections\Fields($container);
+        $collection = new \GenerCode\Schemas\Fields();
         $collection->activateTo("projects/");
 
         $container = $collection->getContainer();
@@ -59,8 +62,7 @@ final class MetaCollectionTest extends TestCase
 
 
     public function testActivateReference() {
-        $container = new \GenerCodeOrm\MetaCollectionContainer();
-        $collection = new \PressToJam\MetaCollections\Fields($container);
+        $collection = new \GenerCode\Schemas\Fields();
         $collection->activateCells(["section-id"]);
 
         $container = $collection->getContainer();
@@ -68,4 +70,5 @@ final class MetaCollectionTest extends TestCase
 
         $this->assertSame(2, count($collections));
     }
+    */
 }

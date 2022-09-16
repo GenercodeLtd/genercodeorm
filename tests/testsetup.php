@@ -1,6 +1,8 @@
 <?php
 
-$container = new Container();
+
+require_once(__DIR__ . "/../app/standardfunctions.php");
+/*$container = new Container();
 $capsule = new Capsule($container);
 $capsule->addConnection([
             'driver'    => 'mysql',
@@ -13,4 +15,6 @@ $capsule->addConnection([
             'prefix'    => '',
         ]);
         
-$capsule->setAsGlobal();
+$capsule->setAsGlobal();*/
+
+GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app/");

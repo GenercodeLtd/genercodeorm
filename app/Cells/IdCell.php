@@ -29,14 +29,7 @@ class IdCell extends MetaCell {
         $arr=parent::toSchema();
         $arr["type"] = "id";
         $arr["reference_type"] = $this->reference_type;
-        if ($this->is_primary) {
-            $arr["children"] = $this->reference;
-            $arr["reference_in"] = $this->reference_incoming;
-        } else if ($this->is_parent) {
-            $arr["reference_to"] = $this->reference->model; 
-        } else if ($this->reference) {
-            $arr["reference_to"] = $this->reference->model;
-        }
+        $arr["reference"] = $this->reference;
         return $arr;
     }
 }

@@ -1,293 +1,154 @@
 <?php
 
-namespace PressToJam\Schema;
-use \GenerCodeOrm as Core;	
+namespace GenerCode\Schemas;
 use \GenerCodeOrm\Cells as Cell;
-use \GenerCodeOrm\ReferenceDetails;
 
-class Projects extends Core\Schema {
 
-    function __construct($container, $slug = "") {
-        parent::__construct($container, $slug, "projects", "projects");
-    }
-  
-    function primary() {
-   
+class Projects extends \GenerCodeOrm\Schema {
+
+    function __construct($slug = "") {
+        parent::__construct($slug, "projects", "projects");
+
         $cell = new Cell\IdCell();
-        $cell->alias = $this->alias;
+        $cell->alias = "--id";
         $cell->name = "id";
         $cell->reference_type = Cell\ReferenceTypes::PRIMARY;
-        $cell->slug = "--id";
         $cell->system = true;
         $cell->setValidation(1, 18446744073709551615);
         $refs = [];
-        $refs["models"] = new ReferenceDetails("models/", function($slug) { return new Models($this->container, $slug); });
-        $refs["pages"] = new ReferenceDetails("pages/", function($slug) { return new Pages($this->container, $slug); });
+        $refs["models"] = "models";
+        $refs["profiles"] = "profiles";
+        $refs["dictionary-templates"] = "dictionary-templates";
+        $refs["pages"] = "pages";
+        $refs["sync-db-log"] = "sync-db-log";
         $cell->reference = $refs;
         $cell->immutable = true;
         $cell->model = $this->model;
-        $this->field_cache[$cell->slug] = $cell;
-        return $cell;
-    }
+        $this->cells[$cell->alias] = $cell;
 
-    function owner() {
-    
+
         $cell = new Cell\IdCell();
         $cell->alias = $this->alias;
-        $cell->slug = "--owner";
+        $cell->alias = "--owner";
         $cell->name = "user_login_id";
         $cell->setValidation(1, 18446744073709551615);
         $cell->immutable = true;
-        $cell->is_owner = true;
-        $cell->reference = new UserLogin("user-login/");
+        $cell->reference_type = Cell\ReferenceTypes::OWNER;
+        $cell->reference = "user-login";
         $cell->model = $this->model;
         $cell->system = true;
         $cell->background = true;
-        $this->field_cache[$cell->slug] = $cell;
-        return $cell;
-    }
+        $this->cells[$cell->alias] = $cell;
 
-    function dateCreated() {
-    
         $cell = new Cell\TimeCell();
         $cell->alias = $this->alias;
         $cell->name = "date_created";
-        $cell->slug = "date-created";
+        $cell->alias = "--created";
         $cell->immutable = true;
         $cell->model = $this->model;
-        $this->field_cache[$cell->slug] = $cell;
         $cell->system = true;
-        return $cell;
-    }
+        $this->cells[$cell->alias] = $cell;
 
-    function lastUpdated() {
-  
+
         $cell = new Cell\TimeCell();
         $cell->name = "last_updated";
         $cell->alias = $this->alias;
-        $cell->slug = "last-updated";
+        $cell->alias = "--updated";
         $cell->immutable = true;
         $cell->model = $this->model;
-        $this->field_cache[$cell->slug] = $cell;
         $cell->system = true;
-        return $cell;
-    }
- 
-    function getDomain() {
-    
-        $field = new Cell\StringCell();
-        $field->name = "domain";
-        $field->setValidation(0, 100, '', '[<>]+');
-        $field->alias = $this->alias;
-        $field->default = "";
-        $field->summary = true;
-        $field->model = $this->model;
-        $field->slug = "domain";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
+        $this->cells[$cell->alias] = $cell;
 
-    
-    function getHostingStatus() {
-     
-        $field = new Cell\StringCell();
-        $field->name = "hosting_status";
-        $field->setValidation(0, 255, 'active|demo|notactive|cancelled|restricted', '[<>]+');
-        $field->alias = $this->alias;
-        $field->default = "";
-        $field->model = $this->model;
-        $field->slug = "hosting-status";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
+        $cell = new Cell\StringCell();
+        $cell->name = "domain";
+        $cell->setValidation(0, 100, '', '[<>]+');
+        $cell->alias = $this->alias;
+        $cell->default = "";
+        $cell->summary = true;
+        $cell->model = $this->model;
+        $cell->alias = "domain";
+        $this->cells[$cell->alias] = $cell;
 
-    
-    function getCfdistId() {
-    
-        $field = new Cell\StringCell();
-        $field->name = "cfdist_id";
-        $field->setValidation(0, 30, '', '[<>]+');
-        $field->alias = $this->alias;
-        $field->default = "";
-        $field->model = $this->model;
-        $field->slug = "cfdist-id";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
+        $cell = new Cell\StringCell();
+        $cell->name = "hosting_status";
+        $cell->setValidation(0, 255, 'active|demo|notactive|cancelled|restricted', '[<>]+');
+        $cell->alias = $this->alias;
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "hosting-status";
+        $this->cells[$cell->alias] = $cell;
 
-    
-    function getTermsnc() {
-     
-        $field = new Cell\FlagCell();
-        $field->name = "termsnc";
-        $field->required = true;
- 
-        $field->setValidation(1, 1);
-        $field->alias = $this->alias;
-        $field->default = 1;
-        $field->model = $this->model;
-        $field->slug = "termsnc";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
+        $cell = new Cell\StringCell();
+        $cell->name = "cfdist_id";
+        $cell->setValidation(0, 30, '', '[<>]+');
+        $cell->alias = $this->alias;
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "cfdist-id";
+        $this->cells[$cell->alias] = $cell;
 
-    
-    function getImportCode() {
-       
-        $field = new Cell\StringCell();
-        $field->name = "import_code";
-        $field->setValidation(0, 255, '', '[<>]+');
-        $field->alias = $this->alias;
-        $field->default = "";
-        $field->model = $this->model;
-        $field->slug = "import-code";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
+        $cell = new Cell\FlagCell();
+        $cell->name = "termsnc";
+        $cell->required = true;
 
-    
-    function getMonthlyPrice() {
-       
-        $field = new Cell\NumberCell();
-        $field->name = "monthly_price";
-        $field->setValidation(0, 4294967295);
-        $field->round = 2;
-        $field->alias = $this->alias;
-        $field->default = 0;
-        $field->model = $this->model;
-        $field->slug = "monthly-price";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
+        $cell->setValidation(1, 1);
+        $cell->alias = $this->alias;
+        $cell->default = 1;
+        $cell->model = $this->model;
+        $cell->alias = "termsnc";
+        $this->cells[$cell->alias] = $cell;
 
-    
-    function getSrc() {
-      
-        $field = new Cell\AssetCell();
-        $field->name = "src";
-        $field->dir = "projects/src/";
-        $field->name_template = "projects_src_%id.%ext";
-        $field->setValidation(0, null, '', '');
-        $field->alias = $this->alias;
-        $field->default = "";
-        $field->model = $this->model;
-        $field->slug = "src";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
+        $cell = new Cell\StringCell();
+        $cell->name = "import_code";
+        $cell->setValidation(0, 255, '', '[<>]+');
+        $cell->alias = $this->alias;
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "import-code";
+        $this->cells[$cell->alias] = $cell;
+
+        $cell = new Cell\NumberCell();
+        $cell->name = "monthly_price";
+        $cell->setValidation(0, 4294967295);
+        $cell->round = 2;
+        $cell->alias = $this->alias;
+        $cell->default = 0;
+        $cell->model = $this->model;
+        $cell->alias = "monthly-price";
+        $this->cells[$cell->alias] = $cell;
+
+        $cell = new Cell\AssetCell();
+        $cell->name = "src";
+        $cell->dir = "projects/src/";
+        $cell->name_template = "projects_src_%id.%ext";
+        $cell->setValidation(0, null, '', '');
+        $cell->alias = $this->alias;
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "src";
+        $this->cells[$cell->alias] = $cell;
+
+        $cell = new Cell\AssetCell();
+        $cell->name = "custom_file";
+        $cell->dir = "projects/custom-file/";
+        $cell->name_template = "projects_custom_file_%id.%ext";
+        $cell->setValidation(0, null, '', '');
+        $cell->alias = $this->alias;
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "custom-file";
+        $this->cells[$cell->alias] = $cell;
+
+        $cell = new Cell\FlagCell();
+        $cell->name = "process";
+
+        $cell->setValidation(0, 1);
+        $cell->alias = $this->alias;
+        $cell->default = 0;
+        $cell->model = $this->model;
+        $cell->alias = "process";
+        $this->cells[$cell->alias] = $cell;
+
     }
 
-    
-    function getCustomFile() {
-      
-        $field = new Cell\AssetCell();
-        $field->name = "custom_file";
-        $field->dir = "projects/custom-file/";
-        $field->name_template = "projects_custom_file_%id.%ext";
-        $field->setValidation(0, null, '', '');
-        $field->alias = $this->alias;
-        $field->default = "";
-        $field->model = $this->model;
-        $field->slug = "custom-file";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
-
-    
-    function getProcess() {
-       
-        $field = new Cell\FlagCell();
-        $field->name = "process";
- 
-        $field->setValidation(0, 1);
-        $field->alias = $this->alias;
-        $field->default = 0;
-        $field->model = $this->model;
-        $field->slug = "process";
-        $this->field_cache[$field->slug] = $field;
-        return $field;
-    }
-
-    
-
-    function getFromAlias($alias) {
-        switch($alias) {
-            case '--id':
-                return $this->primary();
-                break;
-            case '--owner':
-                return $this->owner();
-                break;
-            case 'date-created':
-                return $this->dateCreated();
-                break;
-            case 'last-updated':
-                return $this->lastUpdated();
-                break;
-            case 'domain':
-                return $this->getDomain();
-                break;
-            case 'hosting-status':
-                return $this->getHostingStatus();
-                break;
-            case 'cfdist-id':
-                return $this->getCfdistId();
-                break;
-            case 'termsnc':
-                return $this->getTermsnc();
-                break;
-            case 'import-code':
-                return $this->getImportCode();
-                break;
-            case 'monthly-price':
-                return $this->getMonthlyPrice();
-                break;
-            case 'src':
-                return $this->getSrc();
-                break;
-            case 'custom-file':
-                return $this->getCustomFile();
-                break;
-            case 'process':
-                return $this->getProcess();
-                break;
-        }
-    }
-
-
-    function getAllAliases() {
-        $arr=[];
-        $arr[] = '--id';
-        $arr[] = '--owner';
-        $arr[] = 'domain';
-        $arr[] = 'hosting-status';
-        $arr[] = 'cfdist-id';
-        $arr[] = 'termsnc';
-        $arr[] = 'import-code';
-        $arr[] = 'monthly-price';
-        $arr[] = 'src';
-        $arr[] = 'custom-file';
-        $arr[] = 'process';
-        $arr[] = 'date-created';
-        $arr[] = 'last-updated';
-        return $arr;
-    }
-
-
-    function getSummaryAliases() {
-        $arr=[];
-        $arr[] = 'domain';
-        return $arr;
-    }
-
-
-    function getSchema() {
-        $schema = [];
-        $arr = $this->getAllAliases();
-        foreach ($arr as $val) {
-            $cell = $this->getFromAlias($val);
-            $schema[$val] = $cell->toSchema();
-        }
-        return $schema;
-    }
-    
 }

@@ -10,7 +10,7 @@ class Schema
     protected $slug = "";
     protected $table = "";
     protected $alias;
-    protected $cells;
+    protected $cells = [];
     protected $has_export = false;
     protected $has_import = false;
 
