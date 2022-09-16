@@ -17,9 +17,8 @@ class Repository
     protected $children = [];
     protected $fields;
 
-    public function __construct($query, $profile)
+    public function __construct($profile)
     {
-        $this->query = $query;
         $this->profile = $profile;
     }
 
@@ -38,19 +37,7 @@ class Repository
         return SchemaFactory::create($this->name);
     }
 
-    private function archive($model) {
-        $archive_schema = $this->loadSchema($this->name . "_archive");
-        $schema = $this->loadSchema($this->name);
-
-        $archive_schema->activateCellCategory("archive");
-        $schema->activateCellCategory("archive");
-
-        $map = new Mappers/MapCopy($this->query);
-        $map->copy($schema, $archive_schema, $model);
-    }
-
-
-
+   
 
     public function get(array $params, $all = false)
     {
