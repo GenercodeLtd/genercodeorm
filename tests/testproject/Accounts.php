@@ -4,12 +4,12 @@ namespace PressToJam\Schemas;
 use \GenerCodeOrm\Cells as Cell;
 
 
-class Projects extends \GenerCodeOrm\Schema {
+class Accounts extends \GenerCodeOrm\Schema {
 
     protected $cells = [];
 
     function __construct() {
-        parent::__construct("projects");
+        parent::__construct("accounts");
     
         $cell = new Cell\IdCell();
         $cell->name = "id";
@@ -18,11 +18,6 @@ class Projects extends \GenerCodeOrm\Schema {
         $cell->system = true;
         $cell->setValidation(1, 18446744073709551615);
         $refs = [];
-        $refs[] = "models";
-        $refs[] = "profiles";
-        $refs[] = "dictionary-templates";
-        $refs[] = "pages";
-        $refs[] = "sync-db-log";
         $cell->reference = $refs;
         $cell->immutable = true;
         $cell->model = $this->model;
@@ -45,92 +40,49 @@ class Projects extends \GenerCodeOrm\Schema {
 
  
         $cell = new Cell\StringCell();
-        $cell->name = "domain";
-        $cell->setValidation(0, 100, '', '[<>]+');
+        $cell->name = "username";
+        $cell->setValidation(1, 35, '', '[<>]+');
         $cell->default = "";
         $cell->summary = true;
         $cell->model = $this->model;
-        $cell->alias = "domain";
+        $cell->alias = "username";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\StringCell();
-        $cell->name = "hosting_status";
-        $cell->setValidation(0, 255, 'active|demo|notactive|cancelled|restricted', '[<>]+');
+        $cell->name = "password";
+        $cell->setValidation(6, 255, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "hosting-status";
+        $cell->alias = "password";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\StringCell();
-        $cell->name = "cfdist_id";
+        $cell->name = "company";
+        $cell->setValidation(1, 50, '', '[<>]+');
+        $cell->default = "";
+        $cell->summary = true;
+        $cell->model = $this->model;
+        $cell->alias = "company";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\StringCell();
+        $cell->name = "firstname";
         $cell->setValidation(0, 30, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "cfdist-id";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\FlagCell();
-        $cell->name = "termsnc";
-        $cell->required = true;
- 
-        $cell->setValidation(1, 1);
-        $cell->default = 1;
-        $cell->model = $this->model;
-        $cell->alias = "termsnc";
+        $cell->alias = "firstname";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\StringCell();
-        $cell->name = "import_code";
-        $cell->setValidation(0, 255, '', '[<>]+');
+        $cell->name = "lastname";
+        $cell->setValidation(0, 30, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "import-code";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\NumberCell();
-        $cell->name = "monthly_price";
-        $cell->setValidation(0, 4294967295);
-        $cell->round = 2;
-        $cell->default = 0;
-        $cell->model = $this->model;
-        $cell->alias = "monthly-price";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\AssetCell();
-        $cell->name = "src";
-        $cell->dir = "projects/src/";
-        $cell->name_template = "projects_src_%id.%ext";
-        $cell->setValidation(0, 100000000000, '', '');
-        $cell->default = "";
-        $cell->model = $this->model;
-        $cell->alias = "src";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\AssetCell();
-        $cell->name = "custom_file";
-        $cell->dir = "projects/custom-file/";
-        $cell->name_template = "projects_custom_file_%id.%ext";
-        $cell->setValidation(0, null, '', '');
-        $cell->default = "";
-        $cell->model = $this->model;
-        $cell->alias = "custom-file";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\FlagCell();
-        $cell->name = "process";
- 
-        $cell->setValidation(0, 1);
-        $cell->default = 0;
-        $cell->model = $this->model;
-        $cell->alias = "process";
+        $cell->alias = "lastname";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     

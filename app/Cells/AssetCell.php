@@ -23,35 +23,11 @@ class AssetCell extends MetaCell {
     }
     
  
-    
-
-   
     function tempLocation() {
         return tempnam($this->tmp_file_dir);
     }
 
-   
-    function map($val) {
-        if (is_array($val)) {
-            if (!isset($val['name'])) {
-                $val['name'] = $this->uniqueKey($val['ext']);
-            }
-        } 
-        
-        $size = (isset($val['size'])) ? $val['size'] : 0;
-        $this->validateSize($size);
-        if ($this->last_error = ValidationRules::OK) {
-            $ext = \pathinfo($val['name'], \PATHINFO_EXTENSION);
-            $this->validateValue($ext);
-        }
-
-        if ($this->last_error == ValidationRules::OK) {
-            return $val['name'];
-        } else {
-            return null;
-        }
-    }
- 
+  
 
     public function writeFile($key, $data) {
         $ext = \pathinfo($key, \PATHINFO_EXTENSION);

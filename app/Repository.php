@@ -4,8 +4,9 @@ namespace GenerCodeOrm;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Illuminate\Support\Str;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
-class Repository
+class Repository extends Mappers\Map
 {
     protected $name;
     protected $profile;
@@ -16,14 +17,20 @@ class Repository
     protected $group;
     protected $children = [];
     protected $fields;
+    protected SchemaRepository $schema_resp;
+
 
     public function __construct($profile)
     {
         $this->profile = $profile;
+        $this->schema = new SchemaRepository();
     }
 
-    public function __set($key, $val) {
-        if (property_exists($this, $key)) $this->$key = $val;
+    public function __set($key, $val)
+    {
+        if (property_exists($this, $key)) {
+            $this->$key = $val;
+        }
     }
 
     public function setModel($name)
@@ -31,13 +38,97 @@ class Repository
         $this->name = $name;
     }
 
-    private function loadSchema($name = null)
+    private function getWhereParams($params)
     {
-        if (!$name) $name = $this->name;
-        return SchemaFactory::create($this->name);
+        $where_params = array_filter($params, function ($var) {
+            return (strpos($var, "__") === 0) ? false : true;
+        });
     }
 
-   
+    private function loadReferenceSchema($slug, Cells\MetaCell $cell)
+    {
+        $this->schema->load($slug . "/" . $cell->name . "/" . $cell->reference . "/", SchemaFactory::get($cell->reference));
+    }
+
+
+    private function loadChildrenSchema(Cells\MetaCell $id)
+    {
+        foreach ($id->reference as $child) {
+            if (in_array($child, $children)) {
+                $this->schema->load($child . "/", SchemaFactory::get($child));
+                $this->loadChildrenSchema($this->schema->get($child . "/--id"));
+            }
+        }
+    }
+
+    private function loadSchema($name = null)
+    {
+        if (!$name) {
+            $name = $this->name;
+        }
+        $this->schema->create($this->name);
+
+        if ($this->to) {
+            $parent = $this->schema->get("--parent");
+
+            while ($parent) {
+                $this->schema->load($parent->reference . "/", SchemaFactory::get($parent->reference));
+                if ($parent->reference == $this->to) {
+                    break;
+                }
+                if ($this->schema->has($parent->reference . "/--parent")) {
+                    $parent = $this->schema->get($parent->reference . "/--parent");
+                } else {
+                    $parent = null;
+                }
+            }
+        }
+    }
+
+
+    private function buildModel($where_params): DataSet
+    {
+        $model = new DataSet();
+
+        foreach ($where_params as $alias=>$val) {
+            if ($this->schema->has($alias)) {
+                $cell = $this->schema->get($alias);
+                $model->bind($alias, $cell);
+            }
+        }
+
+        $model->apply($where_params);
+        $model->validate();
+
+        return $model;
+    }
+
+    private function buildChildren($id)
+    {
+        foreach ($id->reference as $child) {
+            if ($this->schema->hasSchema($child . "/")) {
+                $this->buildJoin($query, $id, $this->schema->get($child . "/--parent"));
+                $id = $this->schema->get($child . "/--id");
+            }
+        }
+    }
+
+
+    private function buildQuery(DataSet $model)
+    {
+        //$query = Capsule::table($this->name);
+        $map = new Mappers\MapQuery($this->name);
+        $map->buildFilters($model);
+        if ($this->to) {
+            $map->buildTo($this->to);
+        }
+        if ($this->children) {
+            $map->buildChildren($this->children);
+        }
+        return $map;
+    }
+
+
 
     public function get(array $params, $all = false)
     {
@@ -45,62 +136,48 @@ class Repository
             throw \Exception();
         }
 
-    
+        $where_params = $this->getWhereParams($params);
         $schema = $this->loadSchema($this->name);
-        
+        $model = $this->buildModel($where_params);
 
 
-       // $join_map = new Mappers\MapJoins();
-       // $join_map->
+        // $join_map = new Mappers\MapJoins();
+        // $join_map->
 
 
-        $where_params = array_filter($params, function($var) 
-            { 
-                return (strpos($var, "__") === 0) ? false : true;
-            }
-        );
-
-        foreach($where_params as $alias=>$val) {
-            $schema->addActiveCell($alias, $schema->getFromAlias($alias));
-        }
-
-        $model = new Model($where_params);
-
-        Validator::validate($schema, $model);
-
-        $where_map = new Mappers\MapFilters();
-        $where_map->buildFilter($schema->getContainer(), $model);
-
-        
-        if (isset($params["__to"])) {
-            $schema->activateTo($params["__to"]);
-        }
-
-        if (isset($params["__children"])) {
-            $schema->activateTo($params["__children"]);
-        }
-
-        if (isset($params["__fields"])) {
-            $schema->activateFields($params["__fields"]);
+        $fields = [];
+        if ($this->fields) {
+            $fields = $this->fields;
         } else {
-            $schema->activateFields("*");
+            //build up a new one
+            $schemas = $schema->getSchemas();
+            foreach ($schemas as $slug=>$schema) {
+                foreach ($schema as $alias=>$cell) {
+                    if ($slug AND !$cell->summary) continue;
+                    $fields[] = $alias;
+                    if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
+                        $this->loadReferenceSchema($slug . "/" . $alias, $cell);
+                        $ref_alias = $slug . "/" . $alias . "/" . $cell->reference;
+                        $schemas[$ref_alias] = $schema->getSchema($ref_alias);
+                    }
+                }
+            }
         }
+        //get all fields required
 
-        $join = new Mappers\JoinMaps($this->query);
-        $join->buildUp($schema);
-        $join->buildDown($schema);
-        
-       
-        //now run group by
 
-        $model->setLimit(1);
+        $map = $this->buildQuery($model);
+        $map->buildFields($fields);
+        $map->buildOrder($this->order);
+        if ($this->limit) {
+            $map->buildLimit();
+        }
+        if ($this->group) {
+            $map->buildGroup();
+        }
+        $collection = $map->query->get();
 
-        $validator->validate();
-
-        $collection = $model->get();
-        
-
-        $res = ($all) ? $this->query->getAll() : $this->query->get();
+        $res = ($all) ? $map->query->getAll() : $map->query->get();
         trigger($this->name, "select", $res);
     }
 
@@ -112,70 +189,18 @@ class Repository
         if (!$this->profile->hasPermission($this->name, "get")) {
             throw \Exception();
         }
+        $model = $this->buildModel($params);
 
-    
+
         $schema = $this->loadSchema($this->name);
-        
 
+        $map = $this->buildQuery();
+        $collection = $map->query
+        ->rawSelect("count(" . $schema->table . "." . $id->name . ") as 'count'")
+        ->take(1)
+        ->get();
 
-       // $join_map = new Mappers\MapJoins();
-       // $join_map->
-
-
-        $where_params = array_filter($params, function($var) 
-            { 
-                return (strpos($var, "__") === 0) ? false : true;
-            }
-        );
-
-        foreach($where_params as $alias=>$val) {
-            $schema->addActiveCell($alias, $schema->getFromAlias($alias));
-        }
-
-        $model = new Model($where_params);
-
-        $where_map = new Mappers\MapFilters();
-        $where_map->buildFilter($schema->getContainer(), $model);
-
-        
-        if (isset($params["__to"])) {
-            $schema->activateTo($params["__to"]);
-        }
-
-        if (isset($params["__children"])) {
-            $schema->activateTo($params["__children"]);
-        }
-
-        $id = $schema->getActiveCol("--id");
-        $this->query->rawSelect("count(" . $schema->table . "." . $id->name . ") as 'count'")->take(1);
-        return $this->query->get();
-    }
-
-
-    private function parseIncomingMetaData($params, $schema, $query)
-    {
-        foreach ($params as $key=>$value) {
-            if ($key == "__to") {
-                $schema->activateTo($value);
-            } elseif ($key == "__fields") {
-                $this->query->select($value);
-            } elseif ($key == "__children") {
-                $schema->activateChildren($value);
-            } elseif ($key == "__group") {
-
-              /*  setGroup(String $group) {
-                    $parse_col = $this->parseName($col);
-                    $col = $this->getCol($parse_col);
-                    if (!$col) {
-                        throw "Column doesn't exist error";
-                    }
-                    $this->query->groupBy($group);
-                $model->setGroup($val); */
-            } elseif ($key == "__order") {
-                $model->setOrder($val);
-            } elseif ($key == "__limit") {
-                $model->setLimit($val);
-            }
-        }
+        // $join_map = new Mappers\MapJoins();
+        // $join_map->
     }
 }

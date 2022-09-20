@@ -15,17 +15,6 @@ class FlagCell extends MetaCell {
         return (int) $val;
     }
 
-    function map($value) {
-        $value = ($value) ? 1 : 0;
-        $error = $this->validateSize($value); 
-        if ($error ==  ValidationRules::OK) {
-           return $value;
-        } else {
-            return throw $error;
-        }
-    }
-
-
     function toSchema() {
         $arr=parent::toSchema();
         $arr["type"] = "flag";

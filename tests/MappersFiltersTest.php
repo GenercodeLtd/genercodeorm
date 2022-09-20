@@ -15,6 +15,9 @@ use GenerCodeOrm\Mappers\MapFilters;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Container\Container as Container;
 
+require(__DIR__ . "/../app/standardfunctions.php");
+\GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
+
 final class MappersFiltersTest extends TestCase
 {
     public function setUp(): void
@@ -35,137 +38,120 @@ final class MappersFiltersTest extends TestCase
     }
 
     public function testNumberFilterRange() {
-
-        $container = new SchemaContainer();
-        $collection = new Schema($container, "", "model");
-        $model = new Model();
-        
-
+        $collection = new Schema("model");
+        $collection->alias = "t1";
+       
         $numCell = new NumberCell();
         $numCell->name = "num";
-        $collection->addActiveCell("num", $numCell);
-        $model->num = ["min"=>5,"max"=>10];
+        $numCell->schema = $collection;
 
-        $query = Capsule::table("model");
+        $query = Capsule::table("model", "t1");
 
         $filters = new MapFilters($query);
-        $filters->buildFilter($container, $model); 
+        $filters->buildNumber($numCell, ["min"=>5,"max"=>10]); 
 
         $sql = $query->toSQL();
-        $this->assertSame($sql, "select * from `model` where `model`.`num` >= ? and `model`.`num` <= ?");
+        $this->assertSame($sql, "select * from `model` as `t1` where `t1`.`num` >= ? and `t1`.`num` <= ?");
 
     }
 
     public function testNumberFilterSet() {
 
-        $container = new SchemaContainer();
-        $collection = new Schema($container, "", "model");
-        $model = new Model();
-        
+        $collection = new Schema("model");
+        $collection->alias = "t1";
+       
 
         $numCell = new NumberCell();
         $numCell->name = "num";
-        $collection->addActiveCell("num", $numCell);
-        $model->num = [10,15,20,25];
+        $numCell->schema = $collection;
 
-        $query = Capsule::table("model");
+        $query = Capsule::table("model", "t1");
 
         $filters = new MapFilters($query);
-        $filters->buildFilter($container, $model); 
+        $filters->buildNumber($numCell, [10,15,20,25]); 
 
         $sql = $query->toSQL();
-        $this->assertSame($sql, "select * from `model` where `model`.`num` in (?, ?, ?, ?)");
+        $this->assertSame($sql, "select * from `model` as `t1` where `t1`.`num` in (?, ?, ?, ?)");
 
     }
 
 
     public function testFlagFilter() {
-
-        $container = new SchemaContainer();
-        $collection = new Schema($container, "", "model");
-        $model = new Model();
         
-
+        $collection = new Schema("model");
+        $collection->alias = "t1";
+    
         $numCell = new FlagCell();
         $numCell->name = "flag";
-        $collection->addActiveCell("flag", $numCell);
-        $model->flag = 1;
+        $numCell->schema = $collection;
 
-        $query = Capsule::table("model");
+        $query = Capsule::table("model", "t1");
 
         $filters = new MapFilters($query);
-        $filters->buildFilter($container, $model); 
+        $filters->buildFlag($numCell, 1); 
 
         $sql = $query->toSQL();
-        $this->assertSame($sql, "select * from `model` where `model`.`flag` = ?");
+        $this->assertSame($sql, "select * from `model` as `t1` where `t1`.`flag` = ?");
 
     }
 
 
     public function testStringFilterSet() {
 
-        $container = new SchemaContainer();
-        $collection = new Schema($container, "", "model");
-        $model = new Model();
-        
-
+        $collection = new Schema("model");
+        $collection->alias = "t1";
+       
         $strCell = new StringCell();
         $strCell->name = "str";
-        $collection->addActiveCell("str", $strCell);
-        $model->str = ["%test%", "%test2%", "%test3%"];
-
-        $query = Capsule::table("model");
+        $strCell->schema = $collection;
+      
+        $query = Capsule::table("model", "t1");
 
         $filters = new MapFilters($query);
-        $filters->buildFilter($container, $model); 
+        $filters->buildString($strCell, ["%test%", "%test2%", "%test3%"]); 
 
         $sql = $query->toSQL();
-        $this->assertSame($sql, "select * from `model` where (`model`.`str` like ? or `model`.`str` like ? or `model`.`str` like ?)");
+        $this->assertSame($sql, "select * from `model` as `t1` where (`t1`.`str` like ? or `t1`.`str` like ? or `t1`.`str` like ?)");
 
     }
 
 
     public function testTimeFilterRange() {
 
-        $container = new SchemaContainer();
-        $collection = new Schema($container, "", "model");
-        $model = new Model();
-        
-
+        $collection = new Schema("model");
+        $collection->alias = "t1";
+     
         $timeCell = new TimeCell();
         $timeCell->name = "time";
-        $collection->addActiveCell("time", $timeCell);
-        $model->time = ["min"=>"2010-08-01 19:56:32"];
-
-        $query = Capsule::table("model");
+        $timeCell->schema = $collection;
+    
+        $query = Capsule::table("model", "t1");
 
         $filters = new MapFilters($query);
-        $filters->buildFilter($container, $model); 
+        $filters->buildTime($timeCell,  ["min"=>"2010-08-01 19:56:32"]); 
 
         $sql = $query->toSQL();
-        $this->assertSame($sql, "select * from `model` where `model`.`time` >= ?");
+        $this->assertSame($sql, "select * from `model` as `t1` where `t1`.`time` >= ?");
 
     }
 
     public function testTimeFilterSet() {
 
-        $container = new SchemaContainer();
-        $collection = new Schema($container, "", "model");
-        $model = new Model();
+        $collection = new Schema("model");
+        $collection->alias = "t1";
         
-
         $timeCell = new TimeCell();
         $timeCell->name = "time";
-        $collection->addActiveCell("time", $timeCell);
-        $model->time = ["2010-08-01 19:56:32", "2010-12-01 19:56:32"];
-
-        $query = Capsule::table("model");
+        $timeCell->schema = $collection;
+    
+        $query = Capsule::table("model", "t1");
+    
 
         $filters = new MapFilters($query);
-        $filters->buildFilter($container, $model); 
+        $filters->buildTime($timeCell, ["2010-08-01 19:56:32", "2010-12-01 19:56:32"]); 
 
         $sql = $query->toSQL();
-        $this->assertSame($sql, "select * from `model` where `model`.`time` in (?, ?)");
+        $this->assertSame($sql, "select * from `model` as `t1` where `t1`.`time` in (?, ?)");
 
     }
 

@@ -2,15 +2,6 @@
 
 namespace GenerCodeOrm\Cells;
 
-abstract class CellValueType
-{
-    public const range = 0;
-    public const min = 1;
-    public const max = 2;
-    public const set = 3;
-    public const fixed = 4;
-}
-
 
 class MetaCell
 {
@@ -27,6 +18,7 @@ class MetaCell
     protected $model;
     protected $states = [];
     protected $summary = false;
+    protected $schema;
     
 
     public function __construct()
@@ -60,9 +52,9 @@ class MetaCell
 
     public function validateSize($size)
     {
-        if ($this->min !== null and $size <= $this->min) {
+        if ($this->min !== null and $size < $this->min) {
             return ValidationRules::OutOfRangeMin;
-        } elseif ($this->max !== null and $size >= $this->max) {
+        } elseif ($this->max !== null and $size > $this->max) {
             return ValidationRules::OutOfRangeMax;
         } else {
             return ValidationRules::OK;
@@ -102,7 +94,7 @@ class MetaCell
 
     public function clean($value)
     {
-        return $value;
+        return trim($value);
     }
 
     public function toSchema()

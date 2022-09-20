@@ -13,16 +13,6 @@ class IdCell extends MetaCell {
         $this->default = 0;
     }
     
-   
-    function map($value) {
-        $value = (is_numeric($value)) ? $value : 0;
-        $error = $this->validateSize($value);
-        if ($error == ValidationRules::OK) {
-            return $value;
-        } else {
-            return null;
-        }
-    }
 
 
     function toSchema() {

@@ -4,12 +4,12 @@ namespace PressToJam\Schemas;
 use \GenerCodeOrm\Cells as Cell;
 
 
-class Projects extends \GenerCodeOrm\Schema {
+class Pages extends \GenerCodeOrm\Schema {
 
     protected $cells = [];
 
     function __construct() {
-        parent::__construct("projects");
+        parent::__construct("pages");
     
         $cell = new Cell\IdCell();
         $cell->name = "id";
@@ -18,119 +18,136 @@ class Projects extends \GenerCodeOrm\Schema {
         $cell->system = true;
         $cell->setValidation(1, 18446744073709551615);
         $refs = [];
-        $refs[] = "models";
-        $refs[] = "profiles";
-        $refs[] = "dictionary-templates";
-        $refs[] = "pages";
-        $refs[] = "sync-db-log";
         $cell->reference = $refs;
         $cell->immutable = true;
         $cell->model = $this->model;
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
        
-
         $cell = new Cell\IdCell();
-        $cell->alias = "--owner";
-        $cell->name = "user_login_id";
-        $cell->setValidation(1, 18446744073709551615);
-        $cell->immutable = true;
-        $cell->reference_type = Cell\ReferenceTypes::OWNER;
-        $cell->reference = "user-login";
-        $cell->model = $this->model;
+        $cell->name = "projects_id";
+        $cell->alias = "--parent";
+        $cell->reference_type = Cell\ReferenceTypes::PARENT;
         $cell->system = true;
+        $cell->setValidation(1, 18446744073709551615);
         $cell->background = true;
+        $cell->reference = "projects";
+        $cell->immutable = true;
+        $cell->model = $this->model;
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
-
+      
  
         $cell = new Cell\StringCell();
-        $cell->name = "domain";
-        $cell->setValidation(0, 100, '', '[<>]+');
+        $cell->name = "title";
+        $cell->setValidation(1, 250, '', '[<>]+');
         $cell->default = "";
         $cell->summary = true;
         $cell->model = $this->model;
-        $cell->alias = "domain";
+        $cell->alias = "title";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\AssetCell();
+        $cell->name = "content";
+        $cell->dir = "pages/content/";
+        $cell->name_template = "pages_content_%id.%ext";
+        $cell->setValidation(0, null, '', '');
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "content";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\StringCell();
-        $cell->name = "hosting_status";
-        $cell->setValidation(0, 255, 'active|demo|notactive|cancelled|restricted', '[<>]+');
+        $cell->name = "post_mime_type";
+        $cell->setValidation(0, 100, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "hosting-status";
+        $cell->alias = "post-mime-type";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\StringCell();
-        $cell->name = "cfdist_id";
-        $cell->setValidation(0, 30, '', '[<>]+');
+        $cell->name = "post_type";
+        $cell->setValidation(0, 20, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "cfdist-id";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\FlagCell();
-        $cell->name = "termsnc";
-        $cell->required = true;
- 
-        $cell->setValidation(1, 1);
-        $cell->default = 1;
-        $cell->model = $this->model;
-        $cell->alias = "termsnc";
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-    
-        $cell = new Cell\StringCell();
-        $cell->name = "import_code";
-        $cell->setValidation(0, 255, '', '[<>]+');
-        $cell->default = "";
-        $cell->model = $this->model;
-        $cell->alias = "import-code";
+        $cell->alias = "post-type";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\NumberCell();
-        $cell->name = "monthly_price";
+        $cell->name = "menu_order";
         $cell->setValidation(0, 4294967295);
-        $cell->round = 2;
         $cell->default = 0;
         $cell->model = $this->model;
-        $cell->alias = "monthly-price";
+        $cell->alias = "menu-order";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
-        $cell = new Cell\AssetCell();
-        $cell->name = "src";
-        $cell->dir = "projects/src/";
-        $cell->name_template = "projects_src_%id.%ext";
-        $cell->setValidation(0, 100000000000, '', '');
+        $cell = new Cell\StringCell();
+        $cell->name = "guid";
+        $cell->setValidation(0, 255, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "src";
+        $cell->alias = "guid";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
-        $cell = new Cell\AssetCell();
-        $cell->name = "custom_file";
-        $cell->dir = "projects/custom-file/";
-        $cell->name_template = "projects_custom_file_%id.%ext";
-        $cell->setValidation(0, null, '', '');
+        $cell = new Cell\StringCell();
+        $cell->name = "post_name";
+        $cell->setValidation(1, 200, '', '[<>]+');
+        $cell->default = "";
+        $cell->summary = true;
+        $cell->model = $this->model;
+        $cell->alias = "post-name";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\StringCell();
+        $cell->name = "ping_status";
+        $cell->setValidation(0, 255, 'open|closed', '[<>]+');
+        $cell->default = "open";
+        $cell->model = $this->model;
+        $cell->alias = "ping-status";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\StringCell();
+        $cell->name = "comment_status";
+        $cell->setValidation(0, 255, 'open|closed', '[<>]+');
+        $cell->default = "open";
+        $cell->model = $this->model;
+        $cell->alias = "comment-status";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\StringCell();
+        $cell->name = "status";
+        $cell->setValidation(0, 255, 'publish|inherit|draft', '[<>]+');
+        $cell->default = "publish";
+        $cell->model = $this->model;
+        $cell->alias = "status";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\StringCell();
+        $cell->name = "excerpt";
+        $cell->setValidation(0, 500, '', '[<>]+');
         $cell->default = "";
         $cell->model = $this->model;
-        $cell->alias = "custom-file";
+        $cell->alias = "excerpt";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\FlagCell();
-        $cell->name = "process";
+        $cell->name = "publish";
  
         $cell->setValidation(0, 1);
         $cell->default = 0;
         $cell->model = $this->model;
-        $cell->alias = "process";
+        $cell->alias = "publish";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     

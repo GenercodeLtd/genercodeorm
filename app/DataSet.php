@@ -7,7 +7,7 @@ class DataValue {
     public $value;
 }
 
-class DataSet extends Mapper {
+class DataSet {
 
     protected $values = [];
 
@@ -53,9 +53,8 @@ class DataSet extends Mapper {
     }
 
 
-    public function getValueContainer($key) {
-        if (isset($this->values[$key])) return $this->values[$key];
-        else throw new \Exception($key . " does not exist");
+    function getBinds() {
+        return $this->values;
     }
 
 
@@ -73,6 +72,7 @@ class DataSet extends Mapper {
         foreach($this->values as $slug => $mval) {
             if (is_array($mval->value)) {
                 //do something over here with the value
+                echo "is ivalue?";
                 foreach($mval->value as $ikey=>$ivalue) {
                     $error = $mval->cell->validate($ivalue);
                     if ($error) {

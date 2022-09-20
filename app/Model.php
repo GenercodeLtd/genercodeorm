@@ -3,64 +3,62 @@
 namespace GenerCodeOrm;
 
 use Psr\Http\Message\ServerRequestInterface;
-use GenercodeCore\Facades\Schema;
+
+
 
 class Model
 {
-    protected $name;
     protected $profile;
-    protected $schema;
+    protected $repo_schema;
+    protected $dbmanager;
 
-    public function __construct($profile, $name)
+    public function __construct(
+        \Illuminate\Database\DatabaseManager $dbmanager, 
+        SchemaFactory $factory, 
+        Profile $profile)
     {
-        $this->query = $query;
+        $this->dbmanager = $dbmanager;
         $this->profile = $profile;
-        $this->name = $name;
-        $this->schema = Schema::get($name);
+        $this->repo_schema = new SchemaRepository($factory);
     }
 
+    
 
-    private function archive($id)
+    private function archive($idata)
     {
+        $schema = $this->repo_schema->getSchema("");
         $data = new DataSet();
-        $archive_data = new DataSet();
-
-        $aliases = $this->schema->getAllAliases();
-        $aliases = array_filter($aliases, function ($val) {
-            return ($val == "--created" or $val == "--updated") ? false : true;
-        });
-
-        foreach ($aliases as $alias) {
-            $cell = $this->schema->get($alias);
-            $data->bind($alias, $cell);
-            $archive_data->bind($alias, $cell);
+     
+        $cols = [];
+        foreach($data as $key=>$val) {
+            if ($key == "date_created" OR $key == "last_updated") continue;
+            $cols[$key] = $val;
         }
 
-        $data->{"--id"} = $id;
-        $data->validate();
+       // $data->apply($idata);
+       // $data->validate();
 
-        $archive_data->bind("--archive", $this->schema->getArchive());
-
-        $map = new Mappers()/MapCopy($this->query);
-        $map->copy($data, $archive_data);
+        $map = new Mappers\MapQuery($this->dbmanager, $this->repo_schema);
+        $map->archive($cols);
     }
 
 
-    public function create(array $params)
+    public function create($name, array $params)
     {
-        if (!$this->profile->hasPermission($this->name, "post")) {
-            throw \Exception();
+        if (!$this->profile->hasPermission($name, "post")) {
+            throw new \Exception("No permission for " . $name . " and post");
         }
 
         $data = new DataSet();
 
-        if ($this->schema->hasParent()) {
-            $data->bind("--parent", $this->schema->get("--parent"));
-        }
+        $this->repo_schema->loadBase($name);
 
-        $aliases = $this->schema->getAllAliases();
-        foreach ($aliases as $alias) {
-            $cell = $this->schema->get($alias);
+        if ($this->repo_schema->has("--parent")) {
+            $data->bind("--parent", $this->repo_schema->get("--parent"));
+        }
+       
+        $schema = $this->repo_schema->getSchema("");
+        foreach ($schema->cells as $alias=>$cell) {
             if (!$cell->system and ($cell->required or isset($params[$alias]))) {
                 $data->bind($alias, $cell);
             }
@@ -68,108 +66,137 @@ class Model
 
         $data->apply($params);
         $data->validate();
+       
+        $save = new Mappers\MapQuery($this->dbmanager, $this->repo_schema);
 
-        $save = new MapCrud($query);
-        $data->bind("--id", $this->schema->get("--id"));
-        $data->{"--id"} = $save->post($model);
+        $data->bind("--id", $schema->get("--id"));
+        $data->{"--id"} = $save->post($data);
 
-        trigger($this->name, "create", $data);
         return $data->toArr();
     }
 
 
-    public function update(array $params)
+    public function update($name, array $params)
     {
-        if (!$this->profile->hasPermission($this->name, "put")) {
-            throw \Exception();
+        if (!$this->profile->hasPermission($name, "put")) {
+            throw new \Exception("this profile does not have permission to access " . $name . " and put ");
         }
 
-        $data = new DataSet();
-        $data->bind("--id", $this->schema->get("--id"));
+        $this->repo_schema->loadBase($name);
+        $schema = $this->repo_schema->getSchema("");
 
-        foreach ($params as $key=>$val) {
-            $cell = $this->schema->get($key);
-            if (!$cell->system) {
-                $data->bind($key, $cell);
-                $data->$key = $val;
+        $sdata = new DataSet();
+        $sdata->bind("--id", $schema->get("--id"));
+        $sdata->{"--id"} = $params["--id"];
+        $sdata->validate();
+
+        $crud = new Mappers\MapQuery($this->dbmanager, $this->repo_schema);
+        $original_data = $crud->select($sdata)->first();
+
+
+        $data = new DataSet();
+        $data->bind("--id", $schema->get("--id"));
+
+        foreach ($schema->cells as $alias=>$cell) {
+            if (!$cell->system and isset($params[$alias])) {
+                $data->bind($alias, $cell);
             }
         }
 
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $this->repo_schema->loadToSecure();
+            $top = $this->repo_schema->getTop();
+            $data->bind("--owner", $top->get("--owner"));
+            $data->{"--owner"} = $this->profile->id;
+        }
+
+        $data->apply($params);
         $data->validate();
 
-
-        $crud = new MapCrud($query);
-        $original_data = $crud->select($schema, $model);
-
-        if ($schema->archive) {
-            $this->archive($data->{"--id"});
+        if ($schema->has("--archive")) {
+            $this->archive($original_data);
         }
-        $crud->update($schema, $model);
 
-        trigger($this->name, "update", $model->asCollection(), $original_data);
+        $crud->update($data);
 
+        return [
+            "original"=>$original_data,
+            "data"=>$data->toArr()
+        ];
         return true;
     }
 
 
-    public function delete(array $params)
+    public function delete(string $name, array $params)
     {
-        if (!$this->profile->hasPermission($this->name, "delete")) {
-            throw \Exception();
+        if (!$this->profile->hasPermission($name, "delete")) {
+            throw new \Exception("No permission to edit this file", $name);
         }
 
+        $this->repo_schema->loadBase($name);
+        $this->repo_schema->loadChildren();
+
+        $schema = $this->repo_schema->getSchema("");
+
         $data = new DataSet();
-        $data->bind("--id", $this->schema->get("--id"));
+        $data->bind("--id", $schema->get("--id"));
         $data->{"--id"} = $params["--id"];
+
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            echo "\nWe are building secure?";
+            $this->repo_schema->loadToSecure();
+            $top = $this->repo_schema->getTop();
+
+            $data->bind("--owner", $top->get("--owner"));
+            $data->{"--owner"} = $this->profile->id;
+            echo "Id is " . $data->{"--owner"};
+        }
 
         $data->validate();
 
-        if ($schema->archive) {
-            $this->archive($data->{"--id"});
+
+        $crud = new Mappers\MapQuery($this->dbmanager, $this->repo_schema);
+        $original_data = $crud->select($data)->first();
+
+        if ($schema->has("--archive")) {
+            $this->archive($original_data);
         }
 
-        $crud = new MapCrud();
-        $original_data = $crud->select($schema, $model);
+        $crud->delete($data);
 
-        $crud->delete($schema, $model);
-
-        trigger($this->name, "delete", $model->asCollection(), $original_data);
-        $response->body->write(json_encode("success"));
+        return $original_data;
     }
 
 
 
-    public function resort(array $params)
+    public function resort($name, array $params)
     {
-        if (!$this->profile->hasPermission($this->name, "put")) {
+        if (!$this->profile->hasPermission($name, "put")) {
             throw Exception();
         }
 
-        $schema = $this->loadSchema($this->name);
+        $this->repo_schema->loadBase($name);
+        $schema = $this->repo_schema->getSchema("");
 
-        $sortCol = $collection->getFromAlias("--sort");
-        $idCol = $collection->getFromAlias("--id");
+        $sortCol = $schema->get("--sort");
+        $idCol = $schema->get("--id");
 
-        $schema->addActiveCell("--id", $idCol);
-        $schema->addActiveCell("--sort", $sortCol);
-
-        $models = [];
+       
+        $dataSets = [];
         foreach ($params as $row) {
-            $model = new Model($row);
-            Validator::validate($schema, $model);
-            $models[] = $model;
+            $data = new DataSet();
+            $data->bind("--sort", $sortCol);
+            $data->bind("--id", $idCol);
+            
+            $data->{"--sort"} = $row["--sort"];
+            $data->{"--id"} = $row["--id"];
+
+            $data->validate();
+            $dataSets[] = $data;
         }
 
-
-
-        $sql = "UPDATE " . $collection->table . " SET " . $sortCol->name . " = ? WHERE " . $idCol->name . " = ?";
-
-        $stmt = new MapPrepared($query);
-        $stmt->prepare($sql);
-
-        foreach ($models as $model) {
-            $stmt->execute($model);
-        }
+        $stmt = new Mappers\MapQuery($this->dbmanager, $this->repo_schema);
+        $stmt->multipleUpdate($dataSets);
 
         return true;
     }

@@ -5,9 +5,9 @@ namespace GenerCodeOrm\Cells;
 
 class AggregatorNumberCell {
 
-    protected $value = null;
     protected $meta_fields = [];
     protected $alias;
+    protected $aggregator_type;
 
     function __construct($fields) {
         $this->meta_fields = $fields;
@@ -23,24 +23,6 @@ class AggregatorNumberCell {
         else if (isset($this->meta_fields[$name])) return $this->meta_fields[$name];
     }
 
-    
-    function __toString() {
-        return $this->value;
-    }
-
-    //values coming from a database. important for number cell
-    function mapOutput($val) {
-        $this->value = (int) $val;
-    }
-    
-
-    function export() {
-        return $this->value;
-    }
-
-    function reset() {
-        $this->value = null;
-    }
-
+   
 
 }

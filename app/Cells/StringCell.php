@@ -32,28 +32,9 @@ class StringCell extends MetaCell {
     }
 
 
-    function map($value) {
-        if (is_array($value)) {
-            foreach($value as $key=>$val) {
-                $value[$key] = trim($val);
-                $this->validate($value[$key]);
-                if ($this->last_error != ValidationRules::OK) {
-                    return null;
-                }
-            }
-        } else {
-            $value = trim($value);
-            $this->validate($value);
-            if ($this->last_error != ValidationRules::OK) {
-                return null;
-            }
-        }
-        return $value;
-    }
-
 
     function validate($value, $contains_value = null) {
-        return $this->validate(strlen($value), $value);
+        return parent::validate(strlen($value), $value);
     }
 
 

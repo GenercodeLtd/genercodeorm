@@ -4,12 +4,12 @@ namespace PressToJam\Schemas;
 use \GenerCodeOrm\Cells as Cell;
 
 
-class Sections extends \GenerCodeOrm\Schema {
+class DictionaryTemplates extends \GenerCodeOrm\Schema {
 
     protected $cells = [];
 
     function __construct() {
-        parent::__construct("sections");
+        parent::__construct("dictionary_templates");
     
         $cell = new Cell\IdCell();
         $cell->name = "id";
@@ -25,57 +25,56 @@ class Sections extends \GenerCodeOrm\Schema {
         $this->cells[$cell->alias] = $cell;
        
         $cell = new Cell\IdCell();
-        $cell->name = "models_id";
+        $cell->name = "projects_id";
         $cell->alias = "--parent";
         $cell->reference_type = Cell\ReferenceTypes::PARENT;
         $cell->system = true;
         $cell->setValidation(1, 18446744073709551615);
         $cell->background = true;
-        $cell->reference = "models";
+        $cell->reference = "projects";
         $cell->immutable = true;
         $cell->model = $this->model;
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
       
-        $cell = new Cell\IdCell();
-        $cell->name = "archive_id";
-        $cell->alias = "--archive";
-        $cell->setValidation(1, 18446744073709551615);
-        $cell->immutable = true;
-        $cell->model = $this->model;
-        $cell->system = true;
-        $cell->background = true;
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-       
-        $cell = new Cell\NumberCell();
-        $cell->name = "_sort";
-        $cell->setValidation(0, 65535);
-        $cell->alias = "--sort";
-        $cell->model = $this->model;
-        $cell->system = true;
-        $cell->background = true;
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-       
  
         $cell = new Cell\StringCell();
-        $cell->name = "name";
-        $cell->setValidation(1, 70, '', '[<>]+');
+        $cell->name = "language";
+        $cell->setValidation(0, 5, '', '[<>]+');
         $cell->default = "";
-        $cell->summary = true;
         $cell->model = $this->model;
-        $cell->alias = "name";
+        $cell->alias = "language";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\AssetCell();
+        $cell->name = "template";
+        $cell->dir = "dictionary-templates/template/";
+        $cell->name_template = "dictionary_templates_template_%id.%ext";
+        $cell->setValidation(0, null, '', '');
+        $cell->default = "";
+        $cell->model = $this->model;
+        $cell->alias = "template";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
         $cell = new Cell\FlagCell();
-        $cell->name = "required";
+        $cell->name = "process";
  
         $cell->setValidation(0, 1);
         $cell->default = 0;
         $cell->model = $this->model;
-        $cell->alias = "required";
+        $cell->alias = "process";
+        $cell->schema = $this;
+        $this->cells[$cell->alias] = $cell;
+    
+        $cell = new Cell\FlagCell();
+        $cell->name = "is_default";
+ 
+        $cell->setValidation(0, 1);
+        $cell->default = 0;
+        $cell->model = $this->model;
+        $cell->alias = "is-default";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     

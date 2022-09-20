@@ -28,9 +28,7 @@ final class SchemaTest extends TestCase
 
     public function testSchema() {
         $schema = new \GenerCode\Schemas\Projects();
-        var_dump($schema->getSchema());
-        exit;
-
+       
         $collection->activateChildren(["models/", "fields/", "pages/"]);
         
         $container = $collection->getContainer();

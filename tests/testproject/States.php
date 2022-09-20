@@ -4,12 +4,12 @@ namespace PressToJam\Schemas;
 use \GenerCodeOrm\Cells as Cell;
 
 
-class Sections extends \GenerCodeOrm\Schema {
+class States extends \GenerCodeOrm\Schema {
 
     protected $cells = [];
 
     function __construct() {
-        parent::__construct("sections");
+        parent::__construct("states");
     
         $cell = new Cell\IdCell();
         $cell->name = "id";
@@ -48,34 +48,26 @@ class Sections extends \GenerCodeOrm\Schema {
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
        
-        $cell = new Cell\NumberCell();
-        $cell->name = "_sort";
-        $cell->setValidation(0, 65535);
-        $cell->alias = "--sort";
-        $cell->model = $this->model;
-        $cell->system = true;
-        $cell->background = true;
-        $cell->schema = $this;
-        $this->cells[$cell->alias] = $cell;
-       
  
-        $cell = new Cell\StringCell();
-        $cell->name = "name";
-        $cell->setValidation(1, 70, '', '[<>]+');
-        $cell->default = "";
+        $cell = new Cell\IdCell();
+        $cell->name = "dependant";
+        $cell->setValidation(0, 4294967295);
+        $cell->reference_type = Cell\ReferenceTypes::REFERENCE;
+        $cell->reference = "fields";
+        $cell->default = 0;
         $cell->summary = true;
         $cell->model = $this->model;
-        $cell->alias = "name";
+        $cell->alias = "dependant";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
-        $cell = new Cell\FlagCell();
-        $cell->name = "required";
- 
-        $cell->setValidation(0, 1);
-        $cell->default = 0;
+        $cell = new Cell\StringCell();
+        $cell->name = "val";
+        $cell->setValidation(0, 255, '', '[<>]+');
+        $cell->default = "";
+        $cell->summary = true;
         $cell->model = $this->model;
-        $cell->alias = "required";
+        $cell->alias = "val";
         $cell->schema = $this;
         $this->cells[$cell->alias] = $cell;
     
