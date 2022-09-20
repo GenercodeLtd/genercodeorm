@@ -46,12 +46,15 @@ final class RepoTest extends TestCase
     }
 
 
-    public function testPost() {
+    public function testRepo() {
         $profile = new GenerCodeOrm\Profile();
         $profile->id = 1;
         $profile->type = "test";
 
-        $profile->models = ["models"=>["post"]];
+        $profile->models = ["models"=>["get"]];
+
+        $repo = new GenerCodeOrm\Repository();
+        $repo->
 
         $factory = new SchemaFactory();
         
@@ -62,40 +65,5 @@ final class RepoTest extends TestCase
     }
 
 
-    public function testDelete() {
-        $profile = new GenerCodeOrm\Profile();
-        $profile->id = 1;
-        $profile->type = "test";
-
-        $profile->models = ["models"=>["delete"]];
-
-        $factory = new SchemaFactory();
-
-        $model = new Model($this->dbmanager, $factory, $profile);
-        $res = $model->delete("models", ["--id"=>780]);
-        //var_dump($res);
-        $this->assertSame(15, $model->id);
-    }
-
-    public function testUpdate() {
-        $profile = new GenerCodeOrm\Profile();
-        $profile->id = 1;
-        $profile->type = "test";
-
-        $profile->models = ["models"=>["put"]];
-
-        $factory = new SchemaFactory();
-
-        $model = new Model($this->dbmanager, $factory, $profile);
-        $res = $model->update("models", ["has-import"=>true, "--id"=>780]);
-        var_dump($res);
-        $this->assertSame(15, $model->id);
-    }
-
-
-    public function testSlug() {
-        $model = new Model();
-        $model->{ "collection/name" } = "stuff";
-        $this->assertSame("stuff", $model->{ "collection/name" });
-    }
+   
 }
