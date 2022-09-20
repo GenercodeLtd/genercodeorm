@@ -5,6 +5,7 @@ class Profile {
 
     protected $models = [];
     protected $id; //user id
+    protected $allow_anonymous = false;
 
     function __get($key) {
         if (property_exists($this, $key)) return $this->$key;
@@ -26,6 +27,16 @@ class Profile {
         return $this->hasPermission($model, "admin");
     }
 
+
+    function getSitemap($factory) {
+        $routes = [];
+        foreach($this->models as $name=>$perms) {
+            $schema = $factory($name);
+            $schema["perms"] = $perms;
+            $routes[$name] = $schema;
+        }
+        return $routes;
+    }
 
 
 }
