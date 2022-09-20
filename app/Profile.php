@@ -32,8 +32,9 @@ class Profile {
         $routes = [];
         foreach($this->models as $name=>$perms) {
             $schema = $factory($name);
-            $schema["perms"] = $perms;
-            $routes[$name] = $schema;
+            $route = $schema->getSchema();
+            $route["perms"] = $perms;
+            $routes[$name] = $route;
         }
         return $routes;
     }

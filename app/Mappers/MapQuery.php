@@ -120,6 +120,21 @@ class MapQuery
     }
 
 
+    public function get(array $fields, \GenercodeOrm\DataSet $data, $order = [], $limit = null, $group = [])
+    {
+        $this->setTable();
+        $this->joinTo();
+        $this->children();
+        $this->secure();
+        $this->fields($fields);
+        $this->filter($data);
+        $this->order($order);
+        if ($limit) $this->limit($limit);
+        if ($group) $this->group($group);
+        return $this->query->get();
+    }
+
+
     public function multipleUpdate(array $data)
     {
         if (count($data) == 0) {

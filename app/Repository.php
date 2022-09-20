@@ -6,24 +6,30 @@ use Psr\Http\Message\ServerRequestInterface;
 use Illuminate\Support\Str;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-class Repository extends Mappers\Map
+class Repository
 {
+    protected $dbmanager;
+
     protected $name;
     protected $profile;
-    protected $query;
     protected $to;
     protected $order;
     protected $limit;
     protected $group;
     protected $children = [];
     protected $fields;
-    protected SchemaRepository $schema_resp;
+    protected SchemaRepository $schema;
 
 
-    public function __construct($profile)
+    public function __construct(
+        \Illuminate\Database\DatabaseManager $dbmanager,
+        SchemaFactory $factory,
+        Profile $profile
+    )
     {
+        $this->dbmanager = $dbmanager;
         $this->profile = $profile;
-        $this->schema = new SchemaRepository();
+        $this->repo_schema = new SchemaRepository($factory);
     }
 
     public function __set($key, $val)
@@ -33,10 +39,6 @@ class Repository extends Mappers\Map
         }
     }
 
-    public function setModel($name)
-    {
-        $this->name = $name;
-    }
 
     private function getWhereParams($params)
     {
@@ -45,45 +47,66 @@ class Repository extends Mappers\Map
         });
     }
 
-    private function loadReferenceSchema($slug, Cells\MetaCell $cell)
-    {
-        $this->schema->load($slug . "/" . $cell->name . "/" . $cell->reference . "/", SchemaFactory::get($cell->reference));
-    }
 
-
-    private function loadChildrenSchema(Cells\MetaCell $id)
+    public function buildUpSchema($name, $params)
     {
-        foreach ($id->reference as $child) {
-            if (in_array($child, $children)) {
-                $this->schema->load($child . "/", SchemaFactory::get($child));
-                $this->loadChildrenSchema($this->schema->get($child . "/--id"));
-            }
+        $this->repo_schema->loadBase($name);
+        if (isset($params["__children"])) {
+            $this->repo_schema->loadChildren($params["__children"]);
+        }
+        if (isset($params["__to"])) {
+            $this->repo_schema->loadTo($params["__to"]);
+        }
+        
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $this->repo_schema->loadToSecure();
         }
     }
 
-    private function loadSchema($name = null)
+    private function getAllFields()
     {
-        if (!$name) {
-            $name = $this->name;
-        }
-        $this->schema->create($this->name);
-
-        if ($this->to) {
-            $parent = $this->schema->get("--parent");
-
-            while ($parent) {
-                $this->schema->load($parent->reference . "/", SchemaFactory::get($parent->reference));
-                if ($parent->reference == $this->to) {
-                    break;
-                }
-                if ($this->schema->has($parent->reference . "/--parent")) {
-                    $parent = $this->schema->get($parent->reference . "/--parent");
-                } else {
-                    $parent = null;
+        $schemas = $this->repo_schema->getSchemas();
+        $fields = [];
+        foreach ($schemas as $slug=>$schema) {
+            $alias_slug(!$slug) ? "" : $slug . "/";
+            foreach ($schema->cells as $cell) {
+                if (!$cell->background) {
+                    $fields[] = $alias_slug . $cell->alias;
                 }
             }
         }
+        return $fields;
     }
+
+
+    private function expandFields($fields)
+    {
+        $nfields = [];
+        foreach ($fields as $field) {
+            if (strpos($field, "*summary") !== false) {
+                $slug = trim(str_replace("/*summary", "", $field), "/");
+                $slug_alias = (!$slug) ? "" : $slug . "/";
+                $schema = $this->repo_schema->getSchema($slug);
+                foreach ($schema->cells as $cell) {
+                    if ($cell->summary) {
+                        $nfields[] = $slug_alias . $cfield->alias;
+                    }
+                }
+            } elseif (strpos($field, "*") !== false) {
+                $slug = trim(str_replace("/*summary", "", $field), "/");
+                $slug_alias = (!$slug) ? "" : $slug . "/";
+                $schema = $this->repo_schema->getSchema($slug);
+                foreach ($schema->cells as $cfield) {
+                    $nfields[] = $slug_alias . $cfield->alias;
+                }
+            } else {
+                $nfields[] = $field;
+            }
+        }
+        return $nfields;
+    }
+
+
 
 
     private function buildModel($where_params): DataSet
@@ -91,94 +114,88 @@ class Repository extends Mappers\Map
         $model = new DataSet();
 
         foreach ($where_params as $alias=>$val) {
-            if ($this->schema->has($alias)) {
-                $cell = $this->schema->get($alias);
+            if ($this->repo_schema->has($alias)) {
+                $cell = $this->repo_schema->get($alias);
                 $model->bind($alias, $cell);
             }
         }
 
         $model->apply($where_params);
         $model->validate();
-
-        return $model;
-    }
-
-    private function buildChildren($id)
-    {
-        foreach ($id->reference as $child) {
-            if ($this->schema->hasSchema($child . "/")) {
-                $this->buildJoin($query, $id, $this->schema->get($child . "/--parent"));
-                $id = $this->schema->get($child . "/--id");
-            }
+        if ($this->repo_schema->isSecure()) {
+            $top = $this->repo_schema->getTop();
+            $cell = $top->get("--owner");
+            $model->bind("--owner", $cell);
+            $model->{"--owner"} = $this->profile->id;
         }
+        return $model;
     }
 
 
     private function buildQuery(DataSet $model)
     {
         //$query = Capsule::table($this->name);
-        $map = new Mappers\MapQuery($this->name);
-        $map->buildFilters($model);
-        if ($this->to) {
-            $map->buildTo($this->to);
-        }
-        if ($this->children) {
-            $map->buildChildren($this->children);
-        }
-        return $map;
+        $map = new Mappers\MapQuery($this->dbmanager, $this->schema);
+
+        $fields = (!isset($params["__fields"])) ? $this->getAllFields() : $this->expandFields($params["__fields"]);
+        $this->repo_schema->loadReferences($fields);
+
+        return $map->get($fields, $model, $this->order, $this->limit, $this->group);
     }
 
 
 
-    public function get(array $params, $all = false)
+    public function get($name, array $params, $all = false)
     {
-        if (!$this->profile->hasPermission($this->name, "get")) {
-            throw \Exception();
+        if (!$this->profile->hasPermission($name, "get")) {
+            throw new \Exception("No permission for " . $name);
         }
 
         $where_params = $this->getWhereParams($params);
-        $schema = $this->loadSchema($this->name);
+        $this->buildUpSchema($name, $params);
+
         $model = $this->buildModel($where_params);
 
+        $this->limit = 1;
+        $res = $this->buildQuery($model);
+        return $res->first();
+    }
 
-        // $join_map = new Mappers\MapJoins();
-        // $join_map->
 
-
-        $fields = [];
-        if ($this->fields) {
-            $fields = $this->fields;
-        } else {
-            //build up a new one
-            $schemas = $schema->getSchemas();
-            foreach ($schemas as $slug=>$schema) {
-                foreach ($schema as $alias=>$cell) {
-                    if ($slug AND !$cell->summary) continue;
-                    $fields[] = $alias;
-                    if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
-                        $this->loadReferenceSchema($slug . "/" . $alias, $cell);
-                        $ref_alias = $slug . "/" . $alias . "/" . $cell->reference;
-                        $schemas[$ref_alias] = $schema->getSchema($ref_alias);
-                    }
-                }
-            }
+    public function getAll($name, array $params, $all = false)
+    {
+        if (!$this->profile->hasPermission($name, "get")) {
+            throw new \Exception("No permission for " . $name);
         }
-        //get all fields required
 
+        $where_params = $this->getWhereParams($params);
+        $this->buildUpSchema($name, $params);
 
-        $map = $this->buildQuery($model);
-        $map->buildFields($fields);
-        $map->buildOrder($this->order);
-        if ($this->limit) {
-            $map->buildLimit();
+        $model = $this->buildModel($where_params);
+
+        if (isset($params["__limit"])) $this->limit = $params["__limit"];
+        if (isset($params["__order"])) $this->order = $params["__order"];
+        if (isset($params["__group"])) $this->group = $params["__group"];
+
+        if ($this->repos_schema->has("--sort")) {
+            $this->order = ["--sort"=>"ASC"];
         }
-        if ($this->group) {
-            $map->buildGroup();
-        }
-        $collection = $map->query->get();
+        $res = $this->buildQuery($model);
+        return $res->toArray();
+    }
 
-        $res = ($all) ? $map->query->getAll() : $map->query->get();
-        trigger($this->name, "select", $res);
+
+    public function getFirst($name, array $params)
+    {
+        $this->order = ["--id"=>"ASC"];
+        return $this->get($name, $params);
+    }
+
+
+    public function getLast($name, array $params)
+    {
+        $this->order = ["--id"=>"DESC"];
+        return $this->get($name, $params);
     }
 
 
@@ -187,12 +204,15 @@ class Repository extends Mappers\Map
     public function count(array $params)
     {
         if (!$this->profile->hasPermission($this->name, "get")) {
-            throw \Exception();
+            throw new \Exception("No permission for " . $name);
         }
-        $model = $this->buildModel($params);
 
+        $this->buildUpSchema($name, $params);
 
-        $schema = $this->loadSchema($this->name);
+        $where_params = $this->getWhereParams($params);
+        $model = $this->buildModel($where_params);
+
+      
 
         $map = $this->buildQuery();
         $collection = $map->query
@@ -200,7 +220,6 @@ class Repository extends Mappers\Map
         ->take(1)
         ->get();
 
-        // $join_map = new Mappers\MapJoins();
-        // $join_map->
+        return $collection->first();
     }
 }
