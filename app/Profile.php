@@ -8,7 +8,8 @@ class Profile {
     protected $allow_anonymous = false;
 
     function __get($key) {
-        if (property_exists($this, $key)) return $this->$key;
+        if ($key == "level") return 1;
+        else if (property_exists($this, $key)) return $this->$key;
     }
 
     function __set($key, $value) {
@@ -18,9 +19,13 @@ class Profile {
 
     function hasPermission($model, $method) {
         if (!isset($this->models[$model])) return false;
-        if (!in_array($method, $this->models[$model])) return false;
+        if (!in_array($method, $this->models[$model]["perms"])) return false;
         return true;
     } 
+
+    function isOwner() {
+
+    }
 
 
     function allowedAdminPrivilege($model) {

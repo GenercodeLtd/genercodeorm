@@ -76,6 +76,7 @@ class Models extends \GenerCodeOrm\Schema {
  
         $cell = new Cell\StringCell();
         $cell->name = "name";
+        $cell->unique = true;
         $cell->setValidation(1, 50, '', '[<>]+');
         $cell->default = "";
         $cell->summary = true;

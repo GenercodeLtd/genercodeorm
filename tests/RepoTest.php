@@ -19,6 +19,7 @@ require(__DIR__ . "/testproject/Models.php");
 require(__DIR__ . "/testproject/Projects.php");
 require(__DIR__ . "/testproject/Sections.php");
 require(__DIR__ . "/testproject/States.php");
+require(__DIR__ . "/testproject/Profiles.php");
 require(__DIR__ . "/testproject/SchemaFactory.php");
 
 final class RepoTest extends TestCase
@@ -46,22 +47,93 @@ final class RepoTest extends TestCase
     }
 
 
-    public function testRepo() {
+    public function testGet() {
         $profile = new GenerCodeOrm\Profile();
         $profile->id = 1;
         $profile->type = "test";
 
-        $profile->models = ["models"=>["get"]];
-
-        $repo = new GenerCodeOrm\Repository();
-        $repo->
+        $profile->models = ["models"=>["perms"=>["get"], "is_owner"=>false]];
 
         $factory = new SchemaFactory();
+
+        $repo = new GenerCodeOrm\Repository(
+            $this->dbmanager,
+            $factory,
+            $profile
+        );
         
-        $model = new Model($this->dbmanager, $factory, $profile);
-        $res = $model->create("models", ["name"=>"tname", "--parent"=>1]);
-        $id = $res["--id"];
-        $this->assertNotSame(0, $id);
+       
+        $res = $repo->get("models", ["name"=>"profiles"]);
+    
+        
+        $this->assertSame("profiles", $res->name);
+    }
+
+
+    public function testGetAll() {
+        $profile = new GenerCodeOrm\Profile();
+        $profile->id = 1;
+        $profile->type = "test";
+
+        $profile->models = ["models"=>["perms"=>["get"], "is_owner"=>false]];
+
+        $factory = new SchemaFactory();
+
+        $repo = new GenerCodeOrm\Repository(
+            $this->dbmanager,
+            $factory,
+            $profile
+        );
+        
+       
+        $res = $repo->getAll("models");
+
+        $this->assertGreaterThan(1, count($res));
+    }
+
+
+    public function testLimit() {
+        $profile = new GenerCodeOrm\Profile();
+        $profile->id = 1;
+        $profile->type = "test";
+
+        $profile->models = ["models"=>["perms"=>["get"], "is_owner"=>false]];
+
+        $factory = new SchemaFactory();
+
+        $repo = new GenerCodeOrm\Repository(
+            $this->dbmanager,
+            $factory,
+            $profile
+        );
+        
+        $repo->limit  = 3;
+        $res = $repo->getAll("models");
+
+        $this->assertSame(3, count($res));
+    }
+
+
+    public function testChildren() {
+        $profile = new GenerCodeOrm\Profile();
+        $profile->id = 1;
+        $profile->type = "test";
+
+        $profile->models = ["models"=>["perms"=>["get"], "is_owner"=>false]];
+
+        $factory = new SchemaFactory();
+
+        $repo = new GenerCodeOrm\Repository(
+            $this->dbmanager,
+            $factory,
+            $profile
+        );
+
+        $repo->children = ["fields", "sections"];
+        
+        $res = $repo->getAll("models");
+
+        $this->assertSame(3, count($res));
     }
 
 

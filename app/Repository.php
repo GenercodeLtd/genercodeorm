@@ -6,72 +6,27 @@ use Psr\Http\Message\ServerRequestInterface;
 use Illuminate\Support\Str;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-class Repository
+class Repository extends Model
 {
-    protected $dbmanager;
-
-    protected $name;
-    protected $profile;
+   
     protected $to;
-    protected $order;
+    protected ?array $children = null;
+    protected ?array $fields = null;
     protected $limit;
-    protected $group;
-    protected $children = [];
-    protected $fields;
-    protected SchemaRepository $schema;
+    protected $offset;
+    protected ?array $order = null;
+    protected string $group = "";
 
-
-    public function __construct(
-        \Illuminate\Database\DatabaseManager $dbmanager,
-        SchemaFactory $factory,
-        Profile $profile
-    )
-    {
-        $this->dbmanager = $dbmanager;
-        $this->profile = $profile;
-        $this->repo_schema = new SchemaRepository($factory);
-    }
-
-    public function __set($key, $val)
-    {
-        if (property_exists($this, $key)) {
-            $this->$key = $val;
-        }
-    }
-
-
-    private function getWhereParams($params)
-    {
-        $where_params = array_filter($params, function ($var) {
-            return (strpos($var, "__") === 0) ? false : true;
-        });
-    }
-
-
-    public function buildUpSchema($name, $params)
-    {
-        $this->repo_schema->loadBase($name);
-        if (isset($params["__children"])) {
-            $this->repo_schema->loadChildren($params["__children"]);
-        }
-        if (isset($params["__to"])) {
-            $this->repo_schema->loadTo($params["__to"]);
-        }
-        
-        if (!$this->profile->allowedAdminPrivilege($name)) {
-            $this->repo_schema->loadToSecure();
-        }
-    }
 
     private function getAllFields()
     {
         $schemas = $this->repo_schema->getSchemas();
         $fields = [];
         foreach ($schemas as $slug=>$schema) {
-            $alias_slug(!$slug) ? "" : $slug . "/";
+            $fields[$slug] = [];
             foreach ($schema->cells as $cell) {
                 if (!$cell->background) {
-                    $fields[] = $alias_slug . $cell->alias;
+                    $fields[$slug][] = $cell->alias;
                 }
             }
         }
@@ -79,123 +34,104 @@ class Repository
     }
 
 
-    private function expandFields($fields)
+    private function expandFields()
     {
-        $nfields = [];
-        foreach ($fields as $field) {
+        $fields = [];
+        foreach ($this->fields as $field) {
             if (strpos($field, "*summary") !== false) {
                 $slug = trim(str_replace("/*summary", "", $field), "/");
-                $slug_alias = (!$slug) ? "" : $slug . "/";
+                if (!isset($fields[$slug])) $fields[$slug] = [];
                 $schema = $this->repo_schema->getSchema($slug);
                 foreach ($schema->cells as $cell) {
                     if ($cell->summary) {
-                        $nfields[] = $slug_alias . $cfield->alias;
+                        $fields[$slug][] = $cfield->alias;
                     }
                 }
             } elseif (strpos($field, "*") !== false) {
                 $slug = trim(str_replace("/*summary", "", $field), "/");
-                $slug_alias = (!$slug) ? "" : $slug . "/";
+                if (!isset($fields[$slug])) $fields[$slug] = [];
                 $schema = $this->repo_schema->getSchema($slug);
                 foreach ($schema->cells as $cfield) {
-                    $nfields[] = $slug_alias . $cfield->alias;
+                    $fields[$slug][] = $cfield->alias;
                 }
             } else {
-                $nfields[] = $field;
+                $parts = $this->repo_schema->splitNames($field);
+                if (!isset($fields[$parts[0]])) $fields[$parts[0]] = [];
+                $fields[$parts[0]][] = $parts[1];
             }
         }
-        return $nfields;
+        return $fields;
     }
 
 
 
 
-    private function buildModel($where_params): DataSet
-    {
-        $model = new DataSet();
-
-        foreach ($where_params as $alias=>$val) {
-            if ($this->repo_schema->has($alias)) {
-                $cell = $this->repo_schema->get($alias);
-                $model->bind($alias, $cell);
+    public function convertFieldsToDataMap($fields) {
+        $data = new DataSet();
+        foreach($fields as $slug=>$fields) {
+            $slug_alias = (!$slug) ? "" : $slug . "/";
+            foreach($fields as $alias=>$field) {
+                $data->bind($slug_alias . $alias, $this->repo_schema->get($alias, $slug));
             }
         }
-
-        $model->apply($where_params);
-        $model->validate();
-        if ($this->repo_schema->isSecure()) {
-            $top = $this->repo_schema->getTop();
-            $cell = $top->get("--owner");
-            $model->bind("--owner", $cell);
-            $model->{"--owner"} = $this->profile->id;
-        }
-        return $model;
+        return $data;
     }
 
-
-    private function buildQuery(DataSet $model)
+    
+    public function getQuery()
     {
-        //$query = Capsule::table($this->name);
-        $map = new Mappers\MapQuery($this->dbmanager, $this->schema);
-
-        $fields = (!isset($params["__fields"])) ? $this->getAllFields() : $this->expandFields($params["__fields"]);
+        if ($this->to) $this->repo_schema->loadTo($this->to);
+        if ($this->children) $this->repo_schema->loadChildren($this->children);
+        $fields = (!$this->fields) ? $this->getAllFields() : $this->expandFields();
         $this->repo_schema->loadReferences($fields);
+        
 
-        return $map->get($fields, $model, $this->order, $this->limit, $this->group);
+        $schema = $this->repo_schema->getSchema("");
+        $query = $this->queryBuilder($schema->table, $schema->alias);
+        $query->loadTo($this->repo_schema);
+        $query->loadChild($this->repo_schema);
+        $query->fields($this->repo_schema, $this->convertFieldsToDataMap($fields));
+
+        if ($this->secure) $this->buildSecure($query, $this->to);
+       
+        $data = $this->createDataSet($this->where);
+        $query->filter($data);
+        return $query;
     }
 
 
 
-    public function get($name, array $params, $all = false)
+    public function get()
     {
-        if (!$this->profile->hasPermission($name, "get")) {
-            throw new \Exception("No permission for " . $name);
+        $query = $this->getQuery();
+        return $query->get()->first();
+    }
+
+
+    public function getAll($name, array $params = [])
+    {
+        $query = $this->getQuery();
+        $orders = [];
+        if ($this->repo_schema->has("--sort")) {
+            $cell = $this->repo_schema->get("--sort");
+            $query->orderBy($cell->schema->alias . "." . $cell->name, "ASC");
+        } else {
+            foreach ($this->order as $alias=>$dir) {
+                $cell = $this->repo_schema->get($alias);
+                $query->orderBy($cell->schema->alias . "." . $cell->name, "ASC");
+            }
         }
 
-        $where_params = $this->getWhereParams($params);
-        $this->buildUpSchema($name, $params);
-
-        $model = $this->buildModel($where_params);
-
-        $this->limit = 1;
-        $res = $this->buildQuery($model);
-        return $res->first();
-    }
-
-
-    public function getAll($name, array $params, $all = false)
-    {
-        if (!$this->profile->hasPermission($name, "get")) {
-            throw new \Exception("No permission for " . $name);
+   
+        if ($this->group) {
+            $cell = $this->repo_schema->get($this->group);
+            $query->groupBy($cell->schema->table . "." . $cell->name);
         }
 
-        $where_params = $this->getWhereParams($params);
-        $this->buildUpSchema($name, $params);
+        if ($this->limit) $query->take($this->limit);
+        if ($this->offset) $query->skip($this->offset);
 
-        $model = $this->buildModel($where_params);
-
-        if (isset($params["__limit"])) $this->limit = $params["__limit"];
-        if (isset($params["__order"])) $this->order = $params["__order"];
-        if (isset($params["__group"])) $this->group = $params["__group"];
-
-        if ($this->repos_schema->has("--sort")) {
-            $this->order = ["--sort"=>"ASC"];
-        }
-        $res = $this->buildQuery($model);
-        return $res->toArray();
-    }
-
-
-    public function getFirst($name, array $params)
-    {
-        $this->order = ["--id"=>"ASC"];
-        return $this->get($name, $params);
-    }
-
-
-    public function getLast($name, array $params)
-    {
-        $this->order = ["--id"=>"DESC"];
-        return $this->get($name, $params);
+        return $query->get()->toArray();
     }
 
 
@@ -203,23 +139,19 @@ class Repository
 
     public function count(array $params)
     {
-        if (!$this->profile->hasPermission($this->name, "get")) {
-            throw new \Exception("No permission for " . $name);
-        }
+        
+        if ($this->to) $this->repo_schema->loadTo($this->to);
+        $schema = $this->repo_schema->getSchema("");
+        $query = $this->queryBuilder($schema->table, $schema->alias);
+        $query->loadTo($this->repo_schema);
+       
+        if ($this->secure) $this->buildSecure($query, $this->to);
+       
+        $data = $this->createDataSet($this->where);
+        $query->filter($data);
+        $query->rawSelect("count(" . $schema->table . "." . $id->name . ") as 'count'")
+        ->take(1);
 
-        $this->buildUpSchema($name, $params);
-
-        $where_params = $this->getWhereParams($params);
-        $model = $this->buildModel($where_params);
-
-      
-
-        $map = $this->buildQuery();
-        $collection = $map->query
-        ->rawSelect("count(" . $schema->table . "." . $id->name . ") as 'count'")
-        ->take(1)
-        ->get();
-
-        return $collection->first();
+        return $query->get()->first();
     }
 }

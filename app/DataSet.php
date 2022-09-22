@@ -67,6 +67,15 @@ class DataSet {
     }
 
 
+    public function toCellArr() {
+        $arr = [];
+        foreach($this->values as $key=>$val) {
+            $arr[$val->cell->name] = $val->value;
+        } 
+        return $arr;
+    }
+
+
     public function validate() {
         $errors = [];
         foreach($this->values as $slug => $mval) {

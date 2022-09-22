@@ -9,23 +9,11 @@ class SchemaRepository
  
     protected $schemas = [];
     protected $factory;
-    protected $is_secure = false;
-
+ 
     function __construct(SchemaFactory $factory) {
         $this->factory = $factory;
     }
-  
-    public function splitNames($name) {
-        $exp = explode("/", $name);
-        if (count($exp) > 2) {
-            $cexp = ["", array_pop($exp)];
-            $cexp[0] = implode("/", $exp);
-            $exp = $cexp;            
-        } else if (count($exp) == 1) {
-            array_unshift($exp, "");
-        }
-        return $exp;
-    }
+
 
     public function load($slug, $schema)
     {
@@ -40,25 +28,31 @@ class SchemaRepository
         }
     }
 
-    public function isSecure() {
-        return $this->is_secure;
-    }
-
-
-    public function get($name) : Cells\MetaCell
-    {
-        $names = $this->splitNames($name);
     
-        $schema = $this->getSchema($names[0]);
-        return $schema->get($names[1]);
+    public function splitNames($name) {
+        $exp = explode("/", $name);
+        if (count($exp) > 2) {
+            $cexp = ["", array_pop($exp)];
+            $cexp[0] = implode("/", $exp);
+            $exp = $cexp;            
+        } else if (count($exp) == 1) {
+            array_unshift($exp, "");
+        }
+        return $exp;
     }
 
 
-    public function has($name)
+    public function get($name, $slug = "") : Cells\MetaCell
     {
-        $names = $this->splitNames($name);
-        if (!isset($this->schemas[$names[0]])) return false;
-        return $this->schemas[$names[0]]->has($names[1]);
+        $schema = $this->getSchema($slug);
+        return $schema->get($name);
+    }
+
+
+    public function has($name, $slug = "")
+    {
+        if (!isset($this->schemas[$slug])) return false;
+        return $this->schemas[$slug]->has($name);
     }
 
     public function hasSchema($name)
@@ -108,7 +102,7 @@ class SchemaRepository
         if (!$schema->has("--owner")) {
             array_splice($this->schemas, $orig_size, count($this->schemas) - $orig_size);
         } else {
-            $this->is_secure = true;
+            return $schema->get("--owner");
         }
 
     }
@@ -138,12 +132,14 @@ class SchemaRepository
     }
 
     public function loadReferences($fields) {
-        foreach($fields as $slug=>$group) {
-            $schema = $this->getSchema($slug);
-            $slug_alias = (!$slug) ? "" : $slug . "/";
-            foreach($group as $field) {
-                $cell = $schema->get($field);
+    //loop through schemas so we can be sure that all have loaded in order
+        foreach ($this->schemas as $slug=>$schema) {
+            if (!isset($fields[$schema])) continue;
+        
+            foreach ($fields[$schema] as $name) {
+                $cell = $schema->get($name);
                 if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
+                    $slug_alias = (!$slug) ? "" : $slug . "/";
                     $this->load($slug_alias . $field, ($this->factory)($cell->reference));
                 }
             }

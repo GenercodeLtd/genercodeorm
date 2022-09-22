@@ -5,6 +5,7 @@ namespace GenerCodeOrm\Cells;
 class StringCell extends MetaCell {
 
     protected $encrypted = false;
+    protected $unique = false;
     protected $list = [];
    // protected $
 
