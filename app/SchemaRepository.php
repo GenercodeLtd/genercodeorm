@@ -112,11 +112,11 @@ class SchemaRepository
 
         while ($parent) {
             $this->load($parent->reference, ($this->factory)($parent->reference));
-            if ($parent->reference == $limit OR !$this->has($parent->reference . "/--parent")) {
+            if ($parent->reference == $limit OR !$this->has("--parent", $parent->reference)) {
                 break;
             }
             
-            $parent = $this->get($parent->reference . "/--parent");
+            $parent = $this->get("--parent", $parent->reference);
         }
     }
 
@@ -126,7 +126,7 @@ class SchemaRepository
         foreach ($id->reference as $child) {
             if (!$children OR in_array($child, $children)) {
                 $this->load($child, ($this->factory)($child));
-                $this->loadChildren($children, $this->get($child . "/--id"));
+                $this->loadChildren($children, $this->get("--id", $child));
             }
         }
     }
@@ -134,13 +134,13 @@ class SchemaRepository
     public function loadReferences($fields) {
     //loop through schemas so we can be sure that all have loaded in order
         foreach ($this->schemas as $slug=>$schema) {
-            if (!isset($fields[$schema])) continue;
+            if (!isset($fields[$slug])) continue;
         
-            foreach ($fields[$schema] as $name) {
+            foreach ($fields[$slug] as $name) {
                 $cell = $schema->get($name);
                 if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
                     $slug_alias = (!$slug) ? "" : $slug . "/";
-                    $this->load($slug_alias . $field, ($this->factory)($cell->reference));
+                    $this->load($slug_alias . $name, ($this->factory)($cell->reference));
                 }
             }
         }

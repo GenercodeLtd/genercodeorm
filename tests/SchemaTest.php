@@ -10,8 +10,9 @@ require_once(__DIR__ . "/testsetup.php");
 require_once(__DIR__ . "/testproject/Fields.php");
 require_once(__DIR__ . "/testproject/Models.php");
 require_once(__DIR__ . "/testproject/Projects.php");
+require_once(__DIR__ . "/testproject/Pages.php");
 require_once(__DIR__ . "/testproject/Sections.php");
-
+require_once(__DIR__ . "/testproject/SchemaFactory.php");
 
 
 use \GenerCodeOrm\Schema;
@@ -27,46 +28,46 @@ final class SchemaTest extends TestCase
 
 
     public function testSchema() {
-        $schema = new \GenerCode\Schemas\Projects();
-       
-        $collection->activateChildren(["models/", "fields/", "pages/"]);
+        $factory = new SchemaFactory();
+        $schema = new \GenerCodeOrm\SchemaRepository($factory);
+        $schema->loadBase("projects");
+        $schema->loadChildren(["models", "fields", "pages"]);
         
-        $container = $collection->getContainer();
-        $collections = $container->getAll();
-      
-        $this->assertSame(4, count($collections));
+        $containers = $schema->getSchemas();
+       
+        $this->assertSame(4, count($containers));
     }
 
-/*
+
     public function testParent() {
-        $collection = new \GenerCode\Schemas\Fields();
-        $collection->activateTo("models/");
+        $factory = new SchemaFactory();
+        $schema = new \GenerCodeOrm\SchemaRepository($factory);
+        $schema->loadBase("fields");
+        $schema->loadTo("models");
 
-        $container = $collection->getContainer();
-        $collections = $container->getAll();
+        $containers = $schema->getSchemas();
 
-        $this->assertSame(2, count($collections));
+        $this->assertSame(2, count($containers));
     }
 
-    public function testMultipleParent() {
-        $collection = new \GenerCode\Schemas\Fields();
-        $collection->activateTo("projects/");
+    public function testSecure() {
+        $factory = new SchemaFactory();
+        $schema = new \GenerCodeOrm\SchemaRepository($factory);
+        $schema->loadBase("fields");
+        $schema->loadToSecure();
+        $containers = $schema->getSchemas();
 
-        $container = $collection->getContainer();
-        $collections = $container->getAll();
-
-        $this->assertSame(3, count($collections));
+        $this->assertSame(3, count($containers));
     }
 
 
     public function testActivateReference() {
-        $collection = new \GenerCode\Schemas\Fields();
-        $collection->activateCells(["section-id"]);
+        $factory = new SchemaFactory();
+        $schema = new \GenerCodeOrm\SchemaRepository($factory);
+        $schema->loadBase("fields");
+        $schema->loadReferences([""=>["section-id"]]);
+        $containers = $schema->getSchemas();
 
-        $container = $collection->getContainer();
-        $collections = $container->getAll();
-
-        $this->assertSame(2, count($collections));
+        $this->assertSame(2, count($containers));
     }
-    */
 }

@@ -45,7 +45,7 @@ class Model
             $data->bind("--owner", $owner);
             $data->{"--owner"} = $this->secure;
             $data->validate();
-            $query->buildSecure($this->repo_schema, $data, $to);
+            $query->secure($this->repo_schema, $data, $to);
         }
     }
 
@@ -159,7 +159,7 @@ class Model
                 }
 
                 $query = $this->buildQuery($root->table);
-                $query->addSelect($cell->name);
+                $query->addSelect($bind->cell->name);
                 $query->filter($data);
                 $res = $query->take(1)->get();
                 if (count($res) > 0) {
@@ -179,7 +179,7 @@ class Model
 
         $schema = $this->repo_schema->getSchema("");
         foreach ($schema->cells as $alias=>$cell) {
-            if (!$cell->system and ($cell->required or isset($params[$alias]))) {
+            if (!$cell->system and ($cell->required or isset($this->data[$alias]))) {
                 $data->bind($alias, $cell);
             }
         }
@@ -190,7 +190,7 @@ class Model
         $this->checkUniques($data);
 
         $root = $this->repo_schema->getSchema("");
-        $query = $this->queryBuilder($root->table);
+        $query = $this->buildQuery($root->table);
 
         $id = $query->insertGetId($data->toCellArr());
 
@@ -201,20 +201,12 @@ class Model
     }
 
 
-    public function select($name, DataSet $data)
+    public function select(DataSet $data)
     {
-        if (!$id) {
-            throw new Exceptions\ValidationException(["--id", 1]);
-        }
-
+        $bind = $data->getBind("--id");
         $root = $this->repo_schema->getSchema("");
-        $idCell = $root->get("--id");
-        $id = $idCell->clean($id);
-        $idCell->validate($id);
-
-
         return $this->connection->table($root->table)
-        ->where($idCell->name, "=", $data->{"--id"})
+        ->where($bind->cell->name, "=", $bind->value)
         ->take(1)
         ->get()
         ->first();
@@ -227,12 +219,12 @@ class Model
 
         $where_data = $this->createDataSet($this->where);
       
-        $original_data = $this->select($this->name, $where_data);
+        $original_data = $this->select($where_data);
 
         $data = new DataSet();
         
         foreach ($schema->cells as $alias=>$cell) {
-            if (!$cell->system and isset($params[$alias]) AND !$cell->immutable) {
+            if (!$cell->system and isset($this->data[$alias]) AND !$cell->immutable) {
                 $data->bind($alias, $cell);
             }
         }
@@ -248,7 +240,7 @@ class Model
 
         $root = $this->repo_schema->getSchema("");
         $query = $this->buildQuery($root->table);
-        if ($this->secure) $this->buildSecure($query);
+        if ($this->secure) $this->secureQuery($query);
         $query->filter($where_data);
 
         $cols = $data->toArr();
@@ -263,21 +255,22 @@ class Model
 
     public function delete()
     {
-        $data = $this->buildDataSet($this->where);
+        $data = $this->createDataSet($this->where);
 
-        $original_data = $this->select($name, $data);
+        $original_data = $this->select($data);
 
-        if ($schema->has("--archive")) {
+        if ($this->repo_schema->getSchema("")->has("--archive")) {
             $this->archive($original_data, $data);
         }
 
         $this->repo_schema->loadChildren();
 
-        $query = $this->buildQuery($this->name);
+        $root = $this->repo_schema->getSchema("");
+        $query = $this->buildQuery($root->table, $root->alias);
         if ($this->secure) {
-            $this->buildSecure($query);
+            $this->secureQuery($query);
         }
-        $query->loadChildren($this->repo_schema);
+        $query->children($this->repo_schema);
         $query->filter($data);
         $query->delete();
 

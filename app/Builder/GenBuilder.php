@@ -60,14 +60,15 @@ class GenBuilder extends Builder
         } 
     }
 
-    public function buildSecure(SchemaRepository $schema, DataSet $data, $to) {
+    public function secure(SchemaRepository $schema, \GenerCodeOrm\DataSet $data, $to) {
         $ref = $to;
         while($schema->has("--parent", $ref)) {
             $parent = $schema->get("--parent", $ref);
             $this->joinIn($parent, $schema->get("--id", $parent->reference));
+            $ref = $parent->reference;
         }
 
-        $bind = $data->get("--owner");
+        $bind = $data->getBind("--owner");
         $this->buildId($bind->cell, $bind->value);
     }
 
@@ -78,7 +79,7 @@ class GenBuilder extends Builder
         
         foreach ($id->reference as $child) {
             if ($schema->hasSchema($child)) {
-                $this->joinIn($id, $schema->get("--parent", $ref), false);
+                $this->joinIn($id, $schema->get("--parent", $child), false);
                 $this->children($schema, $child);
             }
         }
@@ -163,7 +164,7 @@ class GenBuilder extends Builder
     }
 
 
-    public function filter($query, \GenerCodeOrm\DataSet $model)
+    public function filter(\GenerCodeOrm\DataSet $model)
     {
         $binds = $model->getBinds();
 

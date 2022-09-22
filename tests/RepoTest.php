@@ -11,9 +11,10 @@ use GenerCodeOrm\Mappers\MapQuery;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Container\Container as Container;
 
-require(__DIR__ . "/../app/standardfunctions.php");
+require_once(__DIR__ . "/../app/standardfunctions.php");
 \GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
 
+<<<<<<< Updated upstream
 require(__DIR__ . "/testproject/Fields.php");
 require(__DIR__ . "/testproject/Models.php");
 require(__DIR__ . "/testproject/Projects.php");
@@ -21,6 +22,14 @@ require(__DIR__ . "/testproject/Sections.php");
 require(__DIR__ . "/testproject/States.php");
 require(__DIR__ . "/testproject/Profiles.php");
 require(__DIR__ . "/testproject/SchemaFactory.php");
+=======
+require_once(__DIR__ . "/testproject/Fields.php");
+require_once(__DIR__ . "/testproject/Models.php");
+require_once(__DIR__ . "/testproject/Projects.php");
+require_once(__DIR__ . "/testproject/Sections.php");
+require_once(__DIR__ . "/testproject/States.php");
+require_once(__DIR__ . "/testproject/SchemaFactory.php");
+>>>>>>> Stashed changes
 
 final class RepoTest extends TestCase
 {
@@ -47,6 +56,7 @@ final class RepoTest extends TestCase
     }
 
 
+<<<<<<< Updated upstream
     public function testGet() {
         $profile = new GenerCodeOrm\Profile();
         $profile->id = 1;
@@ -134,6 +144,20 @@ final class RepoTest extends TestCase
         $res = $repo->getAll("models");
 
         $this->assertSame(3, count($res));
+=======
+    public function testRepo() {
+        $factory = new SchemaFactory();
+        $repo = new GenerCodeOrm\Repository($this->dbmanager, $factory);
+        $repo->name = "models";
+        $repo->where = ["name"=>"tname", "--parent"=>1];
+        $repo->order = ["name"=>"desc"];
+        $repo->fields = ["name"];
+        $repo->limit = 3;
+        
+        $res = $repo->getAll();
+        $id = $res["--id"];
+        $this->assertNotSame(0, $id);
+>>>>>>> Stashed changes
     }
 
 

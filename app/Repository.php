@@ -87,7 +87,7 @@ class Repository extends Model
         
 
         $schema = $this->repo_schema->getSchema("");
-        $query = $this->queryBuilder($schema->table, $schema->alias);
+        $query = $this->buildQuery($schema->table, $schema->alias);
         $query->loadTo($this->repo_schema);
         $query->loadChild($this->repo_schema);
         $query->fields($this->repo_schema, $this->convertFieldsToDataMap($fields));
@@ -142,7 +142,7 @@ class Repository extends Model
         
         if ($this->to) $this->repo_schema->loadTo($this->to);
         $schema = $this->repo_schema->getSchema("");
-        $query = $this->queryBuilder($schema->table, $schema->alias);
+        $query = $this->buildQuery($schema->table, $schema->alias);
         $query->loadTo($this->repo_schema);
        
         if ($this->secure) $this->buildSecure($query, $this->to);
