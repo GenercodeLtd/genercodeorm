@@ -4,22 +4,27 @@ namespace GenerCodeOrm;
 
 class ModelController
 {
-    protected $profile;
+    protected $repo;
     protected $dbmanager;
-    protected $factory;
     protected $hooks;
+    protected $profile;
 
     public function __construct(
         \Illuminate\Database\DatabaseManager $dbmanager,
-        SchemaFactory $factory,
         Profile $profile,
         Hooks $hooks
     )
     {
         $this->dbmanager = $dbmanager;
-        $this->factory = $factory;
         $this->profile = $profile;
         $this->hooks = $hooks;
+        $this->repo = new SchemaRepository($this->profile->factory);
+    }
+
+    private function checkPermission($name, $perm) {
+        if (!$this->profile->hasPermission($name, $perm)) {
+            throw new Exceptions\UserAuthException("No " . $perm . " permission for " . $name);
+        }
     }
 
     private function trigger($name, $method, $res)
@@ -28,6 +33,10 @@ class ModelController
             $res = $this->hooks->trigger($name, $method, $res);
         }
         return $res;
+    }
+
+    private function handleFileUploads() {
+        
     }
 
     private function parseParams($model, $params)
@@ -66,11 +75,9 @@ class ModelController
 
     public function create($name, array $params)
     {
-        if (!$this->profile->hasPermission($name, "post")) {
-            throw new Exceptions\UserAuthException("No permission to post " . $name);
-        }
+        $this->checkPermission($name, "post");
 
-        $model = new Model($this->dbmanager, $this->factory);
+        $model = new Model($this->dbmanager, $this->repo);
         $model->name = $name;
         $model->data = $params;
         $res = $model->create();
@@ -82,11 +89,9 @@ class ModelController
 
     public function update($name, array $params)
     {
-        if (!$this->profile->hasPermission($name, "put")) {
-            throw new Exceptions\UserAuthException("No permission to put " . $name);
-        }
+        $this->checkPermission($name, "put");
 
-        $model= new Model($this->dbmanager, $this->factory);
+        $model= new Model($this->dbmanager, $this->repo);
         $model->name = $name;
         $model->where = ["--id", $params["--id"]];
         $model->data = $params;
@@ -103,11 +108,9 @@ class ModelController
 
     public function delete(string $name, array $params)
     {
-        if (!$this->profile->hasPermission($name, "delete")) {
-            throw new Exceptions\UserAuthException("No permission to delete " . $name);
-        }
+        $this->checkPermission($name, "delete");
 
-        $model= new Model($this->dbmanager, $this->factory);
+        $model= new Model($this->dbmanager, $this->repo);
 
         $model->name = $name;
         if (!$this->profile->allowedAdminPrivilege($name)) {
@@ -124,24 +127,15 @@ class ModelController
 
     public function resort($name, array $params)
     {
-        if (!$this->profile->hasPermission($name, "put")) {
-            throw new Exceptions\UserAuthException("No permission to resort " . $name);
-        }
+        $this->checkPermission($name, "put");
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
         }
 
-        $model = new Model($this->dbmanager, $this->factory);
+        $model = new Model($this->dbmanager, $this->repo);
         $model->name = $name;
-        $where = ["--id"=>[]];
-        $data = ["--sort"=>[]];
-        foreach($params as $row) {
-            $where["--id"][] = $row["--id"]; 
-            $data["--sort"][] = $row["--sort"];
-        }
-        $model->data = $data;
-        $model->where = $where;
+        $model->data = $params;
         $model->multipleUpdate();
 
         return true;
@@ -150,21 +144,28 @@ class ModelController
 
     public function get(string $name, array $params)
     {
-        if (!$this->profile->hasPermission($name, "get")) {
-            throw new Exceptions\UserAuthException("No permission to get " . $name);
-        }
+        $this->checkPermission($name, "get");
+
+        $model = new Repository($this->dbmanager, $this->repo);
+        $model->name = $name;
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
         }
 
-        $model = new Model($this->dbmanager, $this->factory);
-        $model->name = $name;
         $this->parseParams($model, $params);
         $res = $model->get();
 
         $res = ($params["__limit"] == 1) ? $res->first() : $res->toArray();
         return $this->trigger($name, "get", $res);
+    }
+
+
+    public function getActive(string $name, array $params) {
+        $params["__limit"] = 1;
+        $params["__order"] = null;
+        $params["__group"] = null;
+        return $this->get($name, $params);
     }
 
 
@@ -190,16 +191,54 @@ class ModelController
 
 
     public function count(string $name, array $params) {
-        if (!$this->profile->hasPermission($name, "get")) {
-            throw new Exceptions\UserAuthException("No permission to get " . $name);
+        $this->checkPermission($name, "get");
+
+        $model = new Repository($this->dbmanager, $this->repo);
+        $model->name = $name;
+
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $model->secure = $this->profile->id;
         }
+
+        $this->parseParams($model, $params);
+        return $model->count();
+
+        return $res;
     }
 
 
     public function reference(string $name, string $field, $id) {
-        if (!$this->profile->hasPermission($name, "get")) {
-            throw new Exceptions\UserAuthException("No permission to get " . $name);
+        $this->checkPermission($name, "get");
+
+        $cell = $this->repo_schema->get($field);
+        
+        $repo = new Repository($this->dbmanager, $this->repo);
+        $repo->name = $cell->reference;
+
+        if ($cell->common) {
+            if ($cell->common) {
+                $parent = $this->repo_schema->has("--parent"); //must have parent
+                if ($cell->common == $parent->reference) {
+                    $repo->where = ["--parent"=>$id];
+                }
+            } else {
+                $crepo = new Repository($this->dbmanager, $this->repo);
+                $crepo->name = $this->name;
+                $crepo->to = $cell->common;
+                $crepo->where = ["--parent"=>$id];
+                $crepo->limit = 1;
+                $obj = $crepo->get();
+                $repo->to = $cell->common;
+                $repo->where = [$cell->common + "/--id" => $obj->{ $cell->common + "/--id"}];
+            }
         }
+
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $repo->secure = $this->profile->id;
+        }
+
+        $this->parseParams($model, $params);
+        return $repo->getAsReference();
     }
 
 }

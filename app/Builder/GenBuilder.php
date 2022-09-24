@@ -2,11 +2,12 @@
 
 namespace GenerCodeOrm\Builder;
 
-use GenerCodeOrm\SchemaRepository;
-use GenerCodeOrm\SchemaFactory;
-use GenerCodeOrm\Cells\MetaCell;
-use GenerCodeOrm\Cells\ReferenceTypes;
-use Illuminate\Database\Query\Builder;
+use \GenerCodeOrm\SchemaRepository;
+use \GenerCodeOrm\SchemaFactory;
+use \GenerCodeOrm\Cells\MetaCell;
+use \GenerCodeOrm\Cells\ReferenceTypes;
+use \Illuminate\Database\Query\Builder;
+use \GenerCodeOrm\Exceptions\CellTypeException;
 
 class GenBuilder extends Builder
 {
@@ -55,13 +56,18 @@ class GenBuilder extends Builder
         $ref = "";
         while ($schema->has("--parent", $ref)) {
             $parent = $schema->get("--parent", $ref);
-            $this->joinIn($parent, $schema->get("--id", $parent->reference));
-            $ref = $parent->reference;
+            if ($schema->hasSchema($parent->reference)) {
+                $this->joinIn($parent, $schema->get("--id", $parent->reference));
+                $ref = $parent->reference;
+            } else {
+                break;
+            }
         } 
     }
 
-    public function secure(SchemaRepository $schema, \GenerCodeOrm\DataSet $data, $to) {
+    public function secure(SchemaRepository $schema, \GenerCodeOrm\DataSet $data, ?string $to = null) {
         $ref = $to;
+        if (!$ref) $ref = "";
         while($schema->has("--parent", $ref)) {
             $parent = $schema->get("--parent", $ref);
             $this->joinIn($parent, $schema->get("--id", $parent->reference));
@@ -69,7 +75,7 @@ class GenBuilder extends Builder
         }
 
         $bind = $data->getBind("--owner");
-        $this->buildId($bind->cell, $bind->value);
+        $this->filterId($bind->cell->schema->alias . "." . $bind->cell->name, $bind->value);
     }
 
 
@@ -92,79 +98,79 @@ class GenBuilder extends Builder
     }
 
 
-    public function buildId(MetaCell $cell, $values)
+    public function filterId($alias, $values)
     {
         if (is_array($values)) {
-            $this->whereIn($cell->schema->alias . "." . $cell->name, $values);
+            $this->whereIn($alias, $values);
         } else {
-            $this->where($cell->schema->alias . "." . $cell->name, "=", $values);
+            $this->where($alias, "=", $values);
         }
     }
 
 
-    public function buildTime(MetaCell $cell, $values)
-    {
-        if (is_array($values)) {
-            if ($this->isAssoc($values)) {
-                if (isset($values["min"])) {
-                    $this->where($cell->schema->alias . "." . $cell->name, ">=", $values["min"]);
-                }
-
-                if (isset($values["max"])) {
-                    $this->where($cell->schema->alias . "." . $cell->name, "<=", $values["max"]);
-                }
-            } else {
-                $this->whereIn($cell->schema->alias . "." . $cell->name, $values);
-            }
-        } else {
-            $this->where($cell->schema->alias . "." . $cell->name, "=", $values);
-        }
-    }
-
-
-    public function buildNumber(MetaCell $cell, $values)
+    public function filterTime($alias, $values)
     {
         if (is_array($values)) {
             if ($this->isAssoc($values)) {
                 if (isset($values["min"])) {
-                    $this->where($cell->schema->alias . "." . $cell->name, ">=", $values["min"]);
+                    $this->where($alias, ">=", $values["min"]);
                 }
 
                 if (isset($values["max"])) {
-                    $this->where($cell->schema->alias . "." . $cell->name, "<=", $values["max"]);
+                    $this->where($alias, "<=", $values["max"]);
                 }
             } else {
-                $this->whereIn($cell->schema->alias . "." . $cell->name, $values);
+                $this->whereIn($alias, $values);
             }
         } else {
-            $this->where($cell->schema->alias . "." . $cell->name, "=", $values);
+            $this->where($alias, "=", $values);
         }
     }
 
 
-    public function buildFlag(MetaCell $cell, $value)
+    public function filterNumber($alias, $values)
     {
-        $this->where($cell->schema->alias . "." . $cell->name, "=", $value);
+        if (is_array($values)) {
+            if ($this->isAssoc($values)) {
+                if (isset($values["min"])) {
+                    $this->where($alias, ">=", $values["min"]);
+                }
+
+                if (isset($values["max"])) {
+                    $this->where($alias, "<=", $values["max"]);
+                }
+            } else {
+                $this->whereIn($alias, $values);
+            }
+        } else {
+            $this->where($alias, "=", $values);
+        }
     }
 
 
-    public function buildString(MetaCell $cell, $values)
+    public function filterFlag($alias, $value)
+    {
+        $this->where($alias, "=", $value);
+    }
+
+
+    public function filterString($alias, $values)
     {
         if (is_array($values)) {
             $this->where(function ($query) use ($cell, $values) {
                 $first=array_shift($values);
-                $query->where($cell->schema->alias . "." . $cell->name, "like", $first);
+                $query->where($alias, "like", $first);
                 foreach ($values as $val) {
-                    $query->orWhere($cell->schema->alias . "." . $cell->name, "like", $val);
+                    $query->orWhere($alias, "like", $val);
                 }
             });
         } else {
-            $this->where($cell->schema->alias . "." . $cell->name, "=", $values);
+            $this->where($alias, "=", $values);
         }
     }
 
 
-    public function filter(\GenerCodeOrm\DataSet $model)
+    public function filter(\GenerCodeOrm\DataSet $model, $use_alias = true)
     {
         $binds = $model->getBinds();
 
@@ -173,18 +179,19 @@ class GenBuilder extends Builder
             $val = $bind->value;
             $ref = new \ReflectionClass($cell);
             $name = $ref->getShortName();
+            $alias_name = (!$use_alias) ? $cell->name : $cell->schema->alias . "." . $cell->name;
             if ($name == "IdCell") {
-                $this->buildId($cell, $val);
+                $this->filterId($alias_name,  $val);
             } elseif ($name == "TimeCell") {
-                $this->buildTime($cell, $val);
+                $this->filterTime($alias_name, $val);
             } elseif ($name == "NumberCell") {
-                $this->buildNumber($cell, $val);
+                $this->filterNumber($alias_name, $val);
             } elseif ($name == "FlagCell") {
-                $this->buildFlag($cell, $val);
+                $this->filterFlag($alias_name, $val);
             } elseif ($name == "StringCell") {
-                $this->buildString($cell, $val);
+                $this->filterString($alias_name, $val);
             } else {
-                throw new CellTypeExtension($name);
+                throw new CellTypeException($name);
             }
         }
     }
@@ -197,6 +204,29 @@ class GenBuilder extends Builder
             if ($cell->reference_type == ReferenceTypes::REFERENCE) {
                 $inner = (!$cell->required) ? false : true;
                 $this->joinIn($cell, $schema->get("--id", $alias), $inner);
+            }
+        }
+    }
+
+
+
+    public function multipleUpdateStmt(array $template, array $data)
+    {
+        $sql = $this->grammar->compileUpdate($this, $template);
+        $pdo = $this->connection->getPdo();
+        
+        try {
+            $stmt = $pdo->prepare($sql);
+        } catch(\PDOException $e) {
+            throw new \GenerCodeOrm\Exceptions\SQLException($sql, [],  $e->getMessage());
+        }
+
+
+        foreach ($data as $dataSet) {
+            try {
+                $stmt->execute(array_values($dataSet->toCellNameArr()));
+            } catch(\PDOException $e) {
+                throw new \GenerCodeOrm\Exceptions\SQLException($sql, $dataSet->toCellNameArr(), $e->getMessage());
             }
         }
     }

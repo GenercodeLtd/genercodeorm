@@ -30,7 +30,7 @@ class Model
     }
 
 
-    public function buildQuery($table, $alias = null)
+    public function buildQuery($table, $alias = null) : Builder\GenBuilder
     {
         $builder = new Builder\GenBuilder($this->connection);
         $builder->from($table, $alias);
@@ -38,7 +38,7 @@ class Model
     }
 
 
-    public function secureQuery($query, $to = "") {
+    public function secureQuery(Builder\GenBuilder $query, ?string $to = null) {
         $owner = $this->repo_schema->loadToSecure($this->secure);
         if ($owner) {
             $data = new DataSet();
@@ -46,51 +46,10 @@ class Model
             $data->{"--owner"} = $this->secure;
             $data->validate();
             $query->secure($this->repo_schema, $data, $to);
+            return $data;
         }
     }
 
-    public function multipleUpdate(array $data)
-    {
-        if (count($data) == 0) {
-            return;
-        }
-
-        $this->setTable();
-
-        $root = $this->repo_schema->getSchema("");
-
-        $dataSet = $data->first;
-
-        $cols = [];
-        foreach ($dataSet->values as $alias =>$bind) {
-            if ($alias == "--id") {
-                continue;
-            }
-            $cols[] = "`" . $bind->cell->schema->alias . "`.`" . $bind->cell->name . "` = ?";
-        }
-
-        $id = $dataSet->{"--id"};
-        $sql = "UPDATE `" . $root->table . "` AS `" . $root->alias . "` SET ";
-        $sql .= implode(", ", $cols);
-        $sql .= " WHERE `" . $id->cell->schema->alias . "`.`" . $id->cell->name . "` = ?";
-
-        $pdo = $this->connection->getPdo();
-
-        try {
-            $stmt = $pdo->prepare($sql);
-        } catch(\PDOException $e) {
-            throw new Exceptions\SQLException($sql, $args, $e->getMessage());
-        }
-
-
-        foreach ($data as $dataSet) {
-            try {
-                $stmt->execute($dataSet->toArr());
-            } catch(\PDOException $e) {
-                throw new Exceptions\SQLException($this->sql, $args, $e->getMessage());
-            }
-        }
-    }
 
 
     public function copy($fields, $query)
@@ -108,7 +67,7 @@ class Model
 
 
 
-    private function createDataSet($params)
+    protected function createDataSet($params)
     {
         $data = new DataSet();
         foreach ($params as $alias=>$val) {
@@ -120,7 +79,7 @@ class Model
     }
 
 
-    private function archive(Schema $schema, $data)
+    protected function archive(Schema $schema, $data)
     {
         $cols = [];
 
@@ -136,7 +95,7 @@ class Model
     }
 
 
-    private function checkUniques(\GenerCodeOrm\DataSet $data)
+    protected function checkUniques(\GenerCodeOrm\DataSet $data)
     {
         $root = $this->repo_schema->getSchema("");
         $id_cell = $root->get("--id");
@@ -160,7 +119,7 @@ class Model
 
                 $query = $this->buildQuery($root->table);
                 $query->addSelect($bind->cell->name);
-                $query->filter($data);
+                $query->filter($data, false);
                 $res = $query->take(1)->get();
                 if (count($res) > 0) {
                     throw new Exceptions\UniqueException($alias, $data->$alias);
@@ -192,7 +151,7 @@ class Model
         $root = $this->repo_schema->getSchema("");
         $query = $this->buildQuery($root->table);
 
-        $id = $query->insertGetId($data->toCellArr());
+        $id = $query->insertGetId($data->toCellNameArr());
 
         $arr = $data->toArr();
         $arr["--id"] = $id;
@@ -221,6 +180,11 @@ class Model
       
         $original_data = $this->select($where_data);
 
+        if (!$original_data) return [
+            "original_data"=>null,
+            "affected_rows"=>0
+        ];
+
         $data = new DataSet();
         
         foreach ($schema->cells as $alias=>$cell) {
@@ -243,12 +207,12 @@ class Model
         if ($this->secure) $this->secureQuery($query);
         $query->filter($where_data);
 
-        $cols = $data->toArr();
-        $query->update($cols);
+        $rows = $query->update($data->toCellNameArr());
 
         return [
             "original"=>$original_data,
-            "data"=>$cols
+            "data"=>$cols,
+            "affected_rows"=>$rows
         ];
     }
 
@@ -258,6 +222,10 @@ class Model
         $data = $this->createDataSet($this->where);
 
         $original_data = $this->select($data);
+
+        if (!$original_data) {
+            return null;
+        }
 
         if ($this->repo_schema->getSchema("")->has("--archive")) {
             $this->archive($original_data, $data);
@@ -272,55 +240,47 @@ class Model
         }
         $query->children($this->repo_schema);
         $query->filter($data);
-        $query->delete();
+        $count = $query->delete();
 
-        return $original_data;
+        return [
+            "original"=>$original_data,
+            "affected_rows"=>$count
+        ];
     }
 
 
 
     public function resort()
     {
-       
-        $data = new DataSet();
-        if (!$this->secure) {
-            $owner = $this->repo_schema->loadToSecure($this->secure);
-            if ($owner) {
-                $data->bind("--owner", $owner);
-                $data->{"--owner"} = $this->secure;
-            }
-        }
-
-        $data->validate();
-
-        $query = $this->buildQuery($this->name);
-        $query->loadTo($this->repo_schema);
-        $query->filter($data);
-
-        
         $sortCol = $this->repo_schema->get("--sort");
         $idCol = $this->repo_schema->get("--id");
 
+        $schema = $this->repo_schema->getSchema("");
+        $query = $this->buildQuery($schema->table, $schema->alias);
+        $query->filterId($idCol->schema->alias . "." . $idCol->name, 0);
 
+        $odata = $this->secureQuery($query);  
+        
         $dataSets = [];
-        foreach ($params as $row) {
+        foreach ($this->data as $row) {
             $data = new DataSet();
             $data->bind("--sort", $sortCol);
             $data->bind("--id", $idCol);
+           // $data->bind("--owner")
 
             $data->{"--sort"} = $row["--sort"];
             $data->{"--id"} = $row["--id"];
 
+            $data->merge($odata);
+
             $data->validate();
             $dataSets[] = $data;
         }
-
-        $query->multipleUpdate($dataSets);
+      
+        $query->multipleUpdateStmt([$sortCol->schema->alias . "." . $sortCol->name => 10], $dataSets);
 
         return true;
     }
-
-
 
     
 }

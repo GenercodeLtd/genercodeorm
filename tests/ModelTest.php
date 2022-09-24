@@ -13,19 +13,15 @@ use Illuminate\Container\Container as Container;
 
 require_once(__DIR__ . "/../app/standardfunctions.php");
 \GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
+\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../ptjmanager/repos/ptj");
 
-require_once(__DIR__ . "/testproject/Fields.php");
-require_once(__DIR__ . "/testproject/Models.php");
-require_once(__DIR__ . "/testproject/Projects.php");
-require_once(__DIR__ . "/testproject/Sections.php");
-require_once(__DIR__ . "/testproject/States.php");
-require_once(__DIR__ . "/testproject/SchemaFactory.php");
 
 final class ModelTest extends TestCase
 {
 
 
     protected $dbmanager;
+    protected $profile;
 
     public function setUp(): void
     {
@@ -42,7 +38,13 @@ final class ModelTest extends TestCase
             'prefix'    => '',
         ]);
         $capsule->setAsGlobal();
-        $this->dbmanager = $capsule->getDatabaseManager();        
+        $this->dbmanager = $capsule->getDatabaseManager();     
+
+        $factory = new PressToJam\ProfileFactory();
+        $this->profile = ($factory)("accounts");
+        $this->profile->id = 1;
+        
+        
     }
 
 
@@ -78,7 +80,7 @@ final class ModelTest extends TestCase
         $model->where = ["--id" => 780];
         $res = $model->delete(true);
         //var_dump($res);
-        $this->assertSame(15, $model->id);
+        $this->assertSame(15, $res["affected_rows"]);
     }
 
     public function testUpdate() {
@@ -103,6 +105,20 @@ final class ModelTest extends TestCase
         $model->where = ["--id"=>780];
         $model->secure = 1;
         $res = $model->update();
+        var_dump($res);
+        $this->assertSame(15, $model->id);
+    }
+
+
+
+    public function testResort() {
+        $factory = new SchemaFactory();
+
+        $model = new Model($this->dbmanager, new SchemaRepository($factory));
+        $model->name = "models";
+        $model->data = [["--id"=>1,"--sort"=>1],["--id"=>2, "--sort"=>2],["--id"=>3, "--sort"=>3]];
+        $model->secure = 1;
+        $res = $model->resort();
         var_dump($res);
         $this->assertSame(15, $model->id);
     }

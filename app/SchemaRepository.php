@@ -10,7 +10,7 @@ class SchemaRepository
     protected $schemas = [];
     protected $factory;
  
-    function __construct(SchemaFactory $factory) {
+    function __construct(Factory $factory) {
         $this->factory = $factory;
     }
 

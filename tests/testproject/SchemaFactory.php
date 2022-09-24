@@ -2,56 +2,56 @@
 
 
 
-class SchemaFactory extends \GenerCodeOrm\SchemaFactory {
+class SchemaFactory extends \GenerCodeOrm\Factory {
 
     
     function __construct($slug = "") {
  
-        $this->schemas["models"] = function() {
+        $this->products["models"] = function() {
             return new PressToJam\Schemas\Models();
         };
  
-        $this->schemas["route-flow"] = function() {
+        $this->products["route-flow"] = function() {
             return new PressToJam\Schemas\RouteFlow();
         };
  
-        $this->schemas["projects"] = function() {
+        $this->products["projects"] = function() {
             return new PressToJam\Schemas\Projects();
         };
  
-        $this->schemas["accounts"] = function() {
+        $this->products["accounts"] = function() {
             return new PressToJam\Schemas\Accounts();
         };
  
-        $this->schemas["fields"] = function() {
+        $this->products["fields"] = function() {
             return new PressToJam\Schemas\Fields();
         };
  
-        $this->schemas["sections"] = function() {
+        $this->products["sections"] = function() {
             return new PressToJam\Schemas\Sections();
         };
  
-        $this->schemas["profiles"] = function() {
+        $this->products["profiles"] = function() {
             return new PressToJam\Schemas\Profiles();
         };
  
-        $this->schemas["states"] = function() {
+        $this->products["states"] = function() {
             return new PressToJam\Schemas\States();
         };
  
-        $this->schemas["dictionary-templates"] = function() {
+        $this->products["dictionary-templates"] = function() {
             return new PressToJam\Schemas\DictionaryTemplates();
         };
  
-        $this->schemas["pages"] = function() {
+        $this->products["pages"] = function() {
             return new PressToJam\Schemas\Pages();
         };
  
-        $this->schemas["sync-db-log"] = function() {
+        $this->products["sync-db-log"] = function() {
             return new PressToJam\Schemas\SyncDbLog();
         };
  
-        $this->schemas["user-login"] = function() {
+        $this->products["user-login"] = function() {
             return new PressToJam\Schemas\UserLogin();
         };
    

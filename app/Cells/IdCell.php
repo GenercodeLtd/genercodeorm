@@ -7,6 +7,7 @@ class IdCell extends MetaCell {
     protected $reference_type;
     protected $reference = null;
     protected $reference_incoming;
+    protected $common;
 
     function __construct() {
         parent::__construct();

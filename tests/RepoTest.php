@@ -13,13 +13,17 @@ use Illuminate\Container\Container as Container;
 
 require_once(__DIR__ . "/../app/standardfunctions.php");
 \GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
+\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../ptjmanager/repos/ptj");
+
 
 final class RepoTest extends TestCase {
 
     protected $dbmanager;
+    protected $profile;
 
     public function setUp(): void
     {
+        $container = new Container();
         $capsule = new Capsule($container);
         $capsule->addConnection([
             'driver'    => 'mysql',
@@ -32,13 +36,17 @@ final class RepoTest extends TestCase {
             'prefix'    => '',
         ]);
         $capsule->setAsGlobal();
-        $this->dbmanager = $capsule->getDatabaseManager();        
+        $this->dbmanager = $capsule->getDatabaseManager();   
+        
+        $factory = new PressToJam\ProfileFactory();
+        $this->profile = ($factory)("accounts");
+        $this->profile->id = 1;
     }
 
 
     public function testRepo() {
-        $factory = new SchemaFactory();
-        $repo = new GenerCodeOrm\Repository($this->dbmanager, $factory);
+        $factory = new Factory();
+        $repo = new GenerCodeOrm\Repository($this->dbmanager, new SchemaRepository($this->profile->factory));
         $repo->name = "models";
         $repo->where = ["name"=>"tname", "--parent"=>1];
         $repo->order = ["name"=>"desc"];
@@ -48,6 +56,15 @@ final class RepoTest extends TestCase {
         $res = $repo->getAll();
         $id = $res["--id"];
         $this->assertNotSame(0, $id);
+    }
+
+
+    public function testReference() {
+        $repo = new GenerCodeOrm\Repository($this->dbmanager, new SchemaRepository($this->profile->factory));
+        $repo->name = "models";
+        $repo->where = ["--parent"=>1];
+        $res = $repo->getAsReference();
+        $this->assertGreaterThan(1, count($res));
     }
 
 

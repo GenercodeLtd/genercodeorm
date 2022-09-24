@@ -1,11 +1,22 @@
 <?php
 namespace GenerCodeOrm;
+use PressToJam\Schemas as Schema;
 
 class Profile {
 
     protected $models = [];
-    protected $id; //user id
+    protected $id = 0; //user id
     protected $allow_anonymous = false;
+    protected $allow_create = true;
+    protected $name;
+    protected Factory $factory;
+
+    function __construct() {
+        $this->factory = new Factory();
+        $this->factory->addProducts(["users"=> function() {
+            return new Schema\Users();
+        }]);
+    }
 
     function __get($key) {
         if ($key == "level") return 1;
@@ -23,8 +34,13 @@ class Profile {
         return true;
     } 
 
-    function isOwner() {
+    function allowCreate() {
+        return $this->allow_create;
+    }
 
+
+    function allowAnonymousCreate() {
+        return $this->allow_anonymous;
     }
 
 
@@ -33,15 +49,22 @@ class Profile {
     }
 
 
-    function getSitemap($factory) {
+    function getSitemap() {
         $routes = [];
         foreach($this->models as $name=>$perms) {
-            $schema = $factory($name);
+            $schema = ($this->factory)($name);
             $route = $schema->getSchema();
             $route["perms"] = $perms;
             $routes[$name] = $route;
         }
         return $routes;
+    }
+
+    function toArr() {
+        return [
+            "name"=>$this->name,
+            "id"=>$this->id
+        ];
     }
 
 

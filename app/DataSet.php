@@ -30,6 +30,10 @@ class DataSet {
         $this->values[$key]->value = $this->values[$key]->cell->clean($val);
     }
 
+    function merge(DataSet $ndata) {
+        $this->values = array_merge($this->values, $ndata->getBinds());
+    }
+
 
     function bind($alias, $cell) {
         $val = new DataValue();
@@ -67,10 +71,19 @@ class DataSet {
     }
 
 
-    public function toCellArr() {
+    public function toCellNameArr() {
         $arr = [];
         foreach($this->values as $key=>$val) {
             $arr[$val->cell->name] = $val->value;
+        } 
+        return $arr;
+    }
+
+
+    public function toCells() {
+        $arr = [];
+        foreach($this->values as $key=>$val) {
+            $arr[$key] = $val->cell;
         } 
         return $arr;
     }

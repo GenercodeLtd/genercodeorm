@@ -5,6 +5,7 @@ namespace GenerCodeOrm;
 use Psr\Http\Message\ServerRequestInterface;
 use Illuminate\Support\Str;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Container\Container as Container;
 
 class Repository extends Model
 {
@@ -70,11 +71,11 @@ class Repository extends Model
         $data = new DataSet();
         foreach($fields as $slug=>$fields) {
             $slug_alias = (!$slug) ? "" : $slug . "/";
-            foreach($fields as $alias=>$field) {
+            foreach($fields as $alias) {
                 $data->bind($slug_alias . $alias, $this->repo_schema->get($alias, $slug));
             }
         }
-        return $data;
+        return $data->toCells();
     }
 
     
@@ -83,16 +84,17 @@ class Repository extends Model
         if ($this->to) $this->repo_schema->loadTo($this->to);
         if ($this->children) $this->repo_schema->loadChildren($this->children);
         $fields = (!$this->fields) ? $this->getAllFields() : $this->expandFields();
+        var_dump($fields);
         $this->repo_schema->loadReferences($fields);
         
 
         $schema = $this->repo_schema->getSchema("");
         $query = $this->buildQuery($schema->table, $schema->alias);
-        $query->loadTo($this->repo_schema);
-        $query->loadChild($this->repo_schema);
+        $query->joinTo($this->repo_schema);
+        $query->children($this->repo_schema);
         $query->fields($this->repo_schema, $this->convertFieldsToDataMap($fields));
 
-        if ($this->secure) $this->buildSecure($query, $this->to);
+        if ($this->secure) $this->secureQuery($query, $this->to);
        
         $data = $this->createDataSet($this->where);
         $query->filter($data);
@@ -108,7 +110,7 @@ class Repository extends Model
     }
 
 
-    public function getAll($name, array $params = [])
+    public function getAll()
     {
         $query = $this->getQuery();
         $orders = [];
@@ -134,24 +136,45 @@ class Repository extends Model
         return $query->get()->toArray();
     }
 
-
-
-
-    public function count(array $params)
+    
+    public function count()
     {
-        
         if ($this->to) $this->repo_schema->loadTo($this->to);
         $schema = $this->repo_schema->getSchema("");
         $query = $this->buildQuery($schema->table, $schema->alias);
-        $query->loadTo($this->repo_schema);
+        $query->joinTo($this->repo_schema);
        
-        if ($this->secure) $this->buildSecure($query, $this->to);
+        if ($this->secure) $this->secureQuery($query, $this->to);
        
+        $id = $schema->get("--id");
+
         $data = $this->createDataSet($this->where);
         $query->filter($data);
-        $query->rawSelect("count(" . $schema->table . "." . $id->name . ") as 'count'")
+        $query->select($query->raw("count(" . $schema->alias . "." . $id->name . ") as 'count'"))
         ->take(1);
 
         return $query->get()->first();
+    }
+
+
+    public function getAsReference() {
+        if ($this->to) $this->repo_schema->loadTo($this->to);
+
+        $schema = $this->repo_schema->getSchema("");
+        $query = $this->buildQuery($schema->table, $schema->alias);
+        $query->joinTo($this->repo_schema);
+
+        if ($this->secure) $this->secureQuery($query, $this->to);
+
+        $data = $this->createDataSet($this->where);
+        $query->filter($data);
+
+        $fields = [];
+        foreach($schema->cells as $cell) {
+            if ($cell->summary) $fields[] = $cell->schema->alias . "." . $cell->name;
+        }
+        $idCell = $schema->get("--id");
+        $query->select($query->raw($idCell->schema->alias . "." . $idCell->name . " as 'key', CONCAT_WS(' ', " . implode(",", $fields) . ") AS 'value'"));
+        return $query->get()->toArray();
     }
 }
