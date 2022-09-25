@@ -11,6 +11,10 @@ class ProfileController {
         $this->profile = $profile;
     }
 
+    function checkUser() {
+        return $this->profile->toArr();
+    }
+
     
     function anonymousCreate($params) {
         if (!$this->profile->allowsAnonymousCreate()) {
@@ -41,11 +45,11 @@ class ProfileController {
     }
 
 
-    function login($params) {
+    function login($type, $params) {
         $repo = new Repository($this->dbmanager, new SchemaRepository($this->profile->factory));
         $repo->name = "users";
-        $repo->fields = ["--id", "password", "type"];
-        $repo->data = ["email"=>$params["email"]];
+        $repo->fields = ["--id", "password"];
+        $repo->where = ["email"=>$params["email"], "type"=>$type];
         $repo->limit = 1;
 
         $res = $repo->get();
@@ -64,8 +68,7 @@ class ProfileController {
             throw new Exceptions\PtjException("This username / password was not recognised");
         }
 
-        $this->profile->id = $res->{"--id"};
-        return $this->profile;
+        return $res->{"--id"};
     }
 
 

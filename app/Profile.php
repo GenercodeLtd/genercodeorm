@@ -8,7 +8,7 @@ class Profile {
     protected $id = 0; //user id
     protected $allow_anonymous = false;
     protected $allow_create = true;
-    protected $name;
+    protected $name = "public";
     protected Factory $factory;
 
     function __construct() {
@@ -19,8 +19,7 @@ class Profile {
     }
 
     function __get($key) {
-        if ($key == "level") return 1;
-        else if (property_exists($this, $key)) return $this->$key;
+        if (property_exists($this, $key)) return $this->$key;
     }
 
     function __set($key, $value) {
@@ -62,8 +61,7 @@ class Profile {
 
     function toArr() {
         return [
-            "name"=>$this->name,
-            "id"=>$this->id
+            "name"=>$this->name
         ];
     }
 

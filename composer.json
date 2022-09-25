@@ -13,7 +13,9 @@
     "require": {
         "illuminate/database": "^9.30",
         "illuminate/container": "^9.30",
-        "illuminate/queue": "^9.30"
+        "illuminate/queue": "^9.30",
+        "illuminate/filesystem": "^9.31",
+        "league/flysystem-aws-s3-v3": "3.0"
     },
     "autoload" : {
         "psr-4" : {

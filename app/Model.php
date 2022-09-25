@@ -282,5 +282,14 @@ class Model
         return true;
     }
 
+    public function getAsset($field, $id) {
+        $idCell = $this->repo_schema->get("--id");
+        $data = new DataSet();
+        $data->bind("--id", $idCell);
+        $data->{"--id"} = $id;
+        $res = $this->select($data);
+        return $res->{ $field };
+    }
+
     
 }

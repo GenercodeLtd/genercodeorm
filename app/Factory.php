@@ -10,6 +10,10 @@ class Factory {
         $this->products = array_merge($this->products, $products);
     }
 
+    function has($key) {
+        return isset($this->products[$key]);
+    }
+
     
     function __invoke($product_slug) {
         if (!isset($this->products[$product_slug])) {

@@ -154,9 +154,8 @@ class ModelController
         }
 
         $this->parseParams($model, $params);
-        $res = $model->get();
-
-        $res = ($params["__limit"] == 1) ? $res->first() : $res->toArray();
+       
+        $res = (isset($params["__limit"]) && $params["__limit"] == 1) ? $model->get() : $model->getAll();
         return $this->trigger($name, "get", $res);
     }
 
@@ -186,8 +185,6 @@ class ModelController
         $params["__limit"] = 1;
         return $this->get($name, $params);
     }
-
-
 
 
     public function count(string $name, array $params) {
@@ -240,5 +237,20 @@ class ModelController
         $this->parseParams($model, $params);
         return $repo->getAsReference();
     }
+
+    
+    public function getAsset(\Illuminate\FileSystem\FilesystemManager $file, string $prefix, string $name, string $field, int $id) {
+        $this->checkPermission($name, "get");
+
+        $model = new Model($this->dbmanager, $this->repo);
+        $model->name = $name;
+
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $model->secure = $this->profile->id;
+        }
+        
+        $src = $prefix . $model->getAsset($field, $id);
+        return $file->disk('s3')->get($src);
+    } 
 
 }

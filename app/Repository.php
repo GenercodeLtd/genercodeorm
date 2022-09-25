@@ -84,7 +84,7 @@ class Repository extends Model
         if ($this->to) $this->repo_schema->loadTo($this->to);
         if ($this->children) $this->repo_schema->loadChildren($this->children);
         $fields = (!$this->fields) ? $this->getAllFields() : $this->expandFields();
-        var_dump($fields);
+
         $this->repo_schema->loadReferences($fields);
         
 
@@ -118,9 +118,11 @@ class Repository extends Model
             $cell = $this->repo_schema->get("--sort");
             $query->orderBy($cell->schema->alias . "." . $cell->name, "ASC");
         } else {
-            foreach ($this->order as $alias=>$dir) {
-                $cell = $this->repo_schema->get($alias);
-                $query->orderBy($cell->schema->alias . "." . $cell->name, "ASC");
+            if ($this->order) {
+                foreach ($this->order as $alias=>$dir) {
+                    $cell = $this->repo_schema->get($alias);
+                    $query->orderBy($cell->schema->alias . "." . $cell->name, "ASC");
+                }
             }
         }
 
