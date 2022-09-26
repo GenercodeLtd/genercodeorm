@@ -53,7 +53,11 @@ class Repository extends Model
                 if (!isset($fields[$slug])) $fields[$slug] = [];
                 $schema = $this->repo_schema->getSchema($slug);
                 foreach ($schema->cells as $cfield) {
-                    $fields[$slug][] = $cfield->alias;
+                    if ($cfield::class == Cell\TimeCell::class ) {
+                        $fields[$slug] = $cfield->alias;
+                    } else {
+    $fields[$slug][] = $cfield->alias;
+}
                 }
             } else {
                 $parts = $this->repo_schema->splitNames($field);

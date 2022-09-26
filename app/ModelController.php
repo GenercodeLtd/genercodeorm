@@ -142,7 +142,7 @@ class ModelController
     }
 
 
-    public function get(string $name, array $params)
+    public function get(string $name, array $params, $state = null)
     {
         $this->checkPermission($name, "get");
 
@@ -153,6 +153,7 @@ class ModelController
             $model->secure = $this->profile->id;
         }
 
+        if ($state == "active") $params["__limit"] = 1;
         $this->parseParams($model, $params);
        
         $res = (isset($params["__limit"]) && $params["__limit"] == 1) ? $model->get() : $model->getAll();
@@ -251,6 +252,21 @@ class ModelController
         
         $src = $prefix . $model->getAsset($field, $id);
         return $file->disk('s3')->get($src);
+    } 
+
+
+    public function removeAsset(\Illuminate\FileSystem\FilesystemManager $file, string $prefix, string $name, string $field, int $id) {
+        $this->checkPermission($name, "get");
+
+        $model = new Model($this->dbmanager, $this->repo);
+        $model->name = $name;
+
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $model->secure = $this->profile->id;
+        }
+        
+        $src = $prefix . $model->getAsset($field, $id);
+        return $file->disk('s3')->delete($src);
     } 
 
 }
