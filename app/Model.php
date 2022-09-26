@@ -240,9 +240,9 @@ class Model
         }
 
         $root = $this->repo_schema->getSchema("");
-        $query = $this->buildQuery($root->table);
+        $query = $this->buildQuery($root->table, $root->alias);
         if ($this->secure) $this->secureQuery($query);
-        $query->filter($where_data, false);
+        $query->filter($where_data);
 
         $rows = $query->update($data->toCellNameArr());
 

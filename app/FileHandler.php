@@ -28,11 +28,11 @@ class FileHandler
     }
 
 
-    public function uniqueKey($ext) {
+    public function uniqueKey($dir, $ext) {
         $key = "";
         do {
             $key = uniqid() . "." . $ext;
-        } while($this->file->disk("s3")->has($this->prefix . $key));
+        } while($this->file->disk("s3")->has($this->prefix . $dir . $key));
         return $key;
     }
 
@@ -42,11 +42,12 @@ class FileHandler
         $schema = $this->repo->getSchema("");
         foreach($schema->cells as $alias=>$cell) {
             if ($cell::class == Cells\AssetCell::class AND isset($_FILES[$alias])) {
+                $dir = "assets/" . $schema->table;
                 $file = $_FILES[$alias];
                 $cell->validateUpload($file);
                 $name = $file['tmp_name'];
-                $key = $this->uniqueKey(pathinfo($name, \PATHINFO_EXTENSION));
-                $res = $this->file->disk("s3")->put($this->prefix . $key, file_get_contents($file['tmp_name']));
+                $key = $this->uniqueKey($dir, pathinfo($name, \PATHINFO_EXTENSION));
+                $res = $this->file->disk("s3")->put($this->prefix . $dir . $key, file_get_contents($file['tmp_name']));
                 $params[$alias] = $this->prefix . $key;
             }
         }
@@ -59,18 +60,18 @@ class FileHandler
         foreach($schema->cells as $alias=>$cell) {
             if ($cell::class == Cells\AssetCell::class) {
                 $key = $data->{ $alias };
-                $res = $this->file->disk("s3")->delete($key);
+                $res = $this->file->disk("s3")->delete($this->prefix . $key);
             }
         }
     }
 
 
     public function get($src) {
-        return $this->file->disk("s3")->get($src);
+        return $this->file->disk("s3")->get($this->prefix . $src);
     }   
 
     public function delete($src) {
-        return $this->file->disk("s3")->delete($src);
+        return $this->file->disk("s3")->delete($this->prefix . $src);
     } 
     
 }

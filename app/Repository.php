@@ -25,9 +25,7 @@ class Repository extends Model
         foreach ($schemas as $slug=>$schema) {
             $fields[$slug] = [];
             foreach ($schema->cells as $cell) {
-                if (!$cell->background) {
-                    $fields[$slug][] = $cell->alias;
-                }
+                $fields[$slug][] = $cell->alias;
             }
         }
         return $fields;
@@ -55,8 +53,8 @@ class Repository extends Model
                     if ($cfield::class == Cell\TimeCell::class ) {
                         $fields[$slug] = $cfield->alias;
                     } else {
-    $fields[$slug][] = $cfield->alias;
-}
+                        $fields[$slug][] = $cfield->alias;
+                    }
                 }
             } else {
                 $parts = $this->repo_schema->splitNames($field);
