@@ -138,7 +138,7 @@ class ModelController
         if ($res["affected_rows"] > 0) {
             $fileHandler = $this->app->make(FileHandler::class);
             $fileHandler->init($this->repo, $name);
-            $params = $fileHandler->deleteFiles($prefix, $res["original_data"]);    
+            $params = $fileHandler->deleteFiles($res["original_data"]);    
         }
         return $this->trigger($name, "delete", $res);
     }
@@ -274,7 +274,7 @@ class ModelController
 
 
         $fileHandler = $this->app->make(FileHandler::class);
-        return $fileHandler->get($prefix);
+        return $fileHandler->get($src);
 
     } 
 
@@ -293,7 +293,7 @@ class ModelController
 
         $fileHandler = $this->app->make(FileHandler::class);
         $fileHandler->init($this->repo, $name);
-        return $fileHandler->delete($prefix);
+        return $fileHandler->delete();
 
     } 
 

@@ -12,7 +12,6 @@ class Repository extends Model
    
     protected $to;
     protected ?array $children = null;
-    protected ?array $fields = null;
     protected $limit;
     protected $offset;
     protected ?array $order = null;

@@ -9,9 +9,11 @@ class Model
     protected $repo_schema;
     protected $connection;
     protected $name;
+    protected ?array $fields = null;
     protected int $secure = 0;
     protected array $where = [];
     protected array $data = [];
+    protected array $map = [];
 
     public function __construct(\Illuminate\Database\DatabaseManager $dbmanager, SchemaRepository $schema)
     {
@@ -27,6 +29,19 @@ class Model
                 $this->repo_schema->loadBase($val);
             }
         }
+    }
+
+    public function __get($key) {
+        if (property_exists($this, $key)) return $this->$key;
+    }
+
+
+    public function constant($val, $alias = null) {
+        return function($builder) use ($val, $alias) {
+            $sql = $val;
+            if ($alias) $sql .= " AS " . $alias;
+            return $builder->raw($sql);
+        };
     }
 
 
@@ -52,17 +67,37 @@ class Model
 
 
 
-    public function copy($fields, $query)
+    public function copy($model)
     {
-        $this->setTable(false);
-        $root = $this->repo_schema->getSchema("");
+        $oschema = $model->repo_schema->getSchema("");
+        $oquery = $this->buildQuery($oschema->table);
 
-        $fields = [];
-        foreach ($data->getBinds() as $alias=>$bind) {
-            $fields[] = $bind->cell->name;
+        if (!is_array($model->fields)) {
+            throw new \Exception("fields is not an array");
         }
 
-        $query->insertUsing($fields, $query);
+        if (!is_array($this->fields)) {
+            throw new \Exception("fields is not an array");
+        }
+
+        foreach($model->fields as $olias=>$nalias) {
+            if (is_callable($nalias)) {
+                $oquery->addSelect($nalias($oquery));
+            } else {
+                $oquery->addSelect($nalias);
+            }
+        }
+
+    
+        $data = $model->createDataSet($model->where);
+        $data->validate();
+        $oquery->filter($data, false);
+        
+    
+        $root = $this->repo_schema->getSchema("");
+        $query = $this->buildQuery($root->table);
+        
+        $query->insertUsing($this->fields, $oquery);
     }
 
 
