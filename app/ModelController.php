@@ -2,22 +2,25 @@
 
 namespace GenerCodeOrm;
 
+use \Illuminate\Container\Container;
+use \Illuminate\Support\Fluent;
+
 class ModelController
 {
+    protected $app;
     protected $repo;
-    protected $dbmanager;
-    protected $hooks;
-    protected $profile;
+    protected \Illuminate\Database\DatabaseManager $dbmanager;
+    protected \GenerCodeOrm\Hooks $hooks;
+    protected \GenerCodeOrm\Profile $profile;
 
     public function __construct(
-        \Illuminate\Database\DatabaseManager $dbmanager,
-        Profile $profile,
-        Hooks $hooks
+        Container $app,
     )
-    {
-        $this->dbmanager = $dbmanager;
-        $this->profile = $profile;
-        $this->hooks = $hooks;
+    { 
+        $this->app = $app;
+        $this->dbmanager = $app->get(\Illuminate\Database\DatabaseManager::class);
+        $this->profile = $app->get(\GenerCodeOrm\Profile::class);
+        $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);
         $this->repo = new SchemaRepository($this->profile->factory);
     }
 
@@ -72,14 +75,19 @@ class ModelController
         $model->where = $where;
     }
 
+  
 
-    public function create($name, array $params)
+    public function create($name, Fluent $params)
     {
         $this->checkPermission($name, "post");
 
+        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler->init($this->repo, $name);
+        $params = new Fluent(array_merge($params->toArray(), $fileHandler->uploadFiles()));
+
         $model = new Model($this->dbmanager, $this->repo);
         $model->name = $name;
-        $model->data = $params;
+        $model->data = $params->toArray();
         $res = $model->create();
 
         return $this->trigger($name, "post", $res);
@@ -87,14 +95,21 @@ class ModelController
 
 
 
-    public function update($name, array $params)
+    public function update($name, Fluent $params)
     {
         $this->checkPermission($name, "put");
 
+        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler->init($this->repo, $name);
+        $arr = array_merge($params->toArray(), $fileHandler->uploadFiles());
+      
+        $params = new Fluent($arr);
+
         $model= new Model($this->dbmanager, $this->repo);
         $model->name = $name;
-        $model->where = ["--id", $params["--id"]];
-        $model->data = $params;
+        $model->where = ["--id" => $params["--id"]];
+
+        $model->data = $params->toArray();
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
@@ -106,7 +121,7 @@ class ModelController
     }
 
 
-    public function delete(string $name, array $params)
+    public function delete(string $name, Fluent $params)
     {
         $this->checkPermission($name, "delete");
 
@@ -120,12 +135,17 @@ class ModelController
         $model->where = ["--id", $params["--id"]];
         $res = $model->delete();
 
+        if ($res["affected_rows"] > 0) {
+            $fileHandler = $this->app->make(FileHandler::class);
+            $fileHandler->init($this->repo, $name);
+            $params = $fileHandler->deleteFiles($prefix, $res["original_data"]);    
+        }
         return $this->trigger($name, "delete", $res);
     }
 
 
 
-    public function resort($name, array $params)
+    public function resort($name, Fluent $params)
     {
         $this->checkPermission($name, "put");
 
@@ -142,7 +162,7 @@ class ModelController
     }
 
 
-    public function get(string $name, array $params, $state = null)
+    public function get(string $name, Fluent $params, $state = null)
     {
         $this->checkPermission($name, "get");
 
@@ -161,7 +181,7 @@ class ModelController
     }
 
 
-    public function getActive(string $name, array $params) {
+    public function getActive(string $name, Fluent $params) {
         $params["__limit"] = 1;
         $params["__order"] = null;
         $params["__group"] = null;
@@ -170,7 +190,7 @@ class ModelController
 
 
     
-    public function getFirst($name, array $params)
+    public function getFirst($name, Fluent $params)
     {
         $params["__order"] = ["--id", "ASC"];
         $params["__ofset"] = 0;
@@ -179,7 +199,7 @@ class ModelController
     }
 
 
-    public function getLast($name, array $params)
+    public function getLast($name, Fluent $params)
     {
         $params["__order"] = ["--id", "DESC"];
         $params["__ofset"] = 0;
@@ -188,7 +208,7 @@ class ModelController
     }
 
 
-    public function count(string $name, array $params) {
+    public function count(string $name, Fluent $params) {
         $this->checkPermission($name, "get");
 
         $model = new Repository($this->dbmanager, $this->repo);
@@ -240,7 +260,7 @@ class ModelController
     }
 
     
-    public function getAsset(\Illuminate\FileSystem\FilesystemManager $file, string $prefix, string $name, string $field, int $id) {
+    public function getAsset(string $name, string $field, int $id) {
         $this->checkPermission($name, "get");
 
         $model = new Model($this->dbmanager, $this->repo);
@@ -249,13 +269,17 @@ class ModelController
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
         }
-        
-        $src = $prefix . $model->getAsset($field, $id);
-        return $file->disk('s3')->get($src);
+
+        $src = $model->getAsset($field, $id);
+
+
+        $fileHandler = $this->app->make(FileHandler::class);
+        return $fileHandler->get($prefix);
+
     } 
 
 
-    public function removeAsset(\Illuminate\FileSystem\FilesystemManager $file, string $prefix, string $name, string $field, int $id) {
+    public function removeAsset(string $name, string $field, int $id) {
         $this->checkPermission($name, "get");
 
         $model = new Model($this->dbmanager, $this->repo);
@@ -264,9 +288,13 @@ class ModelController
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
         }
-        
-        $src = $prefix . $model->getAsset($field, $id);
-        return $file->disk('s3')->delete($src);
+
+        $src = $model->getAsset($field, $id);
+
+        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler->init($this->repo, $name);
+        return $fileHandler->delete($prefix);
+
     } 
 
 }

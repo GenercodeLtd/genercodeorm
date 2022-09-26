@@ -188,7 +188,9 @@ class Model
         $data = new DataSet();
         
         foreach ($schema->cells as $alias=>$cell) {
-            if (!$cell->system and isset($this->data[$alias]) AND !$cell->immutable) {
+            if ($alias == "--id") {
+                $data->bind($alias, $cell);
+            } else if (!$cell->system and isset($this->data[$alias]) AND !$cell->immutable) {
                 $data->bind($alias, $cell);
             }
         }
@@ -205,13 +207,13 @@ class Model
         $root = $this->repo_schema->getSchema("");
         $query = $this->buildQuery($root->table);
         if ($this->secure) $this->secureQuery($query);
-        $query->filter($where_data);
+        $query->filter($where_data, false);
 
         $rows = $query->update($data->toCellNameArr());
 
         return [
             "original"=>$original_data,
-            "data"=>$cols,
+            "data"=>$data->toArr(),
             "affected_rows"=>$rows
         ];
     }

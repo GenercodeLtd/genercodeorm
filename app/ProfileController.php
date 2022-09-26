@@ -1,14 +1,18 @@
 <?php
 namespace GenerCodeOrm;
 
+use \Illuminate\Container\Container;
+
 class ProfileController {
 
-    protected $dbmanager;
-    protected $profile;
+    protected Container $app;
+    protected \Illuminate\Database\DatabaseManager $dbmanager;
+    protected Profile $profile;
    
-    function __construct(\Illuminate\Database\DatabaseManager $dbmanager, Profile $profile) {
-        $this->dbmanager = $dbmanager;
-        $this->profile = $profile;
+    function __construct(Container $app) {
+        $this->app = $app;
+        $this->dbmanager = $app->get(\Illuminate\Database\DatabaseManager::class);
+        $this->profile = $app->get(\GenerCodeOrm\Profile::class);
     }
 
     function checkUser() {

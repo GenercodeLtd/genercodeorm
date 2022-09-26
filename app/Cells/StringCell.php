@@ -21,6 +21,7 @@ class StringCell extends MetaCell {
     
 
     function clean($value) {
+        $value = (string) $value ?? '';
         return trim($value);
     }
 
