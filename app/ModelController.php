@@ -32,8 +32,8 @@ class ModelController
 
     private function trigger($name, $method, $res)
     {
-        if ($this->hooks->has($name, $method)) {
-            $res = $this->hooks->trigger($name, $method, $res);
+        if ($this->hooks->has($name . ".".  $method)) {
+            $res = $this->hooks->trigger($name . "." . $method, $method, $res);
         }
         return $res;
     }

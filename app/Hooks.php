@@ -5,11 +5,10 @@ namespace GenerCodeOrm;
 class Hooks extends Factory {
 
 
-    function loadHooksFromFile($link) {
-        $hook = $this;
-        if ($link) {
-            if (file_exists($link)) {
-                include($link);
+    function loadHooks($arr) {
+        foreach ($arr as $name=>$block) {
+            foreach ($block as $method=>$func) {
+                $this->products[$name . $method] = $func;
             }
         }
     }
