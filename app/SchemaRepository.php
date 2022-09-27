@@ -19,6 +19,7 @@ class SchemaRepository
     {
         $this->schemas[$slug] = $schema;
         $schema->alias = "t" . count($this->schemas);
+        $this->loadReferences($slug, $schema);
     }
 
     public function __set($key, $val)
@@ -108,6 +109,8 @@ class SchemaRepository
     }
 
     public function loadTo($limit) {
+        if (!$this->has("--parent")) return;
+
         $parent = $this->get("--parent");
 
         while ($parent) {
@@ -131,17 +134,12 @@ class SchemaRepository
         }
     }
 
-    public function loadReferences($fields) {
-    //loop through schemas so we can be sure that all have loaded in order
-        foreach ($this->schemas as $slug=>$schema) {
-            if (!isset($fields[$slug])) continue;
-        
-            foreach ($fields[$slug] as $name) {
-                $cell = $schema->get($name);
-                if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
-                    $slug_alias = (!$slug) ? "" : $slug . "/";
-                    $this->load($slug_alias . $name, ($this->factory)($cell->reference));
-                }
+    public function loadReferences($slug, $schema) {
+        //loop through schemas so that they are loaded in, don't need to connect to all of them necessarily.
+        foreach ($schema->cells as $alias=>$cell) {
+            if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
+                $slug_alias = (!$slug) ? "" : $slug . "/";
+                $this->load($slug_alias . $alias, ($this->factory)($cell->reference));
             }
         }
     }

@@ -17,6 +17,7 @@ class Factory {
     
     function __invoke($product_slug) {
         if (!isset($this->products[$product_slug])) {
+            var_dump(array_keys($this->products));
             throw new \Exception("Slug doesn't exist in factory: " . $product_slug);
         }
         

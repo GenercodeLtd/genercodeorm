@@ -13,7 +13,8 @@ use Illuminate\Container\Container as Container;
 
 require_once(__DIR__ . "/../app/standardfunctions.php");
 \GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
-\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../ptjmanager/repos/ptj");
+//\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../ptjmanager/repos/ptj");
+\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../api_capstone/repos/v4/ptj");
 
 
 final class RepoTest extends TestCase {
@@ -39,7 +40,7 @@ final class RepoTest extends TestCase {
         $this->dbmanager = $capsule->getDatabaseManager();   
         
         $factory = new PressToJam\ProfileFactory();
-        $this->profile = ($factory)("accounts");
+        $this->profile = ($factory)("pi-users");
         $this->profile->id = 1;
     }
 
@@ -65,6 +66,16 @@ final class RepoTest extends TestCase {
         $repo->where = ["--parent"=>1];
         $res = $repo->getAsReference();
         $this->assertGreaterThan(1, count($res));
+    }
+
+    public function testLoadReference() {
+        $model = new GenerCodeOrm\Repository($this->dbmanager, new SchemaRepository($this->profile->factory));
+        $model->name = "eft-batch-payments";
+        $repo = $model->repo_schema;
+
+        $schemas = $repo->getSchemas();
+        echo "Total is " . count($schemas);
+      //  $repo->loadReferences();
     }
 
 
