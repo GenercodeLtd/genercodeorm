@@ -4,6 +4,13 @@ namespace GenerCodeOrm;
 
 class Hooks extends Factory {
 
+    function __construct($arr) {
+        foreach ($arr as $name=>$block) {
+            foreach ($block as $method=>$func) {
+                $this->products[$name . $method] = $func;
+            }
+        }
+    }
 
     function loadHooks($arr) {
         foreach ($arr as $name=>$block) {
