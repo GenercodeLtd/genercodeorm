@@ -8,4 +8,5 @@ abstract class ReferenceTypes
     const OWNER = 2;
     const REFERENCE = 3;
     const RECURSIVE = 4;
+    const CIRCULAR = 5;
 }

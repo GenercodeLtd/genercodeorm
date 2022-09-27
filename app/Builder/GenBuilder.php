@@ -203,7 +203,7 @@ class GenBuilder extends Builder
             $this->addSelect($cell->schema->alias . "." . $cell->name . " as " . $alias);
             if ($cell->reference_type == ReferenceTypes::REFERENCE) {
                 $inner = (!$cell->required) ? false : true;
-                $this->joinIn($cell, $schema->get("--id", $alias), $inner);
+                $this->joinIn($cell, $schema->get("--id", $alias . "/" , $cell->reference), $inner);
             }
         }
     }

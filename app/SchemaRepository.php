@@ -138,8 +138,10 @@ class SchemaRepository
         //loop through schemas so that they are loaded in, don't need to connect to all of them necessarily.
         foreach ($schema->cells as $alias=>$cell) {
             if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
+                $new_schema = ($this->factory)($cell->reference);
+                if ($new_schema->table == $schema->table) continue; //circular reference
                 $slug_alias = (!$slug) ? "" : $slug . "/";
-                $this->load($slug_alias . $alias, ($this->factory)($cell->reference));
+                $this->load($slug_alias . $alias, $new_schema);
             }
         }
     }
