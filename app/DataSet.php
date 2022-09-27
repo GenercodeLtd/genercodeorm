@@ -74,7 +74,11 @@ class DataSet {
     public function toCellNameArr() {
         $arr = [];
         foreach($this->values as $key=>$val) {
-            $arr[$val->cell->name] = $val->value;
+            if (get_class($val->cell) == Cells\StringCell::class) {
+                $arr[$val->cell->name] = "'" . $val->value . "'";
+            } else {
+                $arr[$val->cell->name] = $val->value;
+            }
         } 
         return $arr;
     }

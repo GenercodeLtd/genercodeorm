@@ -104,6 +104,7 @@ class ModelController
         $model= $this->app->make(Model::class);
         $model->name = $name;
         $model->where = ["--id" => $params["--id"]];
+        unset($params["--id"]);
 
         $model->data = $params->toArray();
 
