@@ -41,7 +41,7 @@ class FileHandler
         $params = [];
         $schema = $this->repo->getSchema("");
         foreach($schema->cells as $alias=>$cell) {
-            if ($cell::class == Cells\AssetCell::class AND isset($_FILES[$alias])) {
+            if (get_class($cell) == Cells\AssetCell::class AND isset($_FILES[$alias])) {
                 $dir = "assets/" . $schema->table;
                 $file = $_FILES[$alias];
                 $cell->validateUpload($file);
@@ -58,7 +58,7 @@ class FileHandler
     public function deleteFiles($data) {
         $schema = $this->repo->getSchema("");
         foreach($schema->cells as $alias=>$cell) {
-            if ($cell::class == Cells\AssetCell::class) {
+            if (get_class($cell) == Cells\AssetCell::class) {
                 $key = $data->{ $alias };
                 $res = $this->file->disk("s3")->delete($this->prefix . $key);
             }

@@ -32,7 +32,7 @@ class ModelController
 
     private function trigger($name, $method, $res)
     {
-        $res = $this->hooks->trigger($name, $method, $res);
+        return $this->hooks->trigger($name, $method, $res);
     }
 
     private function handleFileUploads() {
