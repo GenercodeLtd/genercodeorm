@@ -225,32 +225,10 @@ class ModelController
     public function reference(string $name, string $field, $id) {
         $this->checkPermission($name, "get");
 
-        $cell = $this->repo->get($field);
-        
+        $ref = $this->app->make(Reference::class);
+
         $model= $this->app->make(Repository::class);
-        $repo->name = $cell->reference;
-
-        if ($cell->common) {
-            if ($cell->common) {
-                $parent = $this->repo->has("--parent"); //must have parent
-                if ($cell->common == $parent->reference) {
-                    $repo->where = ["--parent"=>$id];
-                }
-            } else {
-                $crepo = $this->app->make(Repository::class);
-                $crepo->name = $this->name;
-                $crepo->to = $cell->common;
-                $crepo->where = ["--parent"=>$id];
-                $crepo->limit = 1;
-                $obj = $crepo->get();
-                $repo->to = $cell->common;
-                $repo->where = [$cell->common + "/--id" => $obj->{ $cell->common + "/--id"}];
-            }
-        }
-
-        if (!$this->profile->allowedAdminPrivilege($name)) {
-            $repo->secure = $this->profile->id;
-        }
+        $ref->setRepo($name, $field, $id, $model);
 
         $this->parseParams($model, $params);
         return $repo->getAsReference();
