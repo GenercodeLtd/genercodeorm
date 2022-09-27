@@ -53,8 +53,8 @@ class Schema
 
     public function getSchema() {
         $schema = [];
-        if ($this->import) $schema["import"] = true;
-        if ($this->export) $schema["export"] = true;
+        if ($this->has_import) $schema["import"] = true;
+        if ($this->has_export) $schema["export"] = true;
         $schema["schema"] = [];
         foreach ($this->cells as $alias=>$cell) {
             $schema["schema"][$alias] = $cell->toSchema();
