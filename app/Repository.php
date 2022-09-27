@@ -18,13 +18,14 @@ class Repository extends Model
     protected string $group = "";
 
 
-    private function getAllFields()
+    private function getAllFields($with_archive = false)
     {
         $schemas = $this->repo_schema->getSchemas();
         $fields = [];
         foreach ($schemas as $slug=>$schema) {
             $fields[$slug] = [];
             foreach ($schema->cells as $cell) {
+                if (!$with_archive AND $cell->alias == "--archive") continue;
                 $fields[$slug][] = $cell->alias;
             }
         }
