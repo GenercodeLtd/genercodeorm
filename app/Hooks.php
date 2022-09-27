@@ -14,7 +14,7 @@ class Hooks extends Factory {
     function loadHooks(array $arr) {
         foreach ($arr as $name=>$block) {
             foreach ($block as $method=>$func) {
-                $this->products[$name . $method] = $func;
+                $this->products[$name . "." . $method] = $func;
             }
         }
     }
