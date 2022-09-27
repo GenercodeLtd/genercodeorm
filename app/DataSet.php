@@ -94,7 +94,6 @@ class DataSet {
         foreach($this->values as $slug => $mval) {
             if (is_array($mval->value)) {
                 //do something over here with the value
-                echo "is ivalue?";
                 foreach($mval->value as $ikey=>$ivalue) {
                     $error = $mval->cell->validate($ivalue);
                     if ($error) {

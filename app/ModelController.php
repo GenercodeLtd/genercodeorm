@@ -39,8 +39,9 @@ class ModelController
 
     private function parseParams($model, $params)
     {
+        $arr = $params->toArray();
         $where = [];
-        foreach ($params as $key=>$val) {
+        foreach ($arr as $key=>$val) {
             switch($key) {
                 case '__children':
                     $model->children = $val;

@@ -3,6 +3,7 @@
 namespace GenerCodeOrm;
 
 use Psr\Http\Message\ServerRequestInterface;
+use \Illuminate\Support\Fluent;
 
 class Model
 {
@@ -247,7 +248,7 @@ class Model
         $rows = $query->update($data->toCellNameArr());
 
         return [
-            "original"=>$original_data->toArr(),
+            "original"=>new Fluent($original_data),
             "data"=>$data->toArr(),
             "affected_rows"=>$rows
         ];
@@ -280,7 +281,7 @@ class Model
         $count = $query->delete();
 
         return [
-            "original"=>$original_data->toArr(),
+            "original"=>new Fluent($original_data),
             "affected_rows"=>$count
         ];
     }

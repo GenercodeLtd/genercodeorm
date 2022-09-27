@@ -18,7 +18,7 @@ class Repository extends Model
     protected string $group = "";
 
 
-    private function getAllFields()
+    public function getAllFields()
     {
         $schemas = $this->repo_schema->getSchemas();
         $fields = [];
@@ -32,7 +32,7 @@ class Repository extends Model
     }
 
 
-    private function expandFields()
+    public function expandFields()
     {
         $fields = [];
         foreach ($this->fields as $field) {
@@ -81,9 +81,6 @@ class Repository extends Model
         if ($this->to) $this->repo_schema->loadTo($this->to);
         if ($this->children) $this->repo_schema->loadChildren($this->children);
         $fields = (!$this->fields) ? $this->getAllFields() : $this->expandFields();
-
-        $this->repo_schema->loadReferences($fields);
-        
 
         $schema = $this->repo_schema->getSchema("");
         $query = $this->buildQuery($schema->table, $schema->alias);
