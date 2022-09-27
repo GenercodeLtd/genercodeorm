@@ -100,7 +100,6 @@ class MetaCell
     public function toSchema()
     {
         $arr=[];
-        $arr["model"] = $this->model;
         $arr["min"]=$this->min;
         $arr["max"]=$this->max;
         $arr["contains"]=$this->contains;
