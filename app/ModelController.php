@@ -231,7 +231,7 @@ class ModelController
         $ref->setRepo($name, $field, $id, $model);
 
         if ($params) $this->parseParams($model, $params);
-        return $repo->getAsReference();
+        return $model->getAsReference();
     }
 
     
