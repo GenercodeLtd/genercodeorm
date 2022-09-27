@@ -244,7 +244,7 @@ class Model
         if ($this->secure) $this->secureQuery($query);
         $query->filter($where_data);
 
-        $rows = $query->update($data->toCellNameArr());
+        $rows = $query->update($data->toCellNameArr($root->alias . "."));
 
         return [
             "original"=>new Fluent($original_data),
