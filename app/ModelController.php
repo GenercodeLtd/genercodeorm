@@ -222,7 +222,7 @@ class ModelController
     }
 
 
-    public function reference(string $name, string $field, $id) {
+    public function reference(string $name, string $field, $id, ?Fluent $params) {
         $this->checkPermission($name, "get");
 
         $ref = $this->app->make(Reference::class);
@@ -230,7 +230,7 @@ class ModelController
         $model= $this->app->make(Repository::class);
         $ref->setRepo($name, $field, $id, $model);
 
-        $this->parseParams($model, $params);
+        if ($params) $this->parseParams($model, $params);
         return $repo->getAsReference();
     }
 
