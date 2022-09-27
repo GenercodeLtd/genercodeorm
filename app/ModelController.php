@@ -9,7 +9,6 @@ class ModelController
 {
     protected $app;
     protected $repo;
-    protected \Illuminate\Database\DatabaseManager $dbmanager;
     protected \GenerCodeOrm\Hooks $hooks;
     protected \GenerCodeOrm\Profile $profile;
 
@@ -18,7 +17,6 @@ class ModelController
     )
     { 
         $this->app = $app;
-        $this->dbmanager = $app->get(\Illuminate\Database\DatabaseManager::class);
         $this->profile = $app->get(\GenerCodeOrm\Profile::class);
         $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);
         $this->repo = new SchemaRepository($this->profile->factory);
@@ -82,7 +80,7 @@ class ModelController
         $fileHandler->init($this->repo, $name);
         $params = new Fluent(array_merge($params->toArray(), $fileHandler->uploadFiles()));
 
-        $model = new Model($this->dbmanager, $this->repo);
+        $model= $this->app->make(Model::class);
         $model->name = $name;
         $model->data = $params->toArray();
         $res = $model->create();
@@ -102,7 +100,7 @@ class ModelController
       
         $params = new Fluent($arr);
 
-        $model= new Model($this->dbmanager, $this->repo);
+        $model= $this->app->make(Model::class);
         $model->name = $name;
         $model->where = ["--id" => $params["--id"]];
 
@@ -122,7 +120,7 @@ class ModelController
     {
         $this->checkPermission($name, "delete");
 
-        $model= new Model($this->dbmanager, $this->repo);
+        $model= $this->app->make(Model::class);
 
         $model->name = $name;
         if (!$this->profile->allowedAdminPrivilege($name)) {
@@ -150,7 +148,7 @@ class ModelController
             $model->secure = $this->profile->id;
         }
 
-        $model = new Model($this->dbmanager, $this->repo);
+        $model= $this->app->make(Model::class);
         $model->name = $name;
         $model->data = $params;
         $model->multipleUpdate();
@@ -163,7 +161,7 @@ class ModelController
     {
         $this->checkPermission($name, "get");
 
-        $model = new Repository($this->dbmanager, $this->repo);
+        $model= $this->app->make(Repository::class);
         $model->name = $name;
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
@@ -208,7 +206,7 @@ class ModelController
     public function count(string $name, Fluent $params) {
         $this->checkPermission($name, "get");
 
-        $model = new Repository($this->dbmanager, $this->repo);
+        $model= $this->app->make(Repository::class);
         $model->name = $name;
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
@@ -227,7 +225,7 @@ class ModelController
 
         $cell = $this->repo_schema->get($field);
         
-        $repo = new Repository($this->dbmanager, $this->repo);
+        $model= $this->app->make(Repository::class);
         $repo->name = $cell->reference;
 
         if ($cell->common) {
@@ -237,7 +235,7 @@ class ModelController
                     $repo->where = ["--parent"=>$id];
                 }
             } else {
-                $crepo = new Repository($this->dbmanager, $this->repo);
+                $crepo = $this->app->make(Repository::class);
                 $crepo->name = $this->name;
                 $crepo->to = $cell->common;
                 $crepo->where = ["--parent"=>$id];
@@ -260,7 +258,7 @@ class ModelController
     public function getAsset(string $name, string $field, int $id) {
         $this->checkPermission($name, "get");
 
-        $model = new Model($this->dbmanager, $this->repo);
+        $model= $this->app->make(Model::class);
         $model->name = $name;
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
@@ -279,7 +277,7 @@ class ModelController
     public function removeAsset(string $name, string $field, int $id) {
         $this->checkPermission($name, "get");
 
-        $model = new Model($this->dbmanager, $this->repo);
+        $model= $this->app->make(Model::class);
         $model->name = $name;
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
