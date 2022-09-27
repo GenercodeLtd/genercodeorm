@@ -247,7 +247,7 @@ class Model
         $rows = $query->update($data->toCellNameArr());
 
         return [
-            "original"=>$original_data,
+            "original"=>$original_data->toArr(),
             "data"=>$data->toArr(),
             "affected_rows"=>$rows
         ];
@@ -280,7 +280,7 @@ class Model
         $count = $query->delete();
 
         return [
-            "original"=>$original_data,
+            "original"=>$original_data->toArr(),
             "affected_rows"=>$count
         ];
     }

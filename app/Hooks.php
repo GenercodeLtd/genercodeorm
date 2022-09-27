@@ -1,18 +1,17 @@
 <?php
 
 namespace GenerCodeOrm;
+use \Illuminate\Container\Container;
 
 class Hooks extends Factory {
 
-    function __construct($arr) {
-        foreach ($arr as $name=>$block) {
-            foreach ($block as $method=>$func) {
-                $this->products[$name . $method] = $func;
-            }
-        }
+    protected Container $container;
+
+    function __construct(Container $container) {
+        $this->container = $container;
     }
 
-    function loadHooks($arr) {
+    function loadHooks(array $arr) {
         foreach ($arr as $name=>$block) {
             foreach ($block as $method=>$func) {
                 $this->products[$name . $method] = $func;
@@ -21,12 +20,14 @@ class Hooks extends Factory {
     }
 
     
-	function trigger($action, $container, $data, $orig)
+	function trigger($name, $method, $data)
 	{
-		if (isset($this->products[$action]))
-		{
-            return ($this->products[$action])($container, $data, $orig);
-		}
+        $action = $name . "." . $method;
+		if (isset($this->products[$action])) {
+            return ($this->products[$action])($this->container, $method, $data);
+		} else {
+            return $data;
+        }
 	}
 
 }

@@ -14,7 +14,7 @@ class ModelController
     protected \GenerCodeOrm\Profile $profile;
 
     public function __construct(
-        Container $app,
+        Container $app
     )
     { 
         $this->app = $app;
@@ -32,10 +32,7 @@ class ModelController
 
     private function trigger($name, $method, $res)
     {
-        if ($this->hooks->has($name . ".".  $method)) {
-            $res = $this->hooks->trigger($name . "." . $method, $method, $res);
-        }
-        return $res;
+        $res = $this->hooks->trigger($name, $method, $res);
     }
 
     private function handleFileUploads() {
