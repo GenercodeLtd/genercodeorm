@@ -225,9 +225,7 @@ class Model
         $data = new DataSet();
         
         foreach ($schema->cells as $alias=>$cell) {
-            if ($alias == "--id") {
-                $data->bind($alias, $cell);
-            } else if (!$cell->system and isset($this->data[$alias]) AND !$cell->immutable) {
+            if (!$cell->system and isset($this->data[$alias]) AND !$cell->immutable) {
                 $data->bind($alias, $cell);
             }
         }
