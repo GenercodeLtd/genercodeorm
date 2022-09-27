@@ -115,9 +115,10 @@ class Model
     }
 
 
-    protected function archive(Schema $schema, $data)
+    protected function archive($data)
     {
         $cols = [];
+        $schema = $this->repo_schema->getSchema("");
 
         foreach ($data as $key=>$val) {
             if ($key == "date_created" or $key == "last_updated") {
@@ -237,7 +238,7 @@ class Model
         $this->checkUniques($data);
 
         if ($schema->has("--archive")) {
-            $this->archive($original_data, $where_data);
+            $this->archive($original_data);
         }
 
         $root = $this->repo_schema->getSchema("");
@@ -266,7 +267,7 @@ class Model
         }
 
         if ($this->repo_schema->getSchema("")->has("--archive")) {
-            $this->archive($original_data, $data);
+            $this->archive($original_data);
         }
 
         $this->repo_schema->loadChildren();
