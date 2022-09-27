@@ -225,14 +225,14 @@ class ModelController
     public function reference(string $name, string $field, $id) {
         $this->checkPermission($name, "get");
 
-        $cell = $this->repo_schema->get($field);
+        $cell = $this->repo->get($field);
         
         $model= $this->app->make(Repository::class);
         $repo->name = $cell->reference;
 
         if ($cell->common) {
             if ($cell->common) {
-                $parent = $this->repo_schema->has("--parent"); //must have parent
+                $parent = $this->repo->has("--parent"); //must have parent
                 if ($cell->common == $parent->reference) {
                     $repo->where = ["--parent"=>$id];
                 }

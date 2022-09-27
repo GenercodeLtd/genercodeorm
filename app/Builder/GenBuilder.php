@@ -159,13 +159,13 @@ class GenBuilder extends Builder
         if (is_array($values)) {
             $this->where(function ($query) use ($cell, $values) {
                 $first=array_shift($values);
-                $query->where($alias, "like", "'" . $first . "'");
+                $query->where($alias, "like", $first);
                 foreach ($values as $val) {
-                    $query->orWhere($alias, "like", "'" . $val . "'");
+                    $query->orWhere($alias, "like", $val);
                 }
             });
         } else {
-            $this->where($alias, "=", "'" . $values . "'");
+            $this->where($alias, "=", $values);
         }
     }
 
