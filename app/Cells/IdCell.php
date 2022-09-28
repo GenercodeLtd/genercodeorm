@@ -6,7 +6,7 @@ class IdCell extends MetaCell {
 
     protected $reference_type;
     protected $reference = null;
-    protected $reference_incoming;
+    protected $reverse_references = [];
     protected $common;
 
     function __construct() {
@@ -15,12 +15,16 @@ class IdCell extends MetaCell {
     }
     
 
+    function addReverseRef($model, $field) {
+        $this->reverse_references[$model] = $field;
+    }
 
     function toSchema() {
         $arr=parent::toSchema();
         $arr["type"] = "id";
         $arr["reference_type"] = $this->reference_type;
         $arr["reference"] = $this->reference;
+        $arr["reverse_references"] = $this->reverse_references;
         return $arr;
     }
 }
