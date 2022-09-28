@@ -264,7 +264,7 @@ class Model
             return null;
         }
 
-        if ($this->repo_schema->getSchema("")->has("--archive")) {
+        if ($this->repo_schema->has("--archive")) {
             $this->archive($original_data);
         }
 

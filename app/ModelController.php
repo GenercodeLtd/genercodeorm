@@ -33,9 +33,6 @@ class ModelController
         return $this->hooks->trigger($name, $method, $res);
     }
 
-    private function handleFileUploads() {
-        
-    }
 
     private function parseParams($model, $params)
     {
@@ -53,7 +50,13 @@ class ModelController
                     $model->order = $val;
                     break;
                 case '__limit':
-                    $model->limit = $val;
+                    if (strpos($val, ",") !== false) {
+                        $pts = explode(",", $val);
+                        $model->offset = $pts[0];
+                        $model->limit = $pts[1];
+                    } else {
+                        $model->limit = $val;
+                    }
                     break;
                 case '__offset':
                     $model->offset = $val;
@@ -129,13 +132,13 @@ class ModelController
             $model->secure = $this->profile->id;
         }
 
-        $model->where = ["--id", $params["--id"]];
+        $model->where = ["--id" => $params["--id"]];
         $res = $model->delete();
 
         if ($res["affected_rows"] > 0) {
             $fileHandler = $this->app->make(FileHandler::class);
             $fileHandler->init($this->repo, $name);
-            $params = $fileHandler->deleteFiles($res["original_data"]);    
+            $params = $fileHandler->deleteFiles($res["original"]);    
         }
         return $this->trigger($name, "delete", $res);
     }
