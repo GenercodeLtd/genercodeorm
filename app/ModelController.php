@@ -112,8 +112,6 @@ class ModelController
     {
         $this->checkPermission($name, "put");
 
-        $params = new Fluent($arr);
-
         $model= $this->app->make(Model::class);
         $model->name = $name;
         $model->where = ["--id" => $params["--id"]];
