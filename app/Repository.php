@@ -74,8 +74,7 @@ class Repository extends Model
                 }
             } else {
                 $parts = $this->repo_schema->splitNames($field);
-                if (!isset($fields[$parts[0]])) $fields[$parts[0]] = [];
-                $fields[$parts[0]][] = $parts[1];
+                $view->addCell($parts[0], $this->repo_schema->get($parts[1], $parts[0]));
             }
         }
         return $view;
@@ -101,7 +100,10 @@ class Repository extends Model
         $query = $this->buildQuery($schema->table, $schema->alias);
         $query->joinTo($this->repo_schema);
         $query->children($this->repo_schema);
-        $query->fields($this->repo_schema, $this->convertFieldsToDataMap($fields));
+
+
+        $data = $this->convertFieldsToDataMap($fields);
+        $query->fields($this->repo_schema, $data);
 
         if ($this->secure) $this->secureQuery($query, $this->to);
        

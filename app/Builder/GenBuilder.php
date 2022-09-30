@@ -197,9 +197,8 @@ class GenBuilder extends Builder
     }
 
 
-    public function fields(SchemaRepository $schema, DataView $view)
+    public function fields(SchemaRepository $schema, array $cells)
     {
-        $cells = $view->getCells();
         foreach ($cells as $alias=>$cell) {
             if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
                 $sql = "CONCAT(";
