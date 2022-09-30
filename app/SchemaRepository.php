@@ -45,7 +45,6 @@ class SchemaRepository
 
     public function get($name, $slug = "") : Cells\MetaCell
     {
-        $name = last(explode("..", $slug));
         $schema = $this->getSchema($slug);
         return $schema->get($name);
     }
