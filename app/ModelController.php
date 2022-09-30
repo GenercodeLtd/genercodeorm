@@ -81,7 +81,7 @@ class ModelController
         $this->checkPermission($name, "post");
 
         $fileHandler = $this->app->make(FileHandler::class);
-        $schema = $this->getSchema("");
+        $schema = $this->repo->getSchema("");
         $fcells = [];
         foreach($schema->cells as $alias=>$cell) {
             if (get_class($cell) == Cells\AssetCell::class AND isset($_FILES[$alias])) {
