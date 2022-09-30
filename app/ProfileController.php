@@ -20,20 +20,20 @@ class ProfileController {
     }
 
     
-    function createAnon($params) {
+    function createAnon($name) {
         if (!$this->profile->allowAnonymousCreate()) {
             throw new Exceptions\PtjException("Anonymous profiles are not allowed");
         }
         $model = new Model($this->dbmanager, new SchemaRepository($this->profile->factory));
         $model->name = "users";
-        $model->data = ["type"=>$params["type"]];
+        $model->data = ["type"=>$name];
         $res = $model->create();
         $this->profile->id = $res["--id"];
         return $this->profile;
     }
 
 
-    function create($params) {
+    function create($name, $params) {
         if (!$this->profile->allowCreate()) {
             throw new Exceptions\PtjException("Cannot create profile " . $this->profile->name);
         }
@@ -42,6 +42,7 @@ class ProfileController {
         if (isset($params["password"])) {
             $params["password"] = password_hash($params["password"], \PASSWORD_DEFAULT);
         }
+        $params["type"] = $name;
         $model->data = $params;
         $res = $model->create();
         $this->profile->id = $res["--id"];
