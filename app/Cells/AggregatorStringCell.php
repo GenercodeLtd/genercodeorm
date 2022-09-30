@@ -5,12 +5,12 @@ namespace GenerCodeOrm\Cells;
 
 class AggregatorStringCell {
 
-    protected $meta_fields = [];
+    protected $cells = [];
     protected $alias;
-    protected $aggregator_type;
+    protected $ws;
 
     function __construct($fields) {
-        $this->meta_fields = $fields;
+        $this->cells = $fields;
     }
     
 
@@ -20,7 +20,7 @@ class AggregatorStringCell {
 
     function __get($name) {
         if (property_exists($this, $name)) return $this->$name;
-        else if (isset($this->meta_fields[$name])) return $this->meta_fields[$name];
+        else if (isset($this->cells[$name])) return $this->cells[$name];
     }
 
     

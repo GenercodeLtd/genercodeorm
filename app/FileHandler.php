@@ -7,7 +7,6 @@ use Psr\Http\Message\ServerRequestInterface;
 class FileHandler
 {
     protected $file;
-    protected $repo;
     protected $prefix;
 
     public function __construct(\Illuminate\Filesystem\FilesystemManager $file, $prefix)
@@ -16,10 +15,7 @@ class FileHandler
       $this->prefix = $this->parsePrefix($prefix);
     }
 
-    public function init(SchemaRepository $repo, $name) {
-        $this->repo = $repo;
-        $this->repo->loadBase($name);
-    }
+
 
     protected function parsePrefix($prefix) {
         $prefix = trim($prefix, "/");
@@ -35,23 +31,32 @@ class FileHandler
         } while($this->file->disk("s3")->has($this->prefix . $dir . $key));
         return $key;
     }
+    
 
 
-    public function uploadFiles() {
+    public function uploadFiles($cells) {
         $params = [];
-        $schema = $this->repo->getSchema("");
-        foreach($schema->cells as $alias=>$cell) {
-            if (get_class($cell) == Cells\AssetCell::class AND isset($_FILES[$alias])) {
-                $dir = "assets/" . $schema->table;
-                $file = $_FILES[$alias];
-                $cell->validateUpload($file);
-                $name = $file['tmp_name'];
-                $key = $this->uniqueKey($dir, pathinfo($name, \PATHINFO_EXTENSION));
-                $res = $this->file->disk("s3")->put($this->prefix . $dir . $key, file_get_contents($file['tmp_name']));
-                $params[$alias] = $this->prefix . $key;
-            }
+        foreach($cells as $alias=>$cell) {
+            $dir = "assets/" . $cell->schema->table;
+            if (!isset($_FILES[$alias])) continue;
+            $file = $_FILES[$alias];
+            $cell->validateUpload($file);
+            $name = $file['tmp_name'];
+            $key = $this->uniqueKey($dir, pathinfo($name, \PATHINFO_EXTENSION));
+            $res = $this->file->disk("s3")->put($this->prefix . $dir . $key, file_get_contents($name));
+            $params[$alias] = $dir . $key;
         }
         return $params;
+    }
+
+
+    public function patchFile($alias, $cell, $src) {
+        
+        $dir = "assets/" . $schema->table;
+        if (isset($_FILES[$alias])) {
+            $cell->validateUpload($file);
+            $res = $this->file->disk("s3")->put($this->prefix . $dir . $key, file_get_contents($file['tmp_name']));
+        }
     }
 
 

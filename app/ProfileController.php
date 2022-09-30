@@ -20,7 +20,7 @@ class ProfileController {
     }
 
     
-    function anonymousCreate($params) {
+    function createAnon($params) {
         if (!$this->profile->allowsAnonymousCreate()) {
             throw new Exceptions\PtjException("Anonymous profiles are not allowed");
         }

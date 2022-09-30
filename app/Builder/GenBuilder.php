@@ -197,13 +197,26 @@ class GenBuilder extends Builder
     }
 
 
-    public function fields(SchemaRepository $schema, array $cells)
+    public function fields(SchemaRepository $schema, DataView $view)
     {
+        $cells = $view->getCells();
         foreach ($cells as $alias=>$cell) {
-            $this->addSelect($cell->schema->alias . "." . $cell->name . " as " . $alias);
-            if ($cell->reference_type == ReferenceTypes::REFERENCE) {
-                $inner = (!$cell->required) ? false : true;
-                $this->joinIn($cell, $schema->get("--id", $alias ), $inner);
+            if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
+                $sql = "CONCAT(";
+                if ($cell->ws) $sql .= $cell->ws . ",";
+                $sql_fields = [];
+                foreach($cell->cells as $cell) {
+                    $sql_fields[] = $cell->schema->alias . "." . $cell->name;
+                }
+                $sql .= implode(", ", $sql_fields);
+                $sql .= ") AS '" . $alias . "'";
+                $this->addSelect($this->raw($sql));
+            } else {
+                $this->addSelect($cell->schema->alias . "." . $cell->name . " as " . $alias);
+                if ($cell->reference_type == ReferenceTypes::REFERENCE) {
+                    $inner = (!$cell->required) ? false : true;
+                    $this->joinIn($cell, $schema->get("--id", $alias), $inner);
+                }
             }
         }
     }

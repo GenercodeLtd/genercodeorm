@@ -81,7 +81,22 @@ class ModelController
         $this->checkPermission($name, "post");
 
         $fileHandler = $this->app->make(FileHandler::class);
-        $fileHandler->init($this->repo, $name);
+        $schema = $this->getSchema("");
+        $fcells = [];
+        foreach($schema->cells as $alias=>$cell) {
+            if (get_class($cell) == Cells\AssetCell::class AND isset($_FILES[$alias])) {
+                $fcells[$alias] = $cell;
+            }
+        }
+
+        if (count($fcells) > 0) {
+            $file_names = $fileHandler->uploadFiles($fcells);
+            foreach ($file_names as $alias=>$src) {
+                $params[$alias] = $src;
+            }
+        }
+        
+        
         $params = new Fluent(array_merge($params->toArray(), $fileHandler->uploadFiles()));
 
         $model= $this->app->make(Model::class);
@@ -98,10 +113,6 @@ class ModelController
     {
         $this->checkPermission($name, "put");
 
-        $fileHandler = $this->app->make(FileHandler::class);
-        $fileHandler->init($this->repo, $name);
-        $arr = array_merge($params->toArray(), $fileHandler->uploadFiles());
-      
         $params = new Fluent($arr);
 
         $model= $this->app->make(Model::class);
@@ -149,14 +160,16 @@ class ModelController
     {
         $this->checkPermission($name, "put");
 
+        $model= $this->app->make(Model::class);
+        $model->name = $name;
+
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
         }
 
-        $model= $this->app->make(Model::class);
-        $model->name = $name;
-        $model->data = $params;
-        $model->multipleUpdate();
+    
+        $model->data = $params["_rows"];
+        $model->resort();
 
         return true;
     }
@@ -236,6 +249,25 @@ class ModelController
         if ($params) $this->parseParams($model, $params);
         return $model->getAsReference();
     }
+
+
+    public function patchAsset(string $name, string $field, int $id) {
+        $this->checkPermission($name, "put");
+
+        $model= $this->app->make(Model::class);
+        $model->name = $name;
+
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $model->secure = $this->profile->id;
+        }
+
+        $src = $model->getAsset($field, $id);
+
+
+        $fileHandler = $this->app->make(FileHandler::class);
+        return $fileHandler->patchFile($field, $src, $this->repo->get($field));
+
+    } 
 
     
     public function getAsset(string $name, string $field, int $id) {

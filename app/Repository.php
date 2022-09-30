@@ -18,32 +18,51 @@ class Repository extends Model
     protected string $group = "";
 
 
-    private function getAllFields($with_archive = false)
+    private function getAllFields($with_archive = false) : DataView
     {
+        $view = new DataView();
         $schemas = $this->repo_schema->getSchemas();
-        $fields = [];
         foreach ($schemas as $slug=>$schema) {
-            $fields[$slug] = [];
             foreach ($schema->cells as $cell) {
                 if (!$with_archive AND $cell->alias == "--archive") continue;
-                $fields[$slug][] = $cell->alias;
+                $view->addCell($slug, $cell);
             }
         }
-        return $fields;
+        return $view;
     }
 
 
-    public function expandFields()
+    public function expandFields() : DataView
     {
-        $fields = [];
+        $view = new DataView();
         foreach ($this->fields as $field) {
-            if (strpos($field, "*summary") !== false) {
+            if (is_array($field)) {
+                if (isset($field["type"])) {
+                    if ($field["type"] == "aggregate") {
+                        $arr = [];
+                        foreach($field["fields"] as $ifield) {
+                            $arr[$ifield] = $this->repo_schema->get($ifield);
+                        } 
+                        $cell = new AggregatorStringCell($arr);
+                        if (isset($field["ws"])) $cell->ws = $field["ws"];
+                        $cell->alias = $field["name"];
+                        $view->addCell($slug, $cell);
+
+                    }   
+                } else if (isset($field["path"])) {
+                    $slug = $this->repo_schema->getSlug($fields["path"]);
+                    foreach($field["fields"] as $field) {
+                        $cell = $this->repo_schema->get($field, $slug);
+                        $view->addCell($slug, $cell);
+                    }
+                }
+            } else if (strpos($field, "*summary") !== false) {
                 $slug = trim(str_replace("/*summary", "", $field), "/");
                 if (!isset($fields[$slug])) $fields[$slug] = [];
                 $schema = $this->repo_schema->getSchema($slug);
                 foreach ($schema->cells as $cell) {
                     if ($cell->summary) {
-                        $fields[$slug][] = $cfield->alias;
+                        $view->addCell($slug, $cell);
                     }
                 }
             } elseif (strpos($field, "*") !== false) {
@@ -51,7 +70,7 @@ class Repository extends Model
                 if (!isset($fields[$slug])) $fields[$slug] = [];
                 $schema = $this->repo_schema->getSchema($slug);
                 foreach ($schema->cells as $cfield) {
-                    $fields[$slug][] = $cfield->alias;
+                    $view->addCell($slug, $cell);
                 }
             } else {
                 $parts = $this->repo_schema->splitNames($field);
@@ -59,20 +78,15 @@ class Repository extends Model
                 $fields[$parts[0]][] = $parts[1];
             }
         }
-        return $fields;
+        return $view;
     }
 
 
 
 
-    public function convertFieldsToDataMap($fields) {
+    public function convertFieldsToDataMap(DataView $view) {
         $data = new DataSet();
-        foreach($fields as $slug=>$fields) {
-            $slug_alias = (!$slug) ? "" : $slug . "/";
-            foreach($fields as $alias) {
-                $data->bind($slug_alias . $alias, $this->repo_schema->get($alias, $slug));
-            }
-        }
+        $data->bindFromView($view);
         return $data->toCells();
     }
 

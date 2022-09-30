@@ -41,6 +41,11 @@ class DataSet {
         $this->values[$alias] = $val;
     }
 
+    function bindFromView(DataView $view) {
+        foreach($view->getCells() as $alias=>$cell) {
+            $this->bind($alias, $cell);
+        }
+    }
 
     function getBind($alias) {
         if (!isset($this->values[$alias])) {

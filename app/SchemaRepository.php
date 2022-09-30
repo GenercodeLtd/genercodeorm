@@ -15,7 +15,7 @@ class SchemaRepository
     }
 
 
-    public function load($slug, $schema)
+    public function load($slug, $schema, $with_references = true)
     {
         $this->schemas[$slug] = $schema;
         $schema->alias = "t" . count($this->schemas);
@@ -45,6 +45,7 @@ class SchemaRepository
 
     public function get($name, $slug = "") : Cells\MetaCell
     {
+        $name = last(explode("..", $slug));
         $schema = $this->getSchema($slug);
         return $schema->get($name);
     }
@@ -142,6 +143,18 @@ class SchemaRepository
                 if ($new_schema->table == $schema->table) continue; //circular reference
                 $slug_alias = (!$slug) ? "" : $slug . "/";
                 $this->load($slug_alias . $alias, $new_schema);
+            }
+        }
+    }
+
+
+    public function loadReverseReferences($slug, $schema) {
+        //loop through schemas so that they are loaded in, don't need to connect to all of them necessarily.
+        $id = $schema->get("--id");
+        foreach ($id->reverse_references as $model) {
+            if (!isset($this->schemas[$model])) {
+                $new_schema = ($this->factory)($model);
+                $this->load($model . "/", $new_schema, false); //set to false to prevent a recursive loop
             }
         }
     }
