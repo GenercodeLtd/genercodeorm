@@ -21,7 +21,7 @@ class ProfileController {
 
     
     function createAnon($params) {
-        if (!$this->profile->allowsAnonymousCreate()) {
+        if (!$this->profile->allowAnonymousCreate()) {
             throw new Exceptions\PtjException("Anonymous profiles are not allowed");
         }
         $model = new Model($this->dbmanager, new SchemaRepository($this->profile->factory));
