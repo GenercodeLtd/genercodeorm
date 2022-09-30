@@ -81,6 +81,7 @@ class ModelController
         $this->checkPermission($name, "post");
 
         $fileHandler = $this->app->make(FileHandler::class);
+        $this->repo->loadBase($name);
         $schema = $this->repo->getSchema("");
         $fcells = [];
         foreach($schema->cells as $alias=>$cell) {
@@ -97,8 +98,6 @@ class ModelController
         }
         
         
-        $params = new Fluent(array_merge($params->toArray(), $fileHandler->uploadFiles()));
-
         $model= $this->app->make(Model::class);
         $model->name = $name;
         $model->data = $params->toArray();
