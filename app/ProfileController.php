@@ -6,12 +6,10 @@ use \Illuminate\Container\Container;
 class ProfileController {
 
     protected Container $app;
-    protected \Illuminate\Database\DatabaseManager $dbmanager;
     protected Profile $profile;
    
     function __construct(Container $app) {
         $this->app = $app;
-        $this->dbmanager = $app->get(\Illuminate\Database\DatabaseManager::class);
         $this->profile = $app->get(\GenerCodeOrm\Profile::class);
     }
 
@@ -24,12 +22,11 @@ class ProfileController {
         if (!$this->profile->allowAnonymousCreate()) {
             throw new Exceptions\PtjException("Anonymous profiles are not allowed");
         }
-        $model = new Model($this->dbmanager, new SchemaRepository($this->profile->factory));
+        $model = $this->app->get(Model::class);
         $model->name = "users";
         $model->data = ["type"=>$name];
         $res = $model->create();
-        $this->profile->id = $res["--id"];
-        return $this->profile;
+        return $res["--id"];
     }
 
 
@@ -37,7 +34,7 @@ class ProfileController {
         if (!$this->profile->allowCreate()) {
             throw new Exceptions\PtjException("Cannot create profile " . $this->profile->name);
         }
-        $model = new Model($this->dbmanager, new SchemaRepository($this->profile->factory));
+        $model = $this->app->get(Model::class);
         $model->name = "users";
         if (isset($params["password"])) {
             $params["password"] = password_hash($params["password"], \PASSWORD_DEFAULT);
@@ -45,13 +42,12 @@ class ProfileController {
         $params["type"] = $name;
         $model->data = $params;
         $res = $model->create();
-        $this->profile->id = $res["--id"];
-        return $this->profile;
+        return $res["--id"];
     }
 
 
     function login($type, $params) {
-        $repo = new Repository($this->dbmanager, new SchemaRepository($this->profile->factory));
+        $repo = $this->app->get(Repository::class);
         $repo->name = "users";
         $repo->fields = ["--id", "password"];
         $repo->where = ["email"=>$params["email"], "type"=>$type];
