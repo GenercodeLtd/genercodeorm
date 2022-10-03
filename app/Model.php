@@ -177,6 +177,9 @@ class Model
         foreach ($schema->cells as $alias=>$cell) {
             if (!$cell->system and ($cell->required or isset($this->data[$alias]))) {
                 $data->bind($alias, $cell);
+            } else if ($alias == "--owner" AND $this->secure) {
+                $data->bind($alias, $cell);
+                $data->{"--owner"} = $this->secure;
             }
         }
 
