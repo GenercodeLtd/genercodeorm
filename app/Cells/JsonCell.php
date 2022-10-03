@@ -12,6 +12,10 @@ class JsonCell extends MetaCell {
     }
     
 
+    function addCell($cell) {
+        $this->cells[$cell->alias] = $cell;
+    }
+
 
     function toSchema() {
         $arr=parent::toSchema();
