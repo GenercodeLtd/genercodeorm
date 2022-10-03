@@ -44,7 +44,8 @@ class Profile {
 
 
     function allowedAdminPrivilege($model) {
-        return $this->hasPermission($model, "admin");
+        if (!isset($this->models[$model])) return false;
+        return $this->models[$model]["admin"];
     }
 
 
