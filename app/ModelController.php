@@ -47,7 +47,7 @@ class ModelController
                     $model->to = $val;
                     break;
                 case '__order':
-                    $model->order = json_decode($val, true);
+                    $model->order =  (!is_string($val)) ? $val : json_decode($val, true);
                     break;
                 case '__limit':
                     if (strpos($val, ",") !== false) {
@@ -65,7 +65,7 @@ class ModelController
                     $model->group = $val;
                     break;
                 case '__fields':
-                    $model->fields = json_deocde($val, true);
+                    $model->fields = (!is_string($val)) ? $val : json_decode($val, true);
                     break;
                 default:
                     $where[$key] = $val;

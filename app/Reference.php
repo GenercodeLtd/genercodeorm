@@ -1,16 +1,18 @@
 <?php
+
 namespace GenerCodeOrm;
+
 use PressToJam\Schemas as Schema;
 
-use \Illuminate\Container\Container;
+use Illuminate\Container\Container;
 
-class Reference {
-
+class Reference
+{
     protected $app;
     protected $repo;
     protected $connection;
     protected $name = "public";
-    protected $secure;
+
 
     public function __construct(Container $app, \Illuminate\Database\DatabaseManager $dbmanager, SchemaRepository $schema)
     {
@@ -20,20 +22,23 @@ class Reference {
     }
 
 
-    function setRepo(string $name, string $field, $id, Repository $repo) {
+    public function setRepo(string $name, string $field, $id, Repository $repo)
+    {
         $this->repo->loadBase($name, "");
         $cell = $this->repo->get($field);
 
         $repo->name = $cell->reference;
 
-        if ($cell->common) {
-            $parent = $this->repo->has("--parent"); //must have parent
-            if ($cell->common == $parent->reference) {
+        if ($cell->reference_type == Cells\ReferenceTypes::CIRCULAR) {
+            if ($this->repo->has("--parent")) {
+                //must have parent
+                $parent = $this->repo->get("--parent");
                 $repo->where = ["--parent"=>$id];
             }
-        } else {
+        } else if ($cell->common) {
             $crepo = $this->app->make(Repository::class);
             $crepo->name = $name;
+            $crepo->secure = $repo->secure;
             $crepo->to = $cell->common;
             $crepo->where = ["--parent"=>$id];
             $crepo->limit = 1;
@@ -42,8 +47,4 @@ class Reference {
             $repo->where = [$cell->common + "/--id" => $obj->{ $cell->common + "/--id"}];
         }
     }
-
- 
-    
-
 }
