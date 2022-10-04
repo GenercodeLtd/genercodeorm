@@ -27,21 +27,19 @@ class Reference {
         $repo->name = $cell->reference;
 
         if ($cell->common) {
-            if ($cell->common) {
-                $parent = $this->repo->has("--parent"); //must have parent
-                if ($cell->common == $parent->reference) {
-                    $repo->where = ["--parent"=>$id];
-                }
-            } else {
-                $crepo = $this->app->make(Repository::class);
-                $crepo->name = $name;
-                $crepo->to = $cell->common;
-                $crepo->where = ["--parent"=>$id];
-                $crepo->limit = 1;
-                $obj = $crepo->get();
-                $repo->to = $cell->common;
-                $repo->where = [$cell->common + "/--id" => $obj->{ $cell->common + "/--id"}];
+            $parent = $this->repo->has("--parent"); //must have parent
+            if ($cell->common == $parent->reference) {
+                $repo->where = ["--parent"=>$id];
             }
+        } else {
+            $crepo = $this->app->make(Repository::class);
+            $crepo->name = $name;
+            $crepo->to = $cell->common;
+            $crepo->where = ["--parent"=>$id];
+            $crepo->limit = 1;
+            $obj = $crepo->get();
+            $repo->to = $cell->common;
+            $repo->where = [$cell->common + "/--id" => $obj->{ $cell->common + "/--id"}];
         }
     }
 

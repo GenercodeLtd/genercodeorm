@@ -25,6 +25,7 @@ class IdCell extends MetaCell {
         $arr["reference_type"] = $this->reference_type;
         $arr["reference"] = $this->reference;
         $arr["reverse_references"] = $this->reverse_references;
+        $arr["common"] = $this->common;
         return $arr;
     }
 }
