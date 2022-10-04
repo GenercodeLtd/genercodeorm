@@ -65,7 +65,7 @@ class ModelController
                     $model->group = $val;
                     break;
                 case '__fields':
-                    $model->fields = $val;
+                    $model->fields = json_deocde($val, true);
                     break;
                 default:
                     $where[$key] = $val;
