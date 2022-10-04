@@ -30,12 +30,15 @@ class Reference
         $repo->name = $cell->reference;
 
         if ($cell->reference_type == Cells\ReferenceTypes::CIRCULAR) {
-            if ($this->repo->has("--parent")) {
-                //must have parent
-                $parent = $this->repo->get("--parent");
-                $repo->where = ["--parent"=>$id];
-            }
+            $repo->where = ["--parent"=>$id];
         } else if ($cell->common) {
+            if ($this->repo->has("--parent")) {
+                $parent = $this->repo->get("--parent");
+                if ($parent->reference == $cell->common) {
+                    $repo->where = ["--parent"=>$id];
+                    return;
+                }
+            }
             $crepo = $this->app->make(Repository::class);
             $crepo->name = $name;
             $crepo->secure = $repo->secure;
@@ -44,7 +47,8 @@ class Reference
             $crepo->limit = 1;
             $obj = $crepo->get();
             $repo->to = $cell->common;
-            $repo->where = [$cell->common + "/--id" => $obj->{ $cell->common + "/--id"}];
+            $common_id = $cell->common + "/--id";
+            $repo->where = [$common_id => $obj->$common_id];
         }
     }
 }

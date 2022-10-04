@@ -16,9 +16,9 @@ class MetaCell
     protected $system = false;
     protected $background = false;
     protected $model;
-    protected $states = [];
     protected $summary = false;
     protected $schema;
+    protected $where = [];
     
 
     public function __construct()
@@ -118,11 +118,8 @@ class MetaCell
         if ($this->background) {
             $arr["background"] = true;
         }
-        if ($this->states) {
-            $arr["states"] = [];
-            foreach ($this->states as $state) {
-                $arr["states"][] = $state->toSchema();
-            }
+        if ($this->where) {
+            $arr["where"] = $this->where;
         }
 
         return $arr;
