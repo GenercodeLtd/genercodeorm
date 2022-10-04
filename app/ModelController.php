@@ -47,7 +47,7 @@ class ModelController
                     $model->to = $val;
                     break;
                 case '__order':
-                    $model->order = json_decode($val);
+                    $model->order = json_decode($val, true);
                     break;
                 case '__limit':
                     if (strpos($val, ",") !== false) {
