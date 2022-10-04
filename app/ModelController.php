@@ -47,7 +47,7 @@ class ModelController
                     $model->to = $val;
                     break;
                 case '__order':
-                    $model->order = $val;
+                    $model->order = json_decode($val);
                     break;
                 case '__limit':
                     if (strpos($val, ",") !== false) {
@@ -100,6 +100,7 @@ class ModelController
         
         $model= $this->app->make(Model::class);
         $model->name = $name;
+        $model->secure = $this->profile->id;
         $model->data = $params->toArray();
         $res = $model->create();
 

@@ -132,7 +132,7 @@ class Repository extends Model
             if ($this->order) {
                 foreach ($this->order as $alias=>$dir) {
                     $cell = $this->repo_schema->get($alias);
-                    $query->orderBy($cell->schema->alias . "." . $cell->name, "ASC");
+                    $query->orderBy($cell->schema->alias . "." . $cell->name, $dir);
                 }
             }
         }
