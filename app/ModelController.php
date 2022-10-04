@@ -144,9 +144,15 @@ class ModelController
         $res = $model->delete();
 
         if ($res["affected_rows"] > 0) {
+            $fcells = [];
+            $schema = $this->repo->getSchema("");
+            foreach($schema->cells as $alias=>$cell) {
+                if (get_class($cell) == Cells\AssetCell::class AND $res["original"]->{$alias}) {
+                    $fcells[$alias] = $res["original"]->{$alias};
+                }
+            }
             $fileHandler = $this->app->make(FileHandler::class);
-            $fileHandler->init($this->repo, $name);
-            $params = $fileHandler->deleteFiles($res["original"]);    
+            $params = $fileHandler->deleteFiles($fcells);    
         }
         return $this->trigger($name, "delete", $res);
     }
