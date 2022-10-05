@@ -21,8 +21,8 @@ class JsonCell extends MetaCell {
         $arr=parent::toSchema();
         $arr["type"] = "json";
         $arr["fields"] = [];
-        foreach($this->cells as $cell) {
-            $arr["fields"][] = $cell->toSchema();
+        foreach($this->cells as $alias=>$cell) {
+            $arr["fields"][$alias] = $cell->toSchema();
         }
         return $arr;
     }
