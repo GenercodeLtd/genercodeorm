@@ -168,9 +168,9 @@ class Model
     {
         $bind = $data->getBind("--id");
         $root = $this->repo_schema->getSchema("");
-        return $this->buildQuery($root->table)
+        return $this->buildQuery($root->table, $root->alias)
         ->fields($this->repo_schema, $root->cells)
-        ->where($bind->cell->name, "=", $bind->value)
+        ->where($root->alias . ".". $bind->cell->name, "=", $bind->value)
         ->take(1)
         ->get()
         ->first();
