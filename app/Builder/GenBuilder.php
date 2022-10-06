@@ -218,6 +218,7 @@ class GenBuilder extends Builder
                 }
             }
         }
+        return $this;
     }
 
 

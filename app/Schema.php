@@ -11,6 +11,7 @@ class Schema
     protected $cells = [];
     protected $has_export = false;
     protected $has_import = false;
+    protected $has_audit = false;
   
 
  
@@ -49,12 +50,16 @@ class Schema
         return isset($this->cells[$kebab]);
     }
 
+    public function hasAudit() {
+        return $this->has_audit;
+    }
 
 
     public function getSchema() {
         $schema = [];
         if ($this->has_import) $schema["import"] = true;
         if ($this->has_export) $schema["export"] = true;
+        if ($this->has_audit) $schema["audit"] = true;
         $schema["schema"] = [];
         foreach ($this->cells as $alias=>$cell) {
             $schema["schema"][$alias] = $cell->toSchema();

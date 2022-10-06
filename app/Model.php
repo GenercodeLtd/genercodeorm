@@ -16,10 +16,10 @@ class Model
     protected array $data = [];
     protected array $map = [];
 
-    public function __construct(\Illuminate\Database\DatabaseManager $dbmanager, SchemaRepository $schema)
+    public function __construct(\Illuminate\Database\Connection $connection, SchemaRepository $schema)
     {
         $this->repo_schema = $schema;
-        $this->connection = $dbmanager->connection();
+        $this->connection = $connection;
     }
 
     public function __set($key, $val)
@@ -115,20 +115,18 @@ class Model
     }
 
 
-    protected function archive($data)
+    protected function audit($action, $id, $data)
     {
-        $cols = [];
-        $schema = $this->repo_schema->getSchema("");
-
-        foreach ($data as $key=>$val) {
-            if ($key == "date_created" or $key == "last_updated") {
-                continue;
-            }
-            $cols[$key] = $val;
-        }
-
-        $query = $this->buildQuery($schema->table . "_archive");
-        $query->insert($cols);
+        $model = new Model($this->connection, $this->repo_schema);
+        $model->name = "audit";
+        $model->data = [
+            "model"=>$this->name, 
+            "model-id"=>$id,
+            "action"=>$action, 
+            "user-login-id"=>$this->secure,
+            "log"=>$data
+        ];
+        $model->create();
     }
 
 
@@ -166,6 +164,19 @@ class Model
     }
 
 
+    public function select(DataSet $data)
+    {
+        $bind = $data->getBind("--id");
+        $root = $this->repo_schema->getSchema("");
+        return $this->buildQuery($root->table)
+        ->fields($root->cells)
+        ->where($bind->cell->name, "=", $bind->value)
+        ->take(1)
+        ->get()
+        ->first();
+    }
+
+
     public function create()
     {
         $data = new DataSet();
@@ -196,19 +207,11 @@ class Model
         $arr = $data->toArr();
         $arr["--id"] = $id;
 
+        if ($schema->hasAudit()) {
+            $this->audit($id, "POST", $arr);
+        }
+
         return $arr;
-    }
-
-
-    public function select(DataSet $data)
-    {
-        $bind = $data->getBind("--id");
-        $root = $this->repo_schema->getSchema("");
-        return $this->connection->table($root->table)
-        ->where($bind->cell->name, "=", $bind->value)
-        ->take(1)
-        ->get()
-        ->first();
     }
 
 
@@ -238,8 +241,8 @@ class Model
 
         $this->checkUniques($data);
 
-        if ($schema->has("--archive")) {
-            $this->archive($original_data);
+        if ($schema->hasAudit()) {
+            $this->audit($where_data->{"--id"}, "PUT", $data->toArr());
         }
 
         $root = $this->repo_schema->getSchema("");
@@ -267,8 +270,8 @@ class Model
             return null;
         }
 
-        if ($this->repo_schema->has("--archive")) {
-            $this->archive($original_data);
+        if ($this->repo_schema->hasAudit) {
+            $this->audit($data->{"--id"}, "DELETE", "");
         }
 
         $this->repo_schema->loadChildren();
