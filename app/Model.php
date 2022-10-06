@@ -117,8 +117,9 @@ class Model
 
     protected function audit($action, $id, $data)
     {
-        $model = new Model($this->connection, $this->repo_schema);
-        $model->name = "audit";
+        $repo = new \GenerCodeOrm\SchemaRepository($this->repo_schema->getFactory());
+        $model = new Model($this->connection, $repo);
+        $model->__set("name", "audit"); //call set directly as it is bypassed
         $model->data = [
             "model"=>$this->name, 
             "model-id"=>$id,

@@ -29,6 +29,10 @@ class SchemaRepository
         }
     }
 
+    public function getFactory() {
+        return $this->factory;
+    }
+
     
     public function splitNames($name) {
         $exp = explode("/", $name);
