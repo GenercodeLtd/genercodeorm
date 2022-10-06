@@ -14,11 +14,10 @@ class Reference
     protected $name = "public";
 
 
-    public function __construct(Container $app, \Illuminate\Database\DatabaseManager $dbmanager, SchemaRepository $schema)
+    public function __construct(\Illuminate\Database\Connection $connection, SchemaRepository $schema)
     {
-        $this->app = $app;
         $this->repo = $schema;
-        $this->connection = $dbmanager->connection();
+        $this->connection = $connection;
     }
 
 
@@ -39,7 +38,7 @@ class Reference
                     return;
                 }
             }
-            $crepo = $this->app->make(Repository::class);
+            $crepo = new Repository($this->connection, $this->repo);
             $crepo->name = $name;
             $crepo->secure = $repo->secure;
             $crepo->to = $cell->common;
