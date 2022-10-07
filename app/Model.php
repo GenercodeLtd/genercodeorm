@@ -103,7 +103,7 @@ class Model
 
 
 
-    protected function createDataSet($params)
+    public function createDataSet($params)
     {
         $data = new DataSet();
         foreach ($params as $alias=>$val) {
@@ -115,7 +115,7 @@ class Model
     }
 
 
-    protected function audit($action, $id, $data)
+    protected function audit($action, $id, $data = "")
     {
         $repo = new \GenerCodeOrm\SchemaRepository($this->repo_schema->getFactory());
         $model = new Model($this->connection, $repo);
@@ -209,7 +209,7 @@ class Model
         $arr["--id"] = $id;
 
         if ($schema->hasAudit()) {
-            $this->audit($id, "POST", $arr);
+            $this->audit($id, "POST");
         }
 
         return $arr;
@@ -272,7 +272,7 @@ class Model
         }
 
         if ($this->repo_schema->hasAudit) {
-            $this->audit($data->{"--id"}, "DELETE", "");
+            $this->audit($data->{"--id"}, "DELETE");
         }
 
         $this->repo_schema->loadChildren();
