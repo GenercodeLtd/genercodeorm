@@ -80,7 +80,6 @@ class ModelController
     {
         $this->checkPermission($name, "post");
 
-        $fileHandler = $this->app->make(FileHandler::class);
         $this->repo->loadBase($name);
         $schema = $this->repo->getSchema("");
         $fcells = [];
@@ -91,6 +90,7 @@ class ModelController
         }
 
         if (count($fcells) > 0) {
+            $fileHandler = $this->app->make(FileHandler::class);
             $file_names = $fileHandler->uploadFiles($fcells);
             foreach ($file_names as $alias=>$src) {
                 $params[$alias] = $src;

@@ -6,29 +6,20 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class FileHandler
 {
-    protected $file;
-    protected $prefix;
+    protected $disk;
 
-    public function __construct(\Illuminate\Filesystem\FilesystemManager $file, $prefix)
+    public function __construct(\Illuminate\Filesystem\Filesystem $disk)
     {
-      $this->file = $file;
-      $this->prefix = $this->parsePrefix($prefix);
+      $this->disk = $disk;
     }
 
-
-
-    protected function parsePrefix($prefix) {
-        $prefix = trim($prefix, "/");
-        if ($prefix) $prefix .= "/";
-        return $prefix;
-    }
 
 
     public function uniqueKey($dir, $ext) {
         $key = "";
         do {
             $key = uniqid() . "." . $ext;
-        } while($this->file->disk("s3")->has($this->prefix . $dir . $key));
+        } while($this->disk->has($dir . $key));
         return $key;
     }
     
@@ -43,7 +34,7 @@ class FileHandler
             $cell->validateUpload($file);
             $name = $file['tmp_name'];
             $key = $this->uniqueKey($dir, pathinfo($name, \PATHINFO_EXTENSION));
-            $res = $this->file->disk("s3")->put($this->prefix . $dir . $key, file_get_contents($name));
+            $res = $this->disk->put($dir . $key, file_get_contents($name));
             $params[$alias] = $dir . $key;
         }
         return $params;
@@ -55,7 +46,7 @@ class FileHandler
         $dir = "assets/" . $schema->table;
         if (isset($_FILES[$alias])) {
             $cell->validateUpload($file);
-            $res = $this->file->disk("s3")->put($this->prefix . $dir . $key, file_get_contents($file['tmp_name']));
+            $res = $this->disk->put($dir . $key, file_get_contents($file['tmp_name']));
         }
     }
 
@@ -65,18 +56,18 @@ class FileHandler
         foreach($schema->cells as $alias=>$cell) {
             if (get_class($cell) == Cells\AssetCell::class) {
                 $key = $data->{ $alias };
-                $res = $this->file->disk("s3")->delete($this->prefix . $key);
+                $res = $this->disk->delete($key);
             }
         }
     }
 
 
     public function get($src) {
-        return $this->file->disk("s3")->get($this->prefix . $src);
+        return $this->disk->get($src);
     }   
 
     public function delete($src) {
-        return $this->file->disk("s3")->delete($this->prefix . $src);
+        return $this->disk->delete($src);
     } 
     
 }
