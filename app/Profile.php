@@ -51,10 +51,11 @@ class Profile {
 
     function getSitemap() {
         $routes = [];
-        foreach($this->models as $name=>$perms) {
+        foreach($this->models as $name=>$details) {
             $schema = ($this->factory)($name);
             $route = $schema->getSchema();
-            $route["perms"] = $perms;
+            $route["perms"] = $details["perms"];
+            $route["admin"] = $details["admin"];
             $routes[$name] = $route;
         }
         return $routes;

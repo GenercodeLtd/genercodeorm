@@ -115,11 +115,12 @@ class Model
     }
 
 
-    protected function audit($action, $id, $data = "")
+    protected function audit($id, $action, ?array $data = null)
     {
         $repo = new \GenerCodeOrm\SchemaRepository($this->repo_schema->getFactory());
         $model = new Model($this->connection, $repo);
         $model->__set("name", "audit"); //call set directly as it is bypassed
+        $data = ($data) ? json_encode($data) : null;
         $model->data = [
             "model"=>$this->name, 
             "model-id"=>$id,
@@ -224,10 +225,14 @@ class Model
       
         $original_data = $this->select($where_data);
 
-        if (!$original_data) return [
-            "original_data"=>null,
-            "affected_rows"=>0
-        ];
+        if (!$original_data) {
+            return [
+                "original_data"=>null,
+                "affected_rows"=>0
+            ];
+        }
+
+        $original_data = new Fluent($original_data);
 
         $data = new DataSet();
         
@@ -243,7 +248,12 @@ class Model
         $this->checkUniques($data);
 
         if ($schema->hasAudit()) {
-            $this->audit($where_data->{"--id"}, "PUT", $data->toArr());
+            $changed_arr = [];
+            foreach($data->getBinds() as $alias=>$bind) {
+                $changed_arr[$alias] = $original_data[$alias];
+            }
+
+            $this->audit($where_data->{"--id"}, "PUT", $changed_arr);
         }
 
         $root = $this->repo_schema->getSchema("");
@@ -254,7 +264,7 @@ class Model
         $rows = $query->update($data->toCellNameArr($root->alias . "."));
 
         return [
-            "original"=>new Fluent($original_data),
+            "original"=>$original_data,
             "data"=>$data->toArr(),
             "affected_rows"=>$rows
         ];
@@ -271,13 +281,14 @@ class Model
             return null;
         }
 
-        if ($this->repo_schema->hasAudit) {
+        $root = $this->repo_schema->getSchema("");
+        if ($root->hasAudit) {
             $this->audit($data->{"--id"}, "DELETE");
         }
 
         $this->repo_schema->loadChildren();
 
-        $root = $this->repo_schema->getSchema("");
+        
         $query = $this->buildQuery($root->table, $root->alias);
         if ($this->secure) {
             $this->secureQuery($query);
