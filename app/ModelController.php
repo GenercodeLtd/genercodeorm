@@ -255,7 +255,7 @@ class ModelController
     }
 
 
-    public function patchAsset(string $name, string $field, int $id) {
+    public function patchAsset(string $name, string $field, int $id, $body) {
         $this->checkPermission($name, "put");
 
         $model= $this->app->make(Model::class);
@@ -267,9 +267,10 @@ class ModelController
 
         $src = $model->getAsset($field, $id);
 
+        $repo = $model->repo_schema;
 
         $fileHandler = $this->app->make(FileHandler::class);
-        return $fileHandler->patchFile($field, $src, $this->repo->get($field));
+        return $fileHandler->patchFile($repo->get($field), $src, $body);
 
     } 
 

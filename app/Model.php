@@ -120,7 +120,7 @@ class Model
         $repo = new \GenerCodeOrm\SchemaRepository($this->repo_schema->getFactory());
         $model = new Model($this->connection, $repo);
         $model->__set("name", "audit"); //call set directly as it is bypassed
-        $data = ($data) ? json_encode($data) : null;
+        $data = ($data) ? json_encode($data) : "{}";
         $model->data = [
             "model"=>$this->name, 
             "model-id"=>$id,

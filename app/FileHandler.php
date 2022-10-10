@@ -8,7 +8,7 @@ class FileHandler
 {
     protected $disk;
 
-    public function __construct(\Illuminate\Filesystem\Filesystem $disk)
+    public function __construct(\Illuminate\Filesystem\AwsS3V3Adapter $disk)
     {
       $this->disk = $disk;
     }
@@ -41,13 +41,11 @@ class FileHandler
     }
 
 
-    public function patchFile($alias, $cell, $src) {
+    public function patchFile($cell, $src, $body) {
         
-        $dir = "assets/" . $schema->table;
-        if (isset($_FILES[$alias])) {
-            $cell->validateUpload($file);
-            $res = $this->disk->put($dir . $key, file_get_contents($file['tmp_name']));
-        }
+        $cell->validateSize(strlen($body));
+        $res = $this->disk->put($src, $body);
+        
     }
 
 

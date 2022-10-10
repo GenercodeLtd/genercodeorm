@@ -17,6 +17,25 @@ class JsonCell extends MetaCell {
     }
 
 
+    public function validate($value)
+    {
+        if (is_string($value)) $value = json_decode($value, true);
+        if ($value === null) return ValidationRules::Characters;
+
+        $errs = [];
+        if (count($cells) > 0) {
+            foreach($cells as $cell) {
+                if ($validate = $cell->validate($value[$cell->alias])) {
+                    $errs[$cell->alias] = $validate;
+                }
+            }
+        }
+
+        if (count($errs) > 0) return $errs;
+        else return ValidationRules::OK;
+    }
+
+
     function toSchema() {
         $arr=parent::toSchema();
         $arr["type"] = "json";

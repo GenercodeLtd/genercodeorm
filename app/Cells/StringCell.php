@@ -2,31 +2,38 @@
 
 namespace GenerCodeOrm\Cells;
 
-class StringCell extends MetaCell {
-
+class StringCell extends MetaCell
+{
     protected $encrypted = false;
     protected $unique = false;
     protected $list = [];
-   // protected $
+    protected $pattern;
 
-    function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->default = "";
     }
 
-    function __get($name) {
-        if (property_exists($this, $name)) return $this->$name;
-        else return null;
+    public function __get($name)
+    {
+        if (property_exists($this, $name)) {
+            return $this->$name;
+        } else {
+            return null;
+        }
     }
-    
 
-    function clean($value) {
+
+    public function clean($value)
+    {
         $value = (string) $value ?? '';
         return trim($value);
     }
 
 
-    function setValidation($min, $max, $contains = "", $not_contains = "") {
+    public function setValidation($min, $max, $contains = "", $not_contains = "")
+    {
         $this->min = $min;
         $this->max = $max;
         $this->contains = $contains;
@@ -35,31 +42,55 @@ class StringCell extends MetaCell {
 
 
 
-    function validate($value, $contains_value = null) {
-        return parent::validate(strlen($value), $value);
+    public function validate($value)
+    {
+        if ($this->list) {
+            if (in_array($value, $this->list) or isset($this->list[$value])) {
+                return ValidationRules::OK;
+            } else {
+                return ValidationRules::Characters;
+            }
+        } else {
+            if ($this->pattern) {
+                if ($this->pattern[0] == "!" and preg_match("/" . $this->pattern . "/", $value)) {
+                    return ValidationRules::CharactersNegative;
+                } elseif (!preg_match("/" . $this->pattern . "/", $value)) {
+                    return ValidationRules::Characters;
+                }
+            }
+            return $this->validateSize(strlen($value));
+        }
     }
 
 
-
-    function toSchema() {
+    public function toSchema()
+    {
         $arr = parent::toSchema();
         $arr["type"] = "string";
-        if ($this->encrypted) $arr["encrypted"] = true;
+        if ($this->encrypted) {
+            $arr["encrypted"] = true;
+        }
         return $arr;
     }
 
-    function getRandom($size, $salt = "", $num_only = false)
-	{
-		if ($num_only) $permitted_chars = "0123456789";
-		else $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-		$code = $salt . substr(str_shuffle($permitted_chars), 0, $size);
-		return $code;
-	}
-
-
-    function toArg($val) {
-        if ($this->encrypted) return password_hash($val, PASSWORD_DEFAULT);
-        else return $val;
+    public function getRandom($size, $salt = "", $num_only = false)
+    {
+        if ($num_only) {
+            $permitted_chars = "0123456789";
+        } else {
+            $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        }
+        $code = $salt . substr(str_shuffle($permitted_chars), 0, $size);
+        return $code;
     }
 
+
+    public function toArg($val)
+    {
+        if ($this->encrypted) {
+            return password_hash($val, PASSWORD_DEFAULT);
+        } else {
+            return $val;
+        }
+    }
 }

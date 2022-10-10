@@ -28,4 +28,13 @@ class IdCell extends MetaCell {
         $arr["common"] = $this->common;
         return $arr;
     }
+
+    public function validate($value)
+    {
+        if ($this->required AND !$value) {
+            return ValidationRules::OutOfRangeMin;
+        } else {
+            return ValidationRules::OK;
+        }
+    }
 }

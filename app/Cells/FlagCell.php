@@ -10,6 +10,7 @@ class FlagCell extends MetaCell {
         $this->default = false;
     }
 
+   
 
     function clean($val) {
         return (int) $val;

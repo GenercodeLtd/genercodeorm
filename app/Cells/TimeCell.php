@@ -107,4 +107,9 @@ class TimeCell extends MetaCell {
 		return $timestamp;
 	}
 
+	public function validate($value)
+    {
+       return ValidationRules::OK;
+    }
+
 }

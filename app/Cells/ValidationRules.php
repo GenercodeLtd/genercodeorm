@@ -10,4 +10,5 @@ abstract class ValidationRules
     const CharactersNegative = 4;
     const Unique = 5;
     const NullViolation = 6;
+    const FileExtension = 7;
 }

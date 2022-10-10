@@ -19,6 +19,7 @@ class MetaCell
     protected $summary = false;
     protected $schema;
     protected $where = [];
+    protected $required = false;
     
 
     public function __construct()
@@ -62,34 +63,16 @@ class MetaCell
     }
 
 
-    public function validateValue($value)
-    {
-        if ($this->contains != "" and !preg_match("/" . $this->contains . "/", $value)) {
-            return ValidationRules::Characters;
-        } elseif ($this->not_contains != "" and preg_match("/" . $this->not_contains . "/", $value)) {
-            return ValidationRules::CharactersNegative;
-        } else {
-            return ValidationRules::OK;
-        }
-    }
-
-
-    public function validate($value, $contains_value = null)
+    public function validate($value)
     {
         if ($this->max !== null or $this->min !== null) {
-            $error = $this->validateSize($value);
-            if ($error != ValidationRules::OK) {
-                return $error;
-            }
-        }
-
-        if ($contains_value !== null) {
-            $error = $this->validateValue($contains_value);
+            $error = $this->validateSize($value['size']);
             if ($error != ValidationRules::OK) {
                 return $error;
             }
         }
     }
+
 
 
     public function clean($value)
