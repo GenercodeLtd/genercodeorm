@@ -66,7 +66,7 @@ class MetaCell
     public function validate($value)
     {
         if ($this->max !== null or $this->min !== null) {
-            $error = $this->validateSize($value['size']);
+            $error = $this->validateSize($value);
             if ($error != ValidationRules::OK) {
                 return $error;
             }

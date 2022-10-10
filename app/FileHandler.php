@@ -45,7 +45,7 @@ class FileHandler
         
         $cell->validateSize(strlen($body));
         $res = $this->disk->put($src, $body);
-        
+        return "SUCCESS";
     }
 
 
