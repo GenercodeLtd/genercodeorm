@@ -19,6 +19,7 @@ class IdCell extends MetaCell {
         $this->reverse_references[$model] = $field;
     }
 
+
     function toSchema() {
         $arr=parent::toSchema();
         $arr["type"] = "id";

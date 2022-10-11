@@ -132,29 +132,47 @@ class ModelController
 
     public function delete(string $name, Fluent $params)
     {
+       
+        $runDel = function($model, $fileHandler) {
+            $res = $model->delete();
+      
+
+            if ($res["affected_rows"] > 0) {
+                $fcells = [];
+                $schema = $model->repo_schema->getSchema("");
+                foreach($schema->cells as $alias=>$cell) {
+                     if (get_class($cell) == Cells\AssetCell::class AND $res["original"]->{$alias}) {
+                        $fcells[$alias] = $res["original"]->{$alias};
+                    }
+                }
+           
+                $fileHandler->deleteFiles($fcells);    
+            }
+            return $res;
+        };
+
+
         $this->checkPermission($name, "delete");
 
         $model= $this->app->make(Model::class);
+        $fileHandler = $this->app->make(FileHandler::class);
 
         $model->name = $name;
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure = $this->profile->id;
         }
 
-        $model->where = ["--id" => $params["--id"]];
-        $res = $model->delete();
-
-        if ($res["affected_rows"] > 0) {
-            $fcells = [];
-            $schema = $this->repo->getSchema("");
-            foreach($schema->cells as $alias=>$cell) {
-                if (get_class($cell) == Cells\AssetCell::class AND $res["original"]->{$alias}) {
-                    $fcells[$alias] = $res["original"]->{$alias};
-                }
+        if (is_array($params["--id"])) {
+            $res = [];
+            foreach($params['--id'] as $id) {
+                $model->where = ["--id"=>$id];
+                $res[$id] = $runDel($model, $fileHandler);
             }
-            $fileHandler = $this->app->make(FileHandler::class);
-            $params = $fileHandler->deleteFiles($fcells);    
+        } else {
+            $model->where = ["--id" => $params["--id"]];
+            $res = $runDel($model, $fileHandler);
         }
+      
         return $this->trigger($name, "delete", $res);
     }
 

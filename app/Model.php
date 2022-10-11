@@ -274,11 +274,14 @@ class Model
     public function delete()
     {
         $data = $this->createDataSet($this->where);
-
+        echo "Data is " . $data->{"--id"};
         $original_data = $this->select($data);
 
         if (!$original_data) {
-            return null;
+            return [
+                "original" => new Fluent([]),
+                "affected_rows" => 0
+            ];
         }
 
         $root = $this->repo_schema->getSchema("");
