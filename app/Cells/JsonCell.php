@@ -23,8 +23,8 @@ class JsonCell extends MetaCell {
         if ($value === null) return ValidationRules::Characters;
 
         $errs = [];
-        if (count($cells) > 0) {
-            foreach($cells as $cell) {
+        if (count($this->cells) > 0) {
+            foreach($this->cells as $cell) {
                 if ($validate = $cell->validate($value[$cell->alias])) {
                     $errs[$cell->alias] = $validate;
                 }
