@@ -49,17 +49,6 @@ class FileHandler
     }
 
 
-    public function deleteFiles($data) {
-        $schema = $this->repo->getSchema("");
-        foreach($schema->cells as $alias=>$cell) {
-            if (get_class($cell) == Cells\AssetCell::class) {
-                $key = $data->{ $alias };
-                $res = $this->disk->delete($key);
-            }
-        }
-    }
-
-
     public function get($src) {
         return $this->disk->get($src);
     }   

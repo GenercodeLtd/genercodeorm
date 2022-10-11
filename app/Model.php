@@ -274,7 +274,6 @@ class Model
     public function delete()
     {
         $data = $this->createDataSet($this->where);
-        echo "Data is " . $data->{"--id"};
         $original_data = $this->select($data);
 
         if (!$original_data) {

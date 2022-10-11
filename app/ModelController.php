@@ -136,17 +136,14 @@ class ModelController
         $runDel = function($model, $fileHandler) {
             $res = $model->delete();
       
-
             if ($res["affected_rows"] > 0) {
                 $fcells = [];
                 $schema = $model->repo_schema->getSchema("");
                 foreach($schema->cells as $alias=>$cell) {
                      if (get_class($cell) == Cells\AssetCell::class AND $res["original"]->{$alias}) {
-                        $fcells[$alias] = $res["original"]->{$alias};
+                        $fileHandler->delete($res["original"]->{$alias});
                     }
                 }
-           
-                $fileHandler->deleteFiles($fcells);    
             }
             return $res;
         };
