@@ -32,16 +32,6 @@ class StringCell extends MetaCell
     }
 
 
-    public function setValidation($min, $max, $contains = "", $not_contains = "")
-    {
-        $this->min = $min;
-        $this->max = $max;
-        $this->contains = $contains;
-        $this->not_contains = $not_contains;
-    }
-
-
-
     public function validate($value)
     {
         if ($this->list) {
@@ -54,7 +44,7 @@ class StringCell extends MetaCell
             if ($this->pattern AND !preg_match("/" . $this->pattern . "/", $value)) {
                 return ValidationRules::Characters;
             }
-            
+
             if ($this->not_pattern AND preg_match("/" . $this->not_pattern . "/", $value)) {
                 return ValidationRules::CharactersNegative;
             }
