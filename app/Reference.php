@@ -28,7 +28,7 @@ class Reference
 
         $repo->name = $cell->reference;
 
-        if ($cell->reference_type == Cells\ReferenceTypes::CIRCULAR) {
+        if ($cell->reference_type == Cells\ReferenceTypes::CIRCULAR OR $cell->reference_type == Cells\ReferenceTypes::RECURSIVE) {
             $repo->where = ["--parent"=>$id];
         } else if ($cell->common) {
             if ($this->repo->has("--parent")) {

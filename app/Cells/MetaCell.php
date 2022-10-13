@@ -7,8 +7,6 @@ class MetaCell
 {
     protected $max = null;
     protected $min = null;
-    protected $contains = null;
-    protected $not_contains = null;
     protected $name;
     protected $default;
     protected $alias;
@@ -43,11 +41,9 @@ class MetaCell
     }
 
 
-    public function setValidation($min, $max, $contains = null, $not_contains = null) {
+    public function setValidation($min, $max = null) {
         $this->min = $min;
         $this->max = $max;
-        $this->contains = $contains;
-        $this->not_contains = $not_contains;
     }
 
 

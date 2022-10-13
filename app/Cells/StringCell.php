@@ -4,10 +4,10 @@ namespace GenerCodeOrm\Cells;
 
 class StringCell extends MetaCell
 {
-    protected $encrypted = false;
     protected $unique = false;
     protected $list = [];
     protected $pattern;
+    protected $not_pattern;
 
     public function __construct()
     {
@@ -51,12 +51,12 @@ class StringCell extends MetaCell
                 return ValidationRules::Characters;
             }
         } else {
-            if ($this->pattern) {
-                if ($this->pattern[0] == "!" and preg_match("/" . $this->pattern . "/", $value)) {
-                    return ValidationRules::CharactersNegative;
-                } elseif (!preg_match("/" . $this->pattern . "/", $value)) {
-                    return ValidationRules::Characters;
-                }
+            if ($this->pattern AND !preg_match("/" . $this->pattern . "/", $value)) {
+                return ValidationRules::Characters;
+            }
+            
+            if ($this->not_pattern AND preg_match("/" . $this->not_pattern . "/", $value)) {
+                return ValidationRules::CharactersNegative;
             }
             return $this->validateSize(strlen($value));
         }
@@ -67,8 +67,15 @@ class StringCell extends MetaCell
     {
         $arr = parent::toSchema();
         $arr["type"] = "string";
-        if ($this->encrypted) {
-            $arr["encrypted"] = true;
+        if ($this->list) {
+            $arr["list"] = $this->list;
+        }
+        if ($this->pattern) {
+            $arr["pattern"] = $this->pattern;
+        }
+
+        if ($this->not_pattern) {
+            $arr["not_pattern"] = $this->not_pattern;
         }
         return $arr;
     }

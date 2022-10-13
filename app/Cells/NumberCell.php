@@ -5,6 +5,7 @@ namespace GenerCodeOrm\Cells;
 class NumberCell extends MetaCell {
 
     protected $round = 0;
+    protected $is_currency = false;
 
     function __construct() {
         parent::__construct();
