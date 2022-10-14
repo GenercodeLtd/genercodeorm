@@ -24,7 +24,7 @@ class ProfileController {
         }
         $model = $this->app->get(Model::class);
         $model->name = "users";
-        $model->data = ["type"=>$name];
+        $model->data = ["type"=>$name, "terms"=>1];
         $res = $model->create();
         return $res["--id"];
     }
