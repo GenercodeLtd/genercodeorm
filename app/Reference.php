@@ -23,7 +23,7 @@ class Reference
 
     public function setRepo(string $name, string $field, $id, Repository $repo)
     {
-        $this->repo->loadBase($name, "");
+        $this->repo->loadBase($name);
         $cell = $this->repo->get($field);
 
         $repo->name = $cell->reference;

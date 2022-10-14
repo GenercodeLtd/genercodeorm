@@ -183,11 +183,19 @@ class Repository extends Model
         $query->filter($data);
 
         $fields = [];
+        $recursive = null;
         foreach($schema->cells as $cell) {
             if ($cell->summary) $fields[] = $cell->schema->alias . "." . $cell->name;
+            else if ($cell->alias == "--recursive") $recursive = $cell;
         }
         $idCell = $schema->get("--id");
-        $query->select($query->raw($idCell->schema->alias . "." . $idCell->name . " as 'key', CONCAT_WS(' ', " . implode(",", $fields) . ") AS 'value'"));
+        $raw_sql = $idCell->schema->alias . "." . $idCell->name . " as 'key'";
+        $raw_sql .=", CONCAT_WS(' ', " . implode(",", $fields) . ") AS 'value'";
+        if ($recursive) {
+            $raw_sql .= ", " . $recursive->schema->alias . "." . $recursive->name . " as '--recursive'";
+        }
+
+        $query->select($query->raw($raw_sql));
         return $query->get()->toArray();
     }
 }

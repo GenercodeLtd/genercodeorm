@@ -15,15 +15,7 @@ class StringCell extends MetaCell
         $this->default = "";
     }
 
-    public function __get($name)
-    {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        } else {
-            return null;
-        }
-    }
-
+   
 
     public function clean($value)
     {
