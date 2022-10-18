@@ -4,10 +4,10 @@ namespace GenerCodeOrm;
 
 use GenerCodeOrm\Cells as Cells;
 
-class SchemaRepository
+class EntityManager
 {
  
-    protected $schemas = [];
+    protected $entities = [];
     protected $factory;
  
     function __construct(Factory $factory) {
@@ -15,11 +15,11 @@ class SchemaRepository
     }
 
 
-    public function load($slug, $schema, $with_references = true)
+    public function load($slug, $entity, $with_references = true)
     {
-        $this->schemas[$slug] = $schema;
-        $schema->alias = "t" . count($this->schemas);
-        $this->loadReferences($slug, $schema);
+        $this->entities[$slug] = $entity;
+        $entity->alias = "t" . count($this->entities);
+        $this->loadReferences($slug, $entity);
     }
 
     public function __set($key, $val)
@@ -49,65 +49,65 @@ class SchemaRepository
 
     public function get($name, $slug = "") : Cells\MetaCell
     {
-        $schema = $this->getSchema($slug);
-        return $schema->get($name);
+        $entity = $this->getEntity($slug);
+        return $entity->get($name);
     }
 
 
     public function has($name, $slug = "")
     {
-        if (!isset($this->schemas[$slug])) return false;
-        return $this->schemas[$slug]->has($name);
+        if (!isset($this->entities[$slug])) return false;
+        return $this->entities[$slug]->has($name);
     }
 
-    public function hasSchema($name)
+    public function hasEntity($name)
     {
-        return isset($this->schemas[$name]);
+        return isset($this->entities[$name]);
     }
 
     public function getTop() {
         $parent = $this->get("--parent");
-        $top = $this->getSchema("");
+        $top = $this->getEntity("");
         while ($top->has("--parent")) {
             $parent = $top->get("--parent");
-            $top = $this->getSchema($parent->reference);
+            $top = $this->getEntity($parent->reference);
         }
         return $top;
     }
 
 
-    public function getSchema($slug) : Schema {
-        if (!isset($this->schemas[$slug])) {
-            throw new \Exception("Schema not set in repository: " . $slug);
+    public function getEntity($slug) : Entity {
+        if (!isset($this->entities[$slug])) {
+            throw new \Exception("Entity not set in repository: " . $slug);
         }
-        return $this->schemas[$slug];
+        return $this->entities[$slug];
     }
 
-    public function getSchemas() {
-        return $this->schemas;
+    public function getEntities() {
+        return $this->entities;
     }
 
     public function loadBase($base) {
-        $this->schemas = []; //clear anything previously loaded in
+        $this->entities = []; //clear anything previously loaded in
         $this->load("", ($this->factory)($base));
     }
 
 
     public function loadToSecure() {
-        $schema = $this->getSchema("");
-        $orig_size = count($this->schemas);
-        while($schema->has("--parent")) {
-            $parent = $schema->get("--parent");
-            if (!isset($this->schemas[$parent->reference])) {
+        $entity = $this->getEntity("");
+        $orig_size = count($this->entities);
+        while($entity->has("--parent")) {
+            $parent = $entity->get("--parent");
+            if (!isset($this->entities[$parent->reference])) {
                 $this->load($parent->reference, ($this->factory)($parent->reference));
             }
-            $schema = $this->schemas[$parent->reference];
+            $entity = $this->entities[$parent->reference];
         }
 
-        if (!$schema->has("--owner")) {
-            array_splice($this->schemas, $orig_size, count($this->schemas) - $orig_size);
+        if (!$entity->has("--owner")) {
+            array_splice($this->entities, $orig_size, count($this->entities) - $orig_size);
         } else {
-            return $schema->get("--owner");
+            return $entity->get("--owner");
         }
 
     }
@@ -138,12 +138,12 @@ class SchemaRepository
         }
     }
 
-    public function loadReferences($slug, $schema) {
-        //loop through schemas so that they are loaded in, don't need to connect to all of them necessarily.
-        foreach ($schema->cells as $alias=>$cell) {
+    public function loadReferences($slug, $entity) {
+        //loop through Entitys so that they are loaded in, don't need to connect to all of them necessarily.
+        foreach ($entity->cells as $alias=>$cell) {
             if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
                 $new_schema = ($this->factory)($cell->reference);
-                if ($new_schema->table == $schema->table) continue; //circular reference
+                if ($new_schema->table == $entity->table) continue; //circular reference
                 $slug_alias = (!$slug) ? "" : $slug . "/";
                 $this->load($slug_alias . $alias, $new_schema);
             }
@@ -151,15 +151,47 @@ class SchemaRepository
     }
 
 
-    public function loadReverseReferences($slug, $schema) {
+    public function loadReverseReferences($slug, $entity) {
         //loop through schemas so that they are loaded in, don't need to connect to all of them necessarily.
-        $id = $schema->get("--id");
+        $id = $entity->get("--id");
         foreach ($id->reverse_references as $model) {
-            if (!isset($this->schemas[$model])) {
+            if (!isset($this->entities[$model])) {
                 $new_schema = ($this->factory)($model);
                 $this->load($model . "/", $new_schema, false); //set to false to prevent a recursive loop
             }
         }
+    }
+
+
+    public function findChildren(array $children, Entity $entity = null) {
+        if (!$entity) $entity = $this->entities[""];
+        $id = $entity->get("--id");
+
+        $matches = [];
+        foreach($id->reference as $child) {
+            if (in_array($child, $children)) {
+                $peek = ($this->factory)($child);
+                if (!$peek) {
+                    $matches[$child] = $peek;
+                    continue;
+                }
+
+                $res = $this->loadChildren($children, $peek);
+                if (!$res) {
+                    $matches[$child] = $peek;
+                    continue;
+                }
+
+                //if we get this far, then we new matches
+                $matches = array_merge($matches, $res);
+            } else {
+                $peek = ($this->factory)($child);
+                $res = $this->loadChidlren($children, $peek);
+                $matches = array_merge($matches, $res);
+            }
+        }
+
+        return $matches;
     }
 
 }

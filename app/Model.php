@@ -5,9 +5,9 @@ namespace GenerCodeOrm;
 use Psr\Http\Message\ServerRequestInterface;
 use \Illuminate\Support\Fluent;
 
-class Model
+class Model extends Builder
 {
-    protected $repo_schema;
+    protected EntityManager $en_manager;
     protected $connection;
     protected $name;
     protected ?array $fields = null;
@@ -15,20 +15,24 @@ class Model
     protected array $where = [];
     protected array $data = [];
     protected array $map = [];
+    protected $stmt;
 
-    public function __construct(\Illuminate\Database\Connection $connection, SchemaRepository $schema)
+    public function __construct(\Illuminate\Database\Connection $connection, EntityManager $manager, string $name)
     {
-        $this->repo_schema = $schema;
+        parent::__construct($connection);
+        $this->en_manager = $manager;
         $this->connection = $connection;
+        $this->name = $name;
+        $this->en_manager->loadBase($name);
+        $root = $this->en_manager->getEntity("");
+        $this->from($root->table, $root->alias);
     }
 
     public function __set($key, $val)
     {
-        if (property_exists($this, $key)) {
+        if ($key == "name") return;
+        if (in_array($key, ["fields", "secure", "where", "data", "map"])) {
             $this->$key = $val;
-            if ($key == "name") {
-                $this->repo_schema->loadBase($val);
-            }
         }
     }
 
@@ -46,23 +50,11 @@ class Model
     }
 
 
-    public function buildQuery($table, $alias = null) : Builder\GenBuilder
-    {
-        $builder = new Builder\GenBuilder($this->connection);
-        $builder->from($table, $alias);
-        return $builder;
-    }
-
-
-    public function secureQuery(Builder\GenBuilder $query, ?string $to = null) {
-        $owner = $this->repo_schema->loadToSecure($this->secure);
+    public function secureQuery(Builder\GenBuilder $query, ?string $to = null) : Binds\SimpleBind {
+        $owner = $this->en_manager->loadToSecure($this->secure);
         if ($owner) {
-            $data = new DataSet();
-            $data->bind("--owner", $owner);
-            $data->{"--owner"} = $this->secure;
-            $data->validate();
-            $query->secure($this->repo_schema, $data, $to);
-            return $data;
+            $bind = new Binds\SimpleBind($owner, $this->secure);
+            return $bind;
         }
     }
 
@@ -95,7 +87,7 @@ class Model
         $oquery->filter($data, false);
         
     
-        $root = $this->repo_schema->getSchema("");
+        $root = $this->en_manager->getSchema("");
         $query = $this->buildQuery($root->table);
         
         $query->insertUsing($this->fields, $oquery);
@@ -107,71 +99,32 @@ class Model
     {
         $data = new DataSet();
         foreach ($params as $alias=>$val) {
-            $data->bind($alias, $this->repo_schema->get($alias));
-            $data->$alias = $val;
+            $cell = $this->en_manager->get($alias)
+            if (is_array($val)) {
+                if (isset($val['min']) OR isset($val['max'])) {
+                    $bind = new Binds\RangeBind($cell, $val);
+                } else {
+                    $bind = new Binds\SetBind($cell, $val);
+                }
+            } else {
+                $bind = new Binds\SimpleBind($cell, $val);
+            }
+            $data->addBind($alias, $bind);
         }
         $data->validate();
         return $data;
     }
 
 
-    protected function audit($id, $action, ?array $data = null)
-    {
-        $repo = new \GenerCodeOrm\SchemaRepository($this->repo_schema->getFactory());
-        $model = new Model($this->connection, $repo);
-        $model->__set("name", "audit"); //call set directly as it is bypassed
-        $data = ($data) ? json_encode($data) : "{}";
-        $model->data = [
-            "model"=>$this->name, 
-            "model-id"=>$id,
-            "action"=>$action, 
-            "user-login-id"=>$this->secure,
-            "log"=>$data
-        ];
-        $model->create();
-    }
-
-
-    protected function checkUniques(\GenerCodeOrm\DataSet $data)
-    {
-        $root = $this->repo_schema->getSchema("");
-        $id_cell = $root->get("--id");
-
-        $binds = $data->getBinds();
-        foreach ($binds as $alias=>$bind) {
-            if ($bind->cell->unique) {
-                $mdata = new \GenerCodeOrm\DataSet();
-                $mdata->bind($alias, $bind->cell);
-                $mdata->$alias = $data->$alias;
-
-                if (isset($binds["--id"])) {
-                    $mdata->bind("--id", $binds["--id"]->cell);
-                    $mdata->{"--id"} = $data->{"--id"};
-                }
-
-                if (isset($binds["--parent"])) {
-                    $mdata->bind("--parent", $binds["--parent"]->cell);
-                    $mdata->{"--parent"} = $data->{"--parent"};
-                }
-
-                $query = $this->buildQuery($root->table);
-                $query->addSelect($bind->cell->name);
-                $query->filter($data, false);
-                $res = $query->take(1)->get();
-                if (count($res) > 0) {
-                    throw new Exceptions\UniqueException($alias, $data->$alias);
-                }
-            }
-        }
-    }
+   
 
 
     public function select(DataSet $data)
     {
         $bind = $data->getBind("--id");
-        $root = $this->repo_schema->getSchema("");
+        $root = $this->en_manager->getSchema("");
         return $this->buildQuery($root->table, $root->alias)
-        ->fields($this->repo_schema, $root->cells)
+        ->fields($this->en_manager, $root->cells)
         ->where($root->alias . ".". $bind->cell->name, "=", $bind->value)
         ->take(1)
         ->get()
@@ -179,14 +132,14 @@ class Model
     }
 
 
-    public function create()
+    public function create($data)
     {
         $data = new DataSet();
-        if ($this->repo_schema->has("--parent")) {
-            $data->bind("--parent", $this->repo_schema->get("--parent"));
+        if ($this->en_manager->has("--parent")) {
+            $data->bind("--parent", $this->en_manager->get("--parent"));
         }
 
-        $schema = $this->repo_schema->getSchema("");
+        $schema = $this->en_manager->getSchema("");
         foreach ($schema->cells as $alias=>$cell) {
             if (!$cell->system and ($cell->required or isset($this->data[$alias]))) {
                 $data->bind($alias, $cell);
@@ -201,7 +154,7 @@ class Model
 
         $this->checkUniques($data);
 
-        $root = $this->repo_schema->getSchema("");
+        $root = $this->en_manager->getSchema("");
         $query = $this->buildQuery($root->table);
 
         $id = $query->insertGetId($data->toCellNameArr());
@@ -219,7 +172,7 @@ class Model
 
     public function update()
     {
-        $schema = $this->repo_schema->getSchema("");
+        $schema = $this->en_manager->getSchema("");
 
         $where_data = $this->createDataSet($this->where);
       
@@ -256,7 +209,7 @@ class Model
             $this->audit($where_data->{"--id"}, "PUT", $changed_arr);
         }
 
-        $root = $this->repo_schema->getSchema("");
+        $root = $this->en_manager->getSchema("");
         $query = $this->buildQuery($root->table, $root->alias);
         if ($this->secure) $this->secureQuery($query);
         $query->filter($where_data);
@@ -283,19 +236,19 @@ class Model
             ];
         }
 
-        $root = $this->repo_schema->getSchema("");
+        $root = $this->en_manager->getSchema("");
         if ($root->hasAudit) {
             $this->audit($data->{"--id"}, "DELETE");
         }
 
-        $this->repo_schema->loadChildren();
+        $this->en_manager->loadChildren();
 
         
         $query = $this->buildQuery($root->table, $root->alias);
         if ($this->secure) {
             $this->secureQuery($query);
         }
-        $query->children($this->repo_schema);
+        $query->children($this->en_manager);
         $query->filter($data);
         $count = $query->delete();
 
@@ -309,10 +262,10 @@ class Model
 
     public function resort()
     {
-        $sortCol = $this->repo_schema->get("--sort");
-        $idCol = $this->repo_schema->get("--id");
+        $sortCol = $this->en_manager->get("--sort");
+        $idCol = $this->en_manager->get("--id");
 
-        $schema = $this->repo_schema->getSchema("");
+        $schema = $this->en_manager->getSchema("");
         $query = $this->buildQuery($schema->table, $schema->alias);
         $query->filterId($idCol->schema->alias . "." . $idCol->name, 0);
 
@@ -334,13 +287,16 @@ class Model
             $dataSets[] = $data;
         }
       
-        $query->multipleUpdateStmt([$sortCol->schema->alias . "." . $sortCol->name => 10], $dataSets);
+        $query->updateStmt([$sortCol->schema->alias . "." . $sortCol->name => 10]);
+        foreach($dataSets as $dataSet) {
+            $query->execute($dataSet);
+        }
 
         return true;
     }
 
     public function getAsset($field, $id) {
-        $idCell = $this->repo_schema->get("--id");
+        $idCell = $this->en_manager->get("--id");
         $data = new DataSet();
         $data->bind("--id", $idCell);
         $data->{"--id"} = $id;

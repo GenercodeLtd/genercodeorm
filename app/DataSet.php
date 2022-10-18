@@ -9,36 +9,34 @@ class DataValue {
 
 class DataSet {
 
-    protected $values = [];
+    protected $binds = [];
 
     function __construct() {
        
     }
 
     function __get($key) {
-        if (isset($this->values[$key])) {
-            return $this->values[$key]->value;
+        if (isset($this->binds[$key])) {
+            return $this->binds[$key]->value;
         } else {
             throw new \Exception($key . " is not set");
         }
     }
 
     function __set($key, $val) {
-        if (!isset($this->values[$key])) {
+        if (!isset($this->binds[$key])) {
             throw new \Exception("Have to bind " . $key . " first");
         }
-        $this->values[$key]->value = $this->values[$key]->cell->clean($val);
+        $this->binds[$key]->value = $this->binds[$key]->cell->clean($val);
     }
 
     function merge(DataSet $ndata) {
-        $this->values = array_merge($this->values, $ndata->getBinds());
+        $this->binds = array_merge($this->binds, $ndata->getBinds());
     }
 
 
-    function bind($alias, $cell) {
-        $val = new DataValue();
-        $val->cell = $cell;
-        $this->values[$alias] = $val;
+    function addBind($alias, $bind) {
+        $this->binds[$alias] = $bind;
     }
 
     function bindFromView(DataView $view) {
@@ -48,10 +46,10 @@ class DataSet {
     }
 
     function getBind($alias) {
-        if (!isset($this->values[$alias])) {
+        if (!isset($this->binds[$alias])) {
             throw new \Exception($alias . " bind doesn't exist");
         }
-        return $this->values[$alias];
+        return $this->binds[$alias];
     }
 
     
@@ -63,13 +61,13 @@ class DataSet {
 
 
     function getBinds() {
-        return $this->values;
+        return $this->binds;
     }
 
 
     public function toArr() {
         $arr = [];
-        foreach($this->values as $key=>$val) {
+        foreach($this->binds as $key=>$val) {
             $arr[$key] = $val->value;
         } 
         return $arr;
@@ -78,7 +76,7 @@ class DataSet {
 
     public function toCellNameArr($alias = "") {
         $arr = [];
-        foreach($this->values as $key=>$val) {
+        foreach($this->binds as $key=>$val) {
             $arr[$alias . $val->cell->name] = $val->value;
         } 
         return $arr;
@@ -87,7 +85,7 @@ class DataSet {
 
     public function toCells() {
         $arr = [];
-        foreach($this->values as $key=>$val) {
+        foreach($this->binds as $key=>$val) {
             $arr[$key] = $val->cell;
         } 
         return $arr;
@@ -96,20 +94,10 @@ class DataSet {
 
     public function validate() {
         $errors = [];
-        foreach($this->values as $slug => $mval) {
-            if (is_array($mval->value)) {
-                //do something over here with the value
-                foreach($mval->value as $ikey=>$ivalue) {
-                    $error = $mval->cell->validate($ivalue);
-                    if ($error) {
-                        $errors[$slug . " " . $ikey] = $error;
-                    }
-                }
-            } else {
-                $error = $mval->cell->validate($mval->value);
-                if ($error) {
-                    $errors[$slug] = $error;
-                }
+        foreach($this->binds as $slug => $bind) {
+            $error = $bind->validate();
+            if ($error) {
+                $errors[$slug] = $error;
             }
         }
 

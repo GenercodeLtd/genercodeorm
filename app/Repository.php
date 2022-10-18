@@ -198,4 +198,25 @@ class Repository extends Model
         $query->select($query->raw($raw_sql));
         return $query->get()->toArray();
     }
+
+    public function toTree($row, $schema_alias) {
+        $schema = $this->repo_schema->getSchema($schema_alias);
+        $res = [];
+        foreach($schema->cells as $alias=>$cell) {
+            if (property_exists($row, $schema->alias . "/" . $alias)) {
+                $res[$alias] = $row->{$schema->alias . "/" . $alias};
+            }
+        }
+
+        $id = $schema->get("--id", $schema_alias);
+
+        foreach($id->reference as $alias) {
+            $res[$alias] = [];
+            if ($this->repo_schema->hasSchema($alias)) {
+                $res[$alias][$row->{$alias . "/--id"}] = $this->toTree($row, $this->repo_schema($alias));
+            }
+        }
+
+        return $res;
+    }
 }

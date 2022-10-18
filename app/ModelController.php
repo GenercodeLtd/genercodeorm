@@ -19,7 +19,7 @@ class ModelController
         $this->app = $app;
         $this->profile = $app->get(\GenerCodeOrm\Profile::class);
         $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);
-        $this->repo = new SchemaRepository($this->profile->factory);
+        $this->repo = $app->get(\GenerCodeOrm\EntityManager::class);
     }
 
     private function checkPermission($name, $perm) {
@@ -74,6 +74,66 @@ class ModelController
         $model->where = $where;
     }
 
+
+    protected function audit($id, $action, ?array $data = null)
+    {
+        $model = $this->app->make(Model::class, "audit");
+        $data = ($data) ? json_encode($data) : "{}";
+
+        $dataSet = new DataSet();
+        
+        $data = [
+            "model"=>$this->name, 
+            "model-id"=>$id,
+            "action"=>$action, 
+            "user-login-id"=>$this->secure,
+            "log"=>$data
+        ];
+
+        foreach($data as $alias=>$val) {
+            $bind = new Binds\SimpleBind($repo->getCell($alias), $val);
+            $dataSet->addBind($bind);
+        }
+
+        $dataSet->validate("Audit");
+        $model->create($dataSet);
+    }
+
+
+    protected function checkUniques(\GenerCodeOrm\DataSet $data)
+    {
+        
+        $id_cell = $root->get("--id");
+
+        $binds = $data->getBinds();
+        foreach ($binds as $alias=>$bind) {
+            if ($bind->cell->unique) {
+                $repo = new \GenerCodeOrm\EntityManager($this->en_manager->getFactory());
+                $model = $this->app->makeWith(Model::class, ["name"=>$this->name]);
+
+                $model->select($bind->cell->name);
+
+                $model->where($bind->cell->name, "=", $bind->value);
+               
+
+                if (isset($binds["--parent"])) {
+                    $model->where("--parent", "=", $binds["--parent"]->value);
+                }
+
+                
+                if (isset($binds["--id"])) {
+                    $model->where("--id", "!=", $binds["--id"]->value);
+                }
+
+        
+                $res = $model->take(1)->get();
+                if (count($res) > 0) {
+                    throw new Exceptions\UniqueException($alias, $data->$alias);
+                }
+            }
+        }
+    }
+
   
 
     public function create($name, Fluent $params)
@@ -83,11 +143,23 @@ class ModelController
         $this->repo->loadBase($name);
         $schema = $this->repo->getSchema("");
         $fcells = [];
+
+        $data = new DataSet();
+
         foreach($schema->cells as $alias=>$cell) {
             if (get_class($cell) == Cells\AssetCell::class AND isset($_FILES[$alias])) {
                 $fcells[$alias] = $cell;
             }
+
+            if (!$cell->system and ($cell->required or isset($this->data[$alias]))) {
+                $bind = new Binds\SimpleBind($cell);
+                $data->addBind($alias, $bind);
+            } else if ($alias == "--owner" AND $this->secure) {
+                $bind = new Binds\SimpleBind($cell, $this->secure);
+                $data->addBind($alias, $bind);
+            }
         }
+
 
         if (count($fcells) > 0) {
             $fileHandler = $this->app->make(FileHandler::class);
@@ -97,12 +169,12 @@ class ModelController
             }
         }
         
+        $data->validate();
+        $this->checkUniques($data);
         
-        $model= $this->app->make(Model::class);
-        $model->name = $name;
-        $model->secure = $this->profile->id;
-        $model->data = $params->toArray();
-        $res = $model->create();
+        $model= $this->app->makeWith(Model::class, ["name"=>$name]);
+        //$model->secure($this->profile->id);
+        $res = $model->create($data);
 
         return $this->trigger($name, "post", $res);
     }
@@ -113,9 +185,81 @@ class ModelController
     {
         $this->checkPermission($name, "put");
 
-        $model= $this->app->make(Model::class);
-        $model->name = $name;
-        $model->where = ["--id" => $params["--id"]];
+        $original_data = $this->select($params["--id"]);
+
+        
+
+        $schema = $this->en_manager->getSchema("");
+        $bind = new Binds\SimpleBind($schema->get("--id"), $params["--id"]);
+        $bind->validate();
+
+        $model = $this->app->makeWith(Model::class, ["name"=>$name]);
+        $model->where($bind->cell->entity->alias . "." . $bind->cell->name, "=", $bind->cell->value);
+
+
+        $data = new DataSet();
+
+        foreach ($schema->cells as $alias=>$cell) {
+            if (!$cell->system and isset($this->data[$alias]) AND !$cell->immutable) {
+                $bind = new Binds\SimpleBind($cell, $params[$alias]);
+                $data->addBind($alias, $bind);
+            }
+        }
+
+        $data->validate($name);
+        $this->checkUniques();
+        //mayby audit here
+
+        $res = $model->update($data->toCellArr());
+
+
+        $where_data = $this->createDataSet($this->where);
+      
+        $original_data = $this->select($where_data);
+
+        if (!$original_data) {
+            return [
+                "original_data"=>null,
+                "affected_rows"=>0
+            ];
+        }
+
+        $original_data = new Fluent($original_data);
+
+        $data = new DataSet();
+        
+        
+
+        $data->apply($this->data);
+        $data->validate();
+
+        $this->checkUniques($data);
+
+        if ($schema->hasAudit()) {
+            $changed_arr = [];
+            foreach($data->getBinds() as $alias=>$bind) {
+                $changed_arr[$alias] = $original_data[$alias];
+            }
+
+            $this->audit($where_data->{"--id"}, "PUT", $changed_arr);
+        }
+
+        $root = $this->en_manager->getSchema("");
+        $query = $this->buildQuery($root->table, $root->alias);
+        if ($this->secure) $this->secureQuery($query);
+        $query->filter($where_data);
+
+        $rows = $query->update($data->toCellNameArr($root->alias . "."));
+
+        return [
+            "original"=>$original_data,
+            "data"=>$data->toArr(),
+            "affected_rows"=>$rows
+        ];
+
+
+        $model= $this->app->makeWith(Model::class, ["name"=>$name]);
+        $model->where("--id", "=", $params["--id"]);
         unset($params["--id"]);
 
         $model->data = $params->toArray();
@@ -283,9 +427,11 @@ class ModelController
         $src = $model->getAsset($field, $id);
 
         $repo = $model->repo_schema;
+        $field = $repo->get($field);
+        $field->validateSize(strlen($body));
 
         $fileHandler = $this->app->make(FileHandler::class);
-        return $fileHandler->patchFile($repo->get($field), $src, $body);
+        return $fileHandler->put($src, $body);
 
     } 
 

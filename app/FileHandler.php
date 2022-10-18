@@ -41,9 +41,7 @@ class FileHandler
     }
 
 
-    public function patchFile($cell, $src, $body) {
-        
-        $cell->validateSize(strlen($body));
+    public function put($src, $body) {
         $res = $this->disk->put($src, $body);
         return "SUCCESS";
     }

@@ -4,7 +4,7 @@ namespace GenerCodeOrm;
 
 use GenerCodeOrm\Cells as Cells;
 
-class Schema
+class Entity
 {
     protected $table = "";
     protected $alias;

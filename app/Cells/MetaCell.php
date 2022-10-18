@@ -73,7 +73,14 @@ class MetaCell
 
     public function clean($value)
     {
-        return trim($value);
+        if (is_array($value)) {
+            foreach($value as $key=>$val) {
+                $value[$key] = $this->clean($val);
+            }
+            return $value;
+        } else {
+            return trim($value);
+        }
     }
 
     public function toSchema()

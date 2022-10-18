@@ -12,12 +12,7 @@ use \GenerCodeOrm\Exceptions\CellTypeException;
 class GenBuilder extends Builder
 {
 
-    protected SchemaFactory $factory;
-
-    function setFactory($factory) {
-        $this->factory = $factory;
-    }
- 
+    protected $stmt;
 
     private function joinIn(
         MetaCell $field,
@@ -221,26 +216,47 @@ class GenBuilder extends Builder
         return $this;
     }
 
-
-
-    public function multipleUpdateStmt(array $template, array $data)
-    {
-        $sql = $this->grammar->compileUpdate($this, $template);
+    protected function buildStmt($sql) {
         $pdo = $this->connection->getPdo();
         
         try {
-            $stmt = $pdo->prepare($sql);
+            $this->stmt = $pdo->prepare($sql);
         } catch(\PDOException $e) {
             throw new \GenerCodeOrm\Exceptions\SQLException($sql, [],  $e->getMessage());
         }
+    }
+
+    public function updateStmt(array $template)
+    {
+        $sql = $this->grammar->compileUpdate($this, $template);
+        $this->buildStmt($sql);
+    }
 
 
-        foreach ($data as $dataSet) {
-            try {
-                $stmt->execute(array_values($dataSet->toCellNameArr()));
-            } catch(\PDOException $e) {
-                throw new \GenerCodeOrm\Exceptions\SQLException($sql, $dataSet->toCellNameArr(), $e->getMessage());
-            }
+    public function insertStmt(array $template)
+    {
+        $sql = $this->grammar->compileInsert($this, $template);
+        $this->buildStmt($sql);
+    }
+
+
+    public function deleteStmt() {
+        $sql = $this->grammar->compileDelete($this);
+        $this->buildStmt($sql);
+    }
+
+
+    public function selectStmt() {
+        $sql = $this->grammar->compileDelete($this);
+        $this->buildStmt($sql);
+    }
+
+
+    public function execute($dataSet) {
+        try {
+            $this->stmt->execute(array_values($dataSet->toCellNameArr()));
+        } catch(\PDOException $e) {
+            throw new \GenerCodeOrm\Exceptions\SQLException($sql, $dataSet->toCellNameArr(), $e->getMessage());
         }
     }
 
