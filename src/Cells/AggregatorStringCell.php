@@ -8,6 +8,7 @@ class AggregatorStringCell {
     protected $cells = [];
     protected $alias;
     protected $ws;
+   
 
     function __construct($fields) {
         $this->cells = $fields;
@@ -21,6 +22,10 @@ class AggregatorStringCell {
     function __get($name) {
         if (property_exists($this, $name)) return $this->$name;
         else if (isset($this->cells[$name])) return $this->cells[$name];
+    }
+
+    function addCell($name, $cell) {
+        $this->cells[$name] = $cell;
     }
 
     

@@ -14,19 +14,19 @@ use \Illuminate\Support\Fluent;
 use \Illuminate\Database\Connectors\ConnectionFactory;
 use \Illuminate\Database\DatabaseManager;
 
-//require_once(__DIR__ . "/../src/standardfunctions.php");
+require_once(__DIR__ . "/../app/standardfunctions.php");
+\GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
 \GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../genercodeltd/repos/ptj");
 
 
-final class ModelControllerTest extends TestCase
+final class RepoControllerTest extends TestCase
 {
-
     protected $container;
     public function setUp(): void
     {
         $container = new Container();
         $env = new Fluent([
-            "s3bucket"=>"presstojam.com", 
+            "s3bucket"=>"presstojam.com",
             "s3path"=>"assets",
             "dbname"=>"presstojam_com",
             "dbhost"=>"localhost",
@@ -49,20 +49,19 @@ final class ModelControllerTest extends TestCase
         $this->container = $container;
         $factory = new ConnectionFactory($container);
         $manager = new DatabaseManager($container, $factory);
-        //$manager->table("tester")->truncate();
-      
+
         $this->container->instance(\Illuminate\Database\Connection::class, $manager->connection());
-        $this->container->bind(GenerCodeOrm\ModelController::class, function($app) {
-            return new GenerCodeOrm\ModelController(
+        $this->container->bind(GenerCodeOrm\RepositoryController::class, function ($app) {
+            return new GenerCodeOrm\RepositoryController(
                 $app
             );
         });
 
-        $this->container->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
+        $this->container->bind(\Illuminate\Filesystem\FilesystemManager::class, function ($app) {
             return new \Illuminate\Filesystem\FilesystemManager($app);
         });
 
-        $this->container->bind(\GenerCodeOrm\FileHandler::class, function($app) {
+        $this->container->bind(\GenerCodeOrm\FileHandler::class, function ($app) {
             $file = $app->make(\Illuminate\Filesystem\FilesystemManager::class);
             $disk = $file->disk("s3");
             $fileHandler = new \GenerCodeOrm\FileHandler($disk);
@@ -71,7 +70,7 @@ final class ModelControllerTest extends TestCase
 
         $factory = new PressToJam\ProfileFactory();
         $profile = ($factory)("accounts");
-     
+
         $profile->id = 1;
         $this->container->instance(GenerCodeOrm\Profile::class, $profile);
 
@@ -80,15 +79,33 @@ final class ModelControllerTest extends TestCase
         $this->container->instance($manager::class, $manager);
         $this->container->instance(GenerCodeOrm\Profile::class, $profile);
         $this->container->bind(GenerCodeOrm\ModelControler::class, function($app) {
-            return new GenerCodeOrm\ModelContoller($app->get("db"), $app->make(GenerCodeOrm\Profile::class), $app->make(GenerCodeOrm\Hooks::class));
+            return new GenerCodeOrm\ModelController($app->get("db"), $app->make(GenerCodeOrm\Profile::class), $app->make(GenerCodeOrm\Hooks::class));
         });*/
-       
-       // $this->dbmanager = ;        
+
+        // $this->dbmanager = ;
     }
 
 
 
-    public function testPost() { 
+
+    public function testCount()
+    {
+        $modelCont = $this->container->make(GenerCodeOrm\RepositoryController::class);
+        $res = $modelCont->count("tester", new Fluent([]));
+        $this->assertSame($res->count, 4);
+    }
+
+
+    public function testReference()
+    {
+        $modelCont = $this->container->get(GenerCodeOrm\RepositoryController::class);
+        $res = $modelCont->reference("tester", new Fluent());
+        $this->assertGreaterThan(1, count($res));
+    }
+
+
+    public function testGet()
+    {
         $_FILES = ["asseter"=> [
             "size"=>500,
             "tmp_name"=>__DIR__ . "/testproject/defaultpdf.pdf",
@@ -97,36 +114,8 @@ final class ModelControllerTest extends TestCase
         ]];
 
 
-        $modelCont = $this->container->get(GenerCodeOrm\ModelController::class);
-        $res = $modelCont->create("tester", new Fluent(["stringer"=>"strsy", "number"=>17, "flager"=>1]));
-        $this->assertSame(1, $res["--id"]);
+        $modelCont = $this->container->get(GenerCodeOrm\RepositoryController::class);
+        $res = $modelCont->update("tester", new Fluent(["--id"=>2, "stringer"=>"strs", "number"=>5]));
+        $this->assertGreaterThan(1, count($res));
     }
-
-
-    public function testPut() { 
-        $_FILES = ["asseter"=> [
-            "size"=>500,
-            "tmp_name"=>__DIR__ . "/testproject/defaultpdf.pdf",
-            "error"=>0,
-            "name"=>"defaultpdf.pdf"
-        ]];
-
-
-        $modelCont = $this->container->get(GenerCodeOrm\ModelController::class);
-        $res = $modelCont->update("tester", new Fluent(["--id"=>1, "stringer"=>"strsinger", "number"=>5]));
-        $this->assertSame(1, $res["affected_rows"]);
-    }
-
-
-    public function testDelete() {$modelCont = $this->container->get(GenerCodeOrm\ModelController::class);
-        $modelCont = $this->container->get(GenerCodeOrm\ModelController::class);
-        $res = $modelCont->delete("tester", new Fluent(["--id"=>1]));
-        $this->assertSame(1, $res["affected_rows"]);
-    }
-
-
-    public function testResort() {
-        $this->assertSame(1, 1);
-    }
-
 }

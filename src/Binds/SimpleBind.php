@@ -3,7 +3,7 @@ namespace GenerCodeOrm\Binds;
 
 class SimpleBind extends Bind {
    
-    function __construct(Cells\MetaCell $cell, $value = null) {
+    function __construct(\GenerCodeOrm\Cells\MetaCell $cell, $value = null) {
         parent::__construct($cell);
         if ($value) $this->setValue($value);
     }

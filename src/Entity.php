@@ -8,6 +8,7 @@ class Entity
 {
     protected $table = "";
     protected $alias;
+    protected $slug;
     protected $cells = [];
     protected $has_export = false;
     protected $has_import = false;
@@ -35,21 +36,33 @@ class Entity
         }
     }
 
+    public function findCell($name, $cells) {
+        if (isset($cells[$name])) return $cells[$name];
 
-    public function get($name)
-    {
-        if (isset($this->cells[$name])) return $this->cells[$name];
-        else {
-            throw new \Exception("Can't get cell of " . $name . " - doesn't exist");
+        foreach($cells as $cell) {
+            if (get_class($cell) == GenerCodeOrm\Cells\JsonCell::class) {
+                $result = $this->get($name, $cell->cells);
+                if ($result) return $result;
+            }
         }
     }
 
 
-    public function has($kebab)
+    public function get($name, $cells = null)
     {
-        return isset($this->cells[$kebab]);
+        $cell = $this->findCell($name, $this->cells);
+        if ($cell) return $cell;
+        else throw new \Exception("Can't get cell of " . $name . " - doesn't exist");
     }
 
+
+    public function has($name)
+    {
+        $cell = $this->findCell($name, $this->cells);
+        return ($cell) ? true : false;
+    }
+
+    
     public function hasAudit() {
         return $this->has_audit;
     }

@@ -4,7 +4,7 @@ namespace GenerCodeOrm\Binds;
 class RangeBind extends Bind {
     
 
-    function __construct(Cells\MetaCell $cell, $value = null) {
+    function __construct(\GenerCodeOrm\Cells\MetaCell $cell, $value = null) {
         parent::__construct($cell);
         $this->value = ["min"=>null, "max"=>null];
         if ($value) {

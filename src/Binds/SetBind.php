@@ -1,9 +1,9 @@
 <?php
 namespace GenerCodeOrm\Binds;
 
-class RangeBind extends Bind {
+class SetBind extends Bind {
    
-    function __construct(Cells\MetaCell $cell, $value = null) {
+    function __construct(\GenerCodeOrm\Cells\MetaCell $cell, $value = null) {
         parent::__construct($cell);
         $this->value = [];
         if ($value) {
