@@ -11,18 +11,18 @@
         "phpunit/phpunit": "^9.5"
     },
     "require": {
-        "illuminate/database": "^9.30",
-        "illuminate/container": "^9.30",
-        "illuminate/queue": "^9.30",
-        "illuminate/filesystem": "^9.31",
-        "league/flysystem-aws-s3-v3": "3.0"
+        "illuminate/database": "^8.83.1",
+        "illuminate/container": "^8.83.1",
+        "illuminate/queue": "^8.83.1",
+        "illuminate/filesystem" : "^8.83.24",
+        "league/flysystem-aws-s3-v3": "^2.5.0"
     },
     "autoload" : {
         "psr-4" : {
-            "GenerCodeOrm\\" : "src/"
+            "GenerCodeOrm\\" : "app/"
         },
         "files" : [
-            "src/standardfunctions.php"
+            "app/standardfunctions.php"
         ]
     },
     "license" : "Apache-2.0"

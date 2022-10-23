@@ -138,7 +138,8 @@ class Model extends Builder
         
         try {
             $this->stmt = $pdo->prepare($sql);
-           // $this->bindValues($this->stmt, $this->getBindings());
+            //var_dump($this->getBindings());
+            //$this->bindValues($this->stmt, $this->getBindings());
         } catch(\PDOException $e) {
             throw new \GenerCodeOrm\Exceptions\SQLException($sql, [],  $e->getMessage());
         }
@@ -173,11 +174,11 @@ class Model extends Builder
     }
 
 
-    public function execute($dataSet) {
+    public function execute(DataSet $dataSet) {
         try {
             $this->stmt->execute(array_values($dataSet->toCellNameArr()));
-        } catch(\PDOException $e) {
-            throw new \GenerCodeOrm\Exceptions\SQLException($sql, $dataSet->toCellNameArr(), $e->getMessage());
+        } catch(\Exception $e) {
+            throw new \GenerCodeOrm\Exceptions\SQLException("update", $dataSet->toCellNameArr(), $e->getMessage());
         }
     }
 

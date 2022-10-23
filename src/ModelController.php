@@ -276,28 +276,38 @@ class ModelController extends AppController
     {
         $this->checkPermission($name, "put");
 
+        if (count($params["_rows"]) == 0) return false; //nothing to do
+
         $model= $this->model($name);
+
+        $dataSet = new DataSet($model);
+
+        $id = new Binds\SimpleBind($model->root->get("--id"), $params["_rows"][0]["--id"]);
+        $sort = new Binds\SimpleBind($model->root->get("--sort"));
+
+        $dataSet->addBind("--sort", $sort); //order is crucial here
 
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure($this->profile->name, $this->profile->id);
+            //add to give the correnct number of cells.
+            $cell = new Cells\IdCell();
+            $bind = new Binds\SimpleBind($cell, $this->profile->id);
+            $dataSet->addBind("--secure", $bind);
         }
 
 
-        $id = new Binds\SimpleBind($model->root->get("--id"));
-        $sort = new Binds\SimpleBind($model->root->get("--sort"));
-
         $model->filter($id);
-        $model->updateStmt([$sort->cell->name => "?"]);
-
-        $dataSet = new DataSet($model);
-        $dataSet->addBind("--sort", $sort);
         $dataSet->addBind("--id", $id);
 
+        $model->setFromEntity();
+        $model->updateStmt([$sort->cell->name => "?"]);
+
+        
         foreach ($params["_rows"] as $row) {
             $dataSet->{"--sort"} = $row['--sort'];
             $dataSet->{"--id"} = $row["--id"];
             $dataSet->validate();
-            $model->execute(array_values($dataSet->toArr()));
+            $model->execute($dataSet);
         }
 
         return true;

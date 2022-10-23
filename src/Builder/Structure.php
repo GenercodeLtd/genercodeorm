@@ -40,6 +40,27 @@ class Structure
                 break;
             }
         }
+        return $entity;
+    }
+
+
+    public function secureTo($profile, $id)
+    {
+        $top = $this->model->root;
+        while ($top->has("--parent")) {
+            $parent = $top->get("--parent");
+            $top = ($this->model->entity_factory)($parent->reference);
+        }
+
+        if ($top->has("--owner")) {
+            $owner = $top->get("--owner");
+            if ($owner->reference == $profile) {
+                $top = $this->joinTo("*");
+                $owner = $top->get("--owner"); //get owner with the correct entity reference
+                $name = (count($this->model->entities) > 1) ? $owner->getDBAlias() : $owner->name;
+                $this->model->where($name, "=", $id);
+            }
+        }
     }
 
 
@@ -57,22 +78,4 @@ class Structure
         }
     }
 
-
-    public function secureTo($profile, $id)
-    {
-        $top = $this->model->root;
-        while ($top->has("--parent")) {
-            $parent = $top->get("--parent");
-            $top = ($this->model->entity_factory)($parent->reference);
-        }
-
-        if ($top->has("--owner")) {
-            $owner = $top->get("--owner");
-            if ($owner->reference == $profile) {
-                $this->joinTo("*");
-                $name = (count($this->model->entities) > 1) ? $owner->getDBAlias() : $owner->name;
-                $this->model->where($name, "=", $id);
-            }
-        }
-    }
 }
