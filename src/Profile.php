@@ -14,7 +14,7 @@ class Profile {
     function __construct() {
         $this->factory = new Factory();
         $this->factory->addProducts(["users"=> function() {
-            return new Schema\Users();
+            return new Entity\Users();
         }]);
     }
 

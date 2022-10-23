@@ -2,8 +2,8 @@
 use PHPUnit\Framework\TestCase;
 use GenerCodeOrm\Model;
 use GenerCodeOrm\Cells\MetaCell;
-use GenerCodeOrm\Schema;
-use GenerCodeOrm\SchemaRepository;
+use GenerCodeOrm\Entity;
+use GenerCodeOrm\EntityManager;
 use GenerCodeOrm\Cells\IdCell;
 use GenerCodeOrm\Cells\ReferenceTypes;
 use GenerCodeOrm\Mappers\MapQuery;
@@ -15,7 +15,7 @@ use \Illuminate\Database\DatabaseManager;
 
 require_once(__DIR__ . "/../app/standardfunctions.php");
 \GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
-\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../genercodeltd/repos/ptj");
+\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../ptjmanager/repos/ptj");
 
 
 final class ModelTest extends TestCase
@@ -51,16 +51,14 @@ final class ModelTest extends TestCase
         $factory = new ConnectionFactory($container);
         $manager = new DatabaseManager($container, $factory);
       
-        $this->container->instance($manager::class, $manager);
-        $this->container->bind(GenerCodeOrm\Model::class, function($app) {
-            return new GenerCodeOrm\Model(
-                $app->get(DatabaseManager::class), new SchemaRepository($app->get(GenerCodeOrm\Profile::class)->factory)
-            );
-        });
+        $this->container->instance(\Illuminate\Database\Connection::class, $manager->connection());
+        
 
         $this->container->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
             return new \Illuminate\Filesystem\FilesystemManager($app);
         });
+
+       
 
         $this->container->bind(\GenerCodeOrm\FileHandler::class, function($app) {
             $file = $app->make(\Illuminate\Filesystem\FilesystemManager::class);
@@ -93,13 +91,8 @@ final class ModelTest extends TestCase
 
         $profile->models = ["models"=>["post"]];*/
 
-        $factory = new SchemaFactory();
-        
-        $model = new Model($this->dbmanager, new SchemaRepository($factory));
-        $model->name = "models";
-        $model->data = ["name"=>"tname", "--parent"=>1];
-        $res = $model->create();
-        $id = $res["--id"];
+        $model = $this->container->makeWith(Model::class, ["name"=>"models"]);
+        $id = $model->insertGetId(["name"=>"tname", "projects_id"=>1]);
         $this->assertNotSame(0, $id);
     }
 
@@ -110,25 +103,18 @@ final class ModelTest extends TestCase
         $profile->type = "test";
 
         $profile->models = ["models"=>["delete"]];*/
-
-        $factory = new SchemaFactory();
-
-        $model = new Model($this->dbmanager, new SchemaRepository($factory));
-        $model->name = "models";
-        $model->where = ["--id" => 780];
+        $model = $this->container->makeWith(Model::class, ["name"=>"models"]);
+        $model->where("id", "=", 780);
         $res = $model->delete(true);
         //var_dump($res);
         $this->assertSame(15, $res["affected_rows"]);
     }
 
     public function testUpdate() {
-        $factory = new SchemaFactory();
-
-        $model = new Model($this->dbmanager, new SchemaRepository($factory));
-        $model->name = "models";
-        $model->data = ["has-import"=>true];
-        $model->where = ["--id"=>780];
-        $res = $model->update();
+ 
+        $model = $this->container->makeWith(Model::class, ["name"=>"models", "alias"=>"models"]);
+        $model->where("models.id", "=", 780);
+        $res = $model->update(["has_import"=>true]);
         var_dump($res);
         $this->assertSame(15, $model->id);
     }
@@ -137,7 +123,7 @@ final class ModelTest extends TestCase
     public function testUpdateSecure() {
         $factory = new SchemaFactory();
 
-        $model = new Model($this->dbmanager, new SchemaRepository($factory));
+        $model = new Model($this->dbmanager, new EntityManager($factory));
         $model->name = "models";
         $model->data = ["has-export"=>true];
         $model->where = ["--id"=>780];
@@ -152,7 +138,7 @@ final class ModelTest extends TestCase
     public function testResort() {
         $factory = new SchemaFactory();
 
-        $model = new Model($this->dbmanager, new SchemaRepository($factory));
+        $model = new Model($this->dbmanager, new EntityManager($factory));
         $model->name = "models";
         $model->data = [["--id"=>1,"--sort"=>1],["--id"=>2, "--sort"=>2],["--id"=>3, "--sort"=>3]];
         $model->secure = 1;

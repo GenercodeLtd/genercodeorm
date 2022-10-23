@@ -15,9 +15,10 @@ class MetaCell
     protected $background = false;
     protected $model;
     protected $summary = false;
-    protected $schema;
+    protected $entity;
     protected $where = [];
     protected $required = false;
+    
     
 
     public function __construct()
@@ -70,11 +71,30 @@ class MetaCell
     }
 
 
+    public function getDBAlias() {
+        return $this->entity->alias . "." . $this->name;
+    }
+
+
+    public function getSlug() {
+        $str = "";
+        if ($this->entity->slug) $str .= $this->entity->slug . "/";
+        return $str . $this->alias;
+    }
+
 
     public function clean($value)
     {
-        return trim($value);
+        if (is_array($value)) {
+            foreach($value as $key=>$val) {
+                $value[$key] = $this->clean($val);
+            }
+            return $value;
+        } else {
+            return trim($value);
+        }
     }
+    
 
     public function toSchema()
     {

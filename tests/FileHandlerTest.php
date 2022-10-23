@@ -4,15 +4,13 @@ use PHPUnit\Framework\TestCase;
 use \Illuminate\Container\Container as Container;
 use \Illuminate\Support\Fluent;
 
-require_once(__DIR__ . "/../app/standardfunctions.php");
-\GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
-\GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../genercodeltd/repos/ptj");
 
-final class FileUploadsTest extends TestCase
+final class FileHandlerTest extends TestCase
 {
 
     private $app;
     private $profile;
+    private $asset;
 
     public function setUp() : void {
         $container = new Container();
@@ -24,14 +22,22 @@ final class FileUploadsTest extends TestCase
         $container->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
             return new \Illuminate\Filesystem\FilesystemManager($app);
         });
+
+
+        $container->bind(\GenerCodeOrm\FileHandler::class, function($app) {
+            $file = $app->make(\Illuminate\Filesystem\FilesystemManager::class);
+            $disk = $file->disk("s3");
+            $fileHandler = new \GenerCodeOrm\FileHandler($disk);
+            return $fileHandler;
+        });
         $this->app = $container;
 
-        $factory = new PressToJam\ProfileFactory();
-        $this->profile = ($factory)("accounts");
-        $this->profile->id = 1;
     }
 
-    public function testRun() {
+
+  
+
+    public function testCreate() {
         $_FILES = ["asseter"=> [
             "size"=>500,
             "tmp_name"=>__DIR__ . "/testproject/defaultpdf.pdf",
@@ -39,37 +45,35 @@ final class FileUploadsTest extends TestCase
             "name"=>"defaultpdf.pdf"
         ]];
 
-        $file = $this->app->make(\Illuminate\Filesystem\FilesystemManager::class);
-        $prefix = $this->app->config["filesystems.disks.s3"]['prefix_path'];
+        $fcell = new \GenerCodeOrm\Cells\AssetCell();
+        $fcell->name = "asseter";
+        $fcell->entity = new \GenerCodeOrm\Entity("tester");
+        
 
-        $repo = new GenerCodeOrm\SchemaRepository($this->profile->factory);
+        $fileHandler = $this->app->make(\GenerCodeOrm\FileHandler::class);
 
-        $fileUploads = new GenerCodeOrm\FileHandler($file, $repo);
-        $fileUploads->name = "tester";
-        $params = $fileUploads->processFiles($prefix);
-        var_dump($params);
+        $bind = new \GenerCodeOrm\Binds\AssetBind($fcell, $_FILES["asseter"]);
+        $file_name = $fileHandler->uploadFile($bind);
+        $this->assertNotSame("", $file_name);
+        $this->asset = $file_name;
+        echo "\nFILE NAME IS " . $this->asset;
     }
 
+
     function testGet() {
-        $file = $this->app->make(\Illuminate\Filesystem\FilesystemManager::class);
-        $prefix = $this->app->config["filesystems.disks.s3"]['prefix_path'];
-
-        $repo = new GenerCodeOrm\SchemaRepository($this->profile->factory);
-
-        $fileUploads = new GenerCodeOrm\FileHandler($file, $repo);
-        echo $fileUploads->get($prefix, "633174b048606.pdf");
+        $this->asset = "assets/tester/63541d11e5440.pdf";
+        $fileHandler = $this->app->make(\GenerCodeOrm\FileHandler::class);
+        $str = $fileHandler->get($this->asset);
+        $this->assertNotSame("", $str);
       
     }
 
 
     function testDelete() {
-        $file = $this->app->make(\Illuminate\Filesystem\FilesystemManager::class);
-        $prefix = $this->app->config["filesystems.disks.s3"]['prefix_path'];
-
-        $repo = new GenerCodeOrm\SchemaRepository($this->profile->factory);
-
-        $fileUploads = new GenerCodeOrm\FileHandler($file, $repo);
-        echo $fileUploads->delete($prefix, "633174b048606.pdf");
+        $this->asset = "assets/tester/63541d11e5440.pdf";
+        $fileHandler = $this->app->make(\GenerCodeOrm\FileHandler::class);
+        $res = $fileHandler->delete($this->asset);
+        $this->assertSame($res, true);
       
     }
     /*

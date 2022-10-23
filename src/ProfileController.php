@@ -3,13 +3,12 @@ namespace GenerCodeOrm;
 
 use \Illuminate\Container\Container;
 
-class ProfileController {
+class ProfileController extends AppController {
 
-    protected Container $app;
     protected Profile $profile;
    
     function __construct(Container $app) {
-        $this->app = $app;
+        parent::__construct($app);
         $this->profile = $app->get(\GenerCodeOrm\Profile::class);
     }
 
@@ -17,15 +16,17 @@ class ProfileController {
         return $this->profile->toArr();
     }
 
+
     
     function createAnon($name) {
         if (!$this->profile->allowAnonymousCreate()) {
             throw new Exceptions\PtjException("Anonymous profiles are not allowed");
         }
-        $model = $this->app->get(Model::class);
-        $model->name = "users";
-        $model->data = ["type"=>$name, "terms"=>1];
-        $res = $model->create();
+        $model = $this->model("users");
+        $dataSet = new DataSet($model);
+        $dataSet->data(["type"=>$name, "terms"=>1]);
+        $dataSet->validate();
+        $res = $model->create($dataSet->toCellNameArr());
         return $res["--id"];
     }
 
@@ -34,31 +35,37 @@ class ProfileController {
         if (!$this->profile->allowCreate()) {
             throw new Exceptions\PtjException("Cannot create profile " . $this->profile->name);
         }
-        $model = $this->app->get(Model::class);
-        $model->name = "users";
+        $model = $this->model("users");
         if (isset($params["password"])) {
             $params["password"] = password_hash($params["password"], \PASSWORD_DEFAULT);
         }
+
         $params["type"] = $name;
-        $model->data = $params;
-        $res = $model->create();
+        $dataSet = new DataSet($model);
+        $dataSet->data($params);
+        $dataSet->validate();
+    
+        $res = $model->create($dataSet->toCellNameArr());
         return $res["--id"];
     }
 
 
     function login($type, $params) {
-        $repo = $this->app->get(Repository::class);
-        $repo->name = "users";
-        $repo->fields = ["--id", "password"];
-        $repo->where = ["email"=>$params["email"], "type"=>$type];
-        $repo->limit = 1;
+        $repo = $this->model("users");
+        $repo->fields(["--id", "password"]);
 
-        $res = $repo->get();
+        $dataSet = new DataSet($repo);
+        $dataSet->data(["email"=>$params["email"], "type"=>$type]);
+        $dataSet->validate();
+      
+        $repo->filterBy($dataSet);
+        $repo->take(1);
+
+        $res = $repo->setFromEntity()->get()->first();
         if (!$res) {
             throw new Exceptions\PtjException("This username / password was not recognised");
         }
-
-        
+   
        
         if (!isset($params["password"])) {
             throw new Exceptions\PtjException("This username / password was not recognised");
