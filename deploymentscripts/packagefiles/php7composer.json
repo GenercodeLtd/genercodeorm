@@ -19,10 +19,10 @@
     },
     "autoload" : {
         "psr-4" : {
-            "GenerCodeOrm\\" : "app/"
+            "GenerCodeOrm\\" : "src/"
         },
         "files" : [
-            "app/standardfunctions.php"
+            "src/standardfunctions.php"
         ]
     },
     "license" : "Apache-2.0"
