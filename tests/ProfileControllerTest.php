@@ -10,9 +10,9 @@ use GenerCodeOrm\Cells\ReferenceTypes;
 use GenerCodeOrm\Mappers\MapQuery;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Container\Container as Container;
+use \Illuminate\Database\Connectors\ConnectionFactory;
+use \Illuminate\Database\DatabaseManager;
 
-require_once(__DIR__ . "/../app/standardfunctions.php");
-\GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
 \GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../ptjmanager/repos/ptj");
 
 
@@ -40,12 +40,23 @@ final class ProfileControllerTest extends TestCase
       
         $this->container->instance($manager::class, $manager);
         $this->container->bind(GenerCodeOrm\ProfileController::class, function($app) {
-            return new GenerCodeOrm\ProfileController($app->get('Illuminate\Database\DatabaseManager'), $app->make(GenerCodeOrm\Profile::class));
+            return new GenerCodeOrm\ProfileController($app);
         });
 
         $factory = new PressToJam\ProfileFactory();
         $profile = ($factory)("accounts");
         $this->container->instance(GenerCodeOrm\Profile::class, $profile);
+
+        $factory = new ConnectionFactory($container);
+        $manager = new DatabaseManager($container, $factory);
+        //$manager->table("tester")->truncate();
+      
+        $this->container->instance(\Illuminate\Database\Connection::class, $manager->connection());
+        $this->container->bind(GenerCodeOrm\ModelController::class, function($app) {
+            return new GenerCodeOrm\ModelController(
+                $app
+            );
+        });
 
 
         /*$manager = $capsule->getDatabaseManager();
@@ -60,13 +71,21 @@ final class ProfileControllerTest extends TestCase
 
     function testProfile() {
         $profile = $this->container->get(GenerCodeOrm\ProfileController::class);
-        $profile->create(["email"=>"webwam2010@gmail.com","password"=>"testing","name"=>"Suzanne"]);
+        $id = $profile->create("accounts", ["email"=>"webwam2010@gmail.com","password"=>"testing","name"=>"Suzanne"]);
+        $this->assertGreaterThan(0, $id);
+    }
+
+    function testAnon() {
+        $profile = $this->container->get(GenerCodeOrm\ProfileController::class);
+        $id = $profile->createAnon("accounts");
+        echo "\nID is " . $id;
+        $this->assertGreaterThan(0, $id);
     }
 
     function testLogin() {
         $profile = $this->container->get(GenerCodeOrm\ProfileController::class);
-        $p = $profile->login(["email"=>"webwam2010@gmail.com","password"=>"testing"]);
-        $this->assertSame(1, $p->id);
+        $id = $profile->login("accounts", ["email"=>"webwam2010@gmail.com","password"=>"testing"]);
+        $this->assertSame(1, $id);
     }
 
 }

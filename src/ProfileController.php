@@ -22,12 +22,13 @@ class ProfileController extends AppController {
         if (!$this->profile->allowAnonymousCreate()) {
             throw new Exceptions\PtjException("Anonymous profiles are not allowed");
         }
+        $inputSet = new InputSet();
+        $inputSet->data(["type"=>$name, "terms"=>1]);
         $model = $this->model("users");
         $dataSet = new DataSet($model);
-        $dataSet->data(["type"=>$name, "terms"=>1]);
+        $dataSet->data($inputSet);
         $dataSet->validate();
-        $res = $model->create($dataSet->toCellNameArr());
-        return $res["--id"];
+        return $model->setFromEntity()->insertGetId($dataSet->toCellNameArr());
     }
 
 
@@ -41,12 +42,15 @@ class ProfileController extends AppController {
         }
 
         $params["type"] = $name;
+
+        $inputSet = new InputSet();
+        $inputSet->data($params);
+        
         $dataSet = new DataSet($model);
-        $dataSet->data($params);
+        $dataSet->data($inputSet);
         $dataSet->validate();
     
-        $res = $model->create($dataSet->toCellNameArr());
-        return $res["--id"];
+        return $model->setFromEntity()->insertGetId($dataSet->toCellNameArr());
     }
 
 
@@ -54,8 +58,13 @@ class ProfileController extends AppController {
         $repo = $this->model("users");
         $repo->fields(["--id", "password"]);
 
+        $params["type"] = $type;
+
+        $inputSet = new InputSet();
+        $inputSet->data(["email"=>$params["email"], "type"=>$type]);
+
         $dataSet = new DataSet($repo);
-        $dataSet->data(["email"=>$params["email"], "type"=>$type]);
+        $dataSet->data($inputSet);
         $dataSet->validate();
       
         $repo->filterBy($dataSet);

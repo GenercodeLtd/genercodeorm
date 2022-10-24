@@ -1,6 +1,6 @@
 <?php
 namespace GenerCodeOrm;
-use PressToJam\Schemas as Schema;
+use PressToJam\Entity as Entity;
 
 class Profile {
 
