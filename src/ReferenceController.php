@@ -52,7 +52,7 @@ class ReferenceController extends AppController
         $idCell->alias = "--key";
 
         $fields = ["--key", "--recursive", "--value"];
-        echo " Input for " . $name;
+    
         $inputSet = new InputSet($name);
         $inputSet->data($fields);
 
