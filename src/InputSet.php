@@ -75,6 +75,8 @@ class InputSet
 
     public function data($inputs)
     {
+        if (is_string($inputs)) $inputs = json_decode($inputs, true);
+
         if ($this->isSequential($inputs)) {
             foreach ($inputs as $val) {
                 $this->addSequentialData($val);

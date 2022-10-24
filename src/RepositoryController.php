@@ -226,6 +226,14 @@ class RepositoryController extends AppController
         $this->buildStructure($model, $arr);
 
         $where = $this->getWhere($name, $arr);
+
+        $dataSet = new DataSet($model);
+        $dataSet->data($where);
+        $dataSet->validate();
+
+        $model->filterBy($dataSet);
+
+        
         $model->take(1);
 
         $res = $model->setFromEntity()->get()->first();

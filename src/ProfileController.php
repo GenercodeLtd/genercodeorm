@@ -54,6 +54,14 @@ class ProfileController extends AppController {
     }
 
 
+    function userDetails() {
+        $repo = $this->model("users");
+        $repo->select(["name", "email", "type"]);
+        $repo->where("id", "=", $this->profile->id);
+        return $repo->setFromEntity()->take(1)->get()->first();
+    }
+
+
     function login($type, $params) {
 
         $repo = $this->model("users");
