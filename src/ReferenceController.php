@@ -52,6 +52,7 @@ class ReferenceController extends AppController
         $idCell->alias = "--key";
 
         $fields = ["--key", "--recursive", "--value"];
+        echo " Input for " . $name;
         $inputSet = new InputSet($name);
         $inputSet->data($fields);
 
@@ -100,7 +101,7 @@ class ReferenceController extends AppController
             $this->bindID($model, $cell, $id);
         }
 
-        $this->setFields($model, $name);
+        $this->setFields($model, $ref_cell->reference);
         return $model->setFromEntity()->get()->toArray();
     }
 }

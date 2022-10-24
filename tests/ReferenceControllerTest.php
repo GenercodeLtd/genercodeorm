@@ -88,7 +88,7 @@ final class ReferenceControllerTest extends TestCase
 
     public function testWithCommon() {
         $refCont = $this->container->get(GenerCodeOrm\ReferenceController::class);
-        $rows = $refCont->load("fields", "section-id", 1);
+        $rows = $refCont->load("models", "has-profile-owner", 1);
         var_dump($rows);
         $this->assertGreaterThan(0, count($rows));
     }
