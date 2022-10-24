@@ -7,10 +7,10 @@ class AggregatorStringCell {
 
     protected $cells = [];
     protected $alias;
-    protected $ws;
+    protected $ws = " - ";
    
 
-    function __construct($fields) {
+    function __construct($fields = []) {
         $this->cells = $fields;
     }
     
@@ -24,8 +24,13 @@ class AggregatorStringCell {
         else if (isset($this->cells[$name])) return $this->cells[$name];
     }
 
-    function addCell($name, $cell) {
-        $this->cells[$name] = $cell;
+    function addCell($cell) {
+        $this->cells[$cell->alias] = $cell;
+    }
+
+
+    public function getSlug() {
+        return $this->alias;
     }
 
     

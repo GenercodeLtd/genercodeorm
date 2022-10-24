@@ -140,7 +140,9 @@ class RepositoryController extends AppController
         }
 
         if (isset($arr["__fields"])) {
-            $model->fields($arr["__fields"]);
+            $set = new InputSet($model->slug);
+            $set->data($arr["__fields"]);
+            $model->fields($set);
         } else {
             $model->fields();
         }
@@ -282,52 +284,5 @@ class RepositoryController extends AppController
     }
 
 
-    public function reference(string $name, string $field, $id, ?Fluent $params)
-    {
-        $this->checkPermission($name, "get");
-
-        $ref = $this->app->make(Reference::class);
-
-        $model= $this->model($name);
-        $ref->setRepo($name, $field, $id, $model);
-
-        if (!$this->profile->allowedAdminPrivilege($name)) {
-            $model->secure($this->profile->name, $this->profile->id);
-        }
-
-        $this->buildStructure($model, $params->toArray());
-
-        $data = $this->createDataSet($this->where);
-        $query->filter($data);
-
-        $fields = [];
-        $recursive = null;
-        $aggregator = new Cells\AggregatorStringCell();
-        $aggregator->alias = "value";
-        foreach ($model->root->cells as $cell) {
-            if ($cell->summary) {
-                $aggregator->addCell($cell);
-            } elseif ($cell->alias == "--recursive") {
-                $recursive = $cell;
-            }
-        }
-        $idCell = $schema->get("--id");
-        $idCell->alias = "key";
-        $fields[$idCell->alias]=$idCell;
-        $fields[$aggregator->alias] = $aggregator;
-        if ($recursive) {
-            $recursive->alias = "--recursive";
-            $fields[$recursive->alias] = $recursive;
-        }
-
-        $raw_sql = $idCell->schema->alias . "." . $idCell->name . " as 'key'";
-        $raw_sql .=", CONCAT_WS(' ', " . implode(",", $fields) . ") AS 'value'";
-        if ($recursive) {
-            $raw_sql .= ", " . $recursive->schema->alias . "." . $recursive->name . " as '--recursive'";
-        }
-
-        $query->select($query->raw($raw_sql));
-        return $query->get()->toArray();
-        return $model->getAsReference();
-    }
+   
 }

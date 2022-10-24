@@ -93,7 +93,7 @@ class ModelController extends AppController
         foreach ($model->root->cells as $alias=>$cell) {
             if (get_class($cell) == Cells\AssetCell::class and isset($_FILES[$alias])) {
                 $asset = new Binds\AssetBind($cell, $_FILES[$alias]);
-                $asset->finalValidation("Create " . $name);
+                $asset->validate("Create " . $name);
                 $name = $fileHandler->uploadFile($asset);
                 $bind = new Binds\SimpleBind($cell, $name);
                 $data->addBind($alias, $bind);
@@ -146,7 +146,7 @@ class ModelController extends AppController
         $model = $this->model($name);
 
         $bind = new Binds\SimpleBind($model->root->get("--id"), $params["--id"]);
-        $bind->finalValidation();
+        $bind->validate();
 
         $model->filter($bind);
 
@@ -193,7 +193,7 @@ class ModelController extends AppController
 
     protected function deleteRecord(Model $model, $name, Binds\SimpleBind $id)
     {
-        $id->finalValidation();
+        $id->validate();
 
         $original_data = $this->select($name, $id->value);
 

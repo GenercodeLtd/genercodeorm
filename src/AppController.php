@@ -16,6 +16,8 @@ class AppController
     ) {
         $this->app = $app;
         $this->profile = $app->get(\GenerCodeOrm\Profile::class);
+       // var_dump($this->profile);
+       // exit;
         $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);
     }
 

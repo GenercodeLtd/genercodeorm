@@ -14,8 +14,7 @@ use \Illuminate\Support\Fluent;
 use \Illuminate\Database\Connectors\ConnectionFactory;
 use \Illuminate\Database\DatabaseManager;
 
-require_once(__DIR__ . "/../app/standardfunctions.php");
-\GenerCodeOrm\regAutoload("GenerCodeOrm", __DIR__ . "/../app");
+
 \GenerCodeOrm\regAutoload("PressToJam", __DIR__ . "/../../genercodeltd/repos/ptj");
 
 

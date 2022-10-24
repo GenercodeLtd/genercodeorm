@@ -18,7 +18,7 @@ class AssetController extends AppController
         }
 
         $bind = new Binds\SimpleBind($model->root->get("--id"), $id);
-        $bind->finalValidation("Fetch src");
+        $bind->validate("Fetch src");
 
         $model->filter($bind);
         $model->fields([$field]);

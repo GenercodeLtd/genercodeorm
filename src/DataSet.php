@@ -46,7 +46,7 @@ class DataSet
         $data = $params->getData();
 
         foreach ($data as $slug=>$input) {
-            foreach($input->values as $key=>$val) {
+            foreach ($input->values as $key=>$val) {
                 $cell = $this->model->getCell($key, $slug);
                 if (is_array($val)) {
                     if (isset($val['min']) or isest($val["max"])) {
@@ -120,14 +120,15 @@ class DataSet
     {
         $errors = [];
         foreach ($this->binds as $slug => $bind) {
-            $error = $bind->validate();
-            if ($error) {
-                $errors[$slug] = $error;
+            try {
+                $bind->validate();
+            } catch(Exceptions\ValidationException $e) {
+                $errors[$slug] = [$e->getError(), $e->getValue()];
             }
         }
 
         if (count($errors) > 0) {
-            throw new Exceptions\ValidationException($errors);
+            throw new Exceptions\ValidationGroupException($errors);
         }
     }
 }

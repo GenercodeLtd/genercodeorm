@@ -16,17 +16,14 @@ class Fields
 
     protected function addAggregatorStringField($cell)
     {
-        $sql = "CONCAT(";
-        if ($cell->ws) {
-            $sql .= $cell->ws . ",";
-        }
+        $sql = "CONCAT_WS('" . $cell->ws . "', ";
         $sql_fields = [];
-        foreach ($cell->cells as $cell) {
-            $sql_fields[] = $cell->entity->alias . "." . $cell->name;
+        foreach ($cell->cells as $icell) {
+            $sql_fields[] = $icell->entity->alias . "." . $icell->name;
         }
         $sql .= implode(", ", $sql_fields);
         $sql .= ") AS '" . $cell->getSlug() . "'";
-        $this->model->addSelect($this->raw($sql));
+        $this->model->addSelect($this->model->raw($sql));
     }
 
 
@@ -37,8 +34,9 @@ class Fields
     }
 
 
-    protected function selectFields() {
-        foreach($this->fields as $cell) {
+    protected function selectFields()
+    {
+        foreach ($this->fields as $cell) {
             if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
                 $this->addAggregatorStringField($cell);
             } else {
@@ -48,12 +46,21 @@ class Fields
         }
     }
 
-
-
-    protected function selectCells($slug, $entity, ?array $fields = null)
+    protected function selectAllCells( $entity)
     {
         foreach ($entity->cells as $alias=>$cell) {
-            if (!$fields or in_array($cell->alias, $fields)) {
+            $this->fields[] = $cell;
+            if ($cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
+                $this->model->addReference($cell);
+            }
+        }
+    }
+
+
+    protected function selectCells($entity, \GenerCodeOrm\InputValues $fields)
+    {
+        foreach ($entity->cells as $alias=>$cell) {
+            if (in_array($cell->alias, $fields->values)) {
                 $this->fields[] = $cell;
                 if ($cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
                     $this->model->addReference($cell);
@@ -63,10 +70,17 @@ class Fields
     }
 
 
-    public function __invoke($fields = null)
+    public function __invoke(?\GenerCodeOrm\InputSet $fields = null)
     {
         foreach ($this->model->entities as $slug=>$entity) {
-            $this->selectCells($slug, $entity, $fields);
+            if (!$fields) {
+                $this->selectAllCells($entity);
+            } else {
+                $cfields = $fields->getValues($slug);
+                if ($cfields) {
+                    $this->selectCells($entity, $cfields);
+                }
+            }
         }
 
         $this->selectFields();

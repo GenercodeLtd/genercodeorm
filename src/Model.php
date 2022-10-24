@@ -96,7 +96,7 @@ class Model extends Builder
     }
 
 
-    public function fields(?array $fields = null)
+    public function fields(?InputSet $fields = null)
     {
         ($this->fields_manager)($fields);
         return $this;

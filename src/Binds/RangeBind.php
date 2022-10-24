@@ -1,6 +1,9 @@
 <?php
 namespace GenerCodeOrm\Binds;
 
+use GenerCodeOrm\Exceptions\ValidationException;
+use \GenerCodeOrm\Cells\ValidationRules;
+
 class RangeBind extends Bind {
     
 
@@ -28,10 +31,14 @@ class RangeBind extends Bind {
     }
 
  
-    public function validate() {
+    public function validate($title = "") {
         $error = $this->cell->validate($this->value['min']);
         if (!$error) {
             $error = $this->cell->validate($this->value['max']);
+        }
+
+        if ($error != ValidationRules::OK) {
+            throw new ValidationException($this->cell->name, $error, $this->value, $title);
         }
         return $error;
     }

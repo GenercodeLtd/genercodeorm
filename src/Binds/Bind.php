@@ -24,12 +24,5 @@ abstract class Bind
 
     abstract function setValue($value);
 
-    function finalValidation() {
-        $err = $this->validate();
-        if ($err != Cells\ValidationRules::OK) {
-            throw new Exceptions\ValidationException([$this->cell->name=>$err]);
-        }
-    }
-
     abstract function validate();
 }

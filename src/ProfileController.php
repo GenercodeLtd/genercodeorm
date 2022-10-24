@@ -55,9 +55,10 @@ class ProfileController extends AppController {
 
 
     function login($type, $params) {
-        $repo = $this->model("users");
-        $repo->fields(["--id", "password"]);
 
+        $repo = $this->model("users");
+        $repo->select("id", "password");
+    
         $params["type"] = $type;
 
         $inputSet = new InputSet();
@@ -85,7 +86,8 @@ class ProfileController extends AppController {
             throw new Exceptions\PtjException("This username / password was not recognised");
         }
 
-        return $res->{"--id"};
+
+        return $res->id;
     }
 
 

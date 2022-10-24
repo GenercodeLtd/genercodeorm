@@ -1,6 +1,9 @@
 <?php
 namespace GenerCodeOrm\Binds;
 
+use GenerCodeOrm\Exceptions\ValidationException;
+use \GenerCodeOrm\Cells\ValidationRules;
+
 class SetBind extends Bind {
    
     function __construct(\GenerCodeOrm\Cells\MetaCell $cell, $value = null) {
@@ -26,10 +29,14 @@ class SetBind extends Bind {
     
 
  
-    public function validate() {
+    public function validate($title = "") {
         foreach($this->value as $val) {
             $error = $this->cell->validate($val);
-            if ($error) return $error;
+            if ($error) {
+                if ($error != ValidationRules::OK) {
+                    throw new ValidationException($this->cell->name, $error, $val, $title);
+                }
+            }
         }
 
         return 0;

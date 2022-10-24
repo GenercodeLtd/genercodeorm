@@ -40,11 +40,16 @@ class Entity
         if (isset($cells[$name])) return $cells[$name];
 
         foreach($cells as $cell) {
-            if (get_class($cell) == GenerCodeOrm\Cells\JsonCell::class) {
-                $result = $this->get($name, $cell->cells);
+            if (get_class($cell) == Cells\JsonCell::class) {
+                $result = $this->findCell($name, $cell->cells);
                 if ($result) return $result;
             }
         }
+    }
+
+
+    public function addCell($cell) {
+        $this->cells[$cell->alias] = $cell;
     }
 
 

@@ -2,25 +2,34 @@
 
 namespace GenerCodeOrm;
 
-class InputValues {
+class InputValues
+{
     public $slug;
     public $values;
 
-    function __construct($slug) {
+    public function __construct($slug)
+    {
         $this->slug = $slug;
     }
 
-    function addValue($key, $value) {
+    public function addValue($key, $value)
+    {
         $this->values[$key] = $value;
+    }
+
+    public function addSeqValue($value)
+    {
+        $this->values[] = $value;
     }
 }
 
-class InputSet {
-
+class InputSet
+{
     protected $data = [];
     protected $slug;
 
-    function __construct($slug = "") {
+    public function __construct($slug = "")
+    {
         $this->slug = $slug;
     }
 
@@ -38,7 +47,13 @@ class InputSet {
     }
 
 
-    function addData($key, $val) {
+    public function isSequential($arr)
+    {
+        return (array_keys($arr) !== range(0, count($arr) - 1)) ? false : true;
+    }
+
+    public function addData($key, $val)
+    {
         $pts = $this->splitNames($key);
         $slug = (!$pts[0]) ? $this->slug : $pts[0];
         if (!isset($this->data[$slug])) {
@@ -47,20 +62,42 @@ class InputSet {
         $this->data[$slug]->addValue($pts[1], $val);
     }
 
-    
-    function data($inputs) {
-        foreach($inputs as $key=>$val) {
-            $this->addData($key, $val);
+    public function addSequentialData($val)
+    {
+        $pts = $this->splitNames($val);
+        $slug = (!$pts[0]) ? $this->slug : $pts[0];
+        if (!isset($this->data[$slug])) {
+            $this->data[$slug] = new InputValues($slug);
+        }
+        $this->data[$slug]->addSeqValue($pts[1]);
+    }
+
+
+    public function data($inputs)
+    {
+        if ($this->isSequential($inputs)) {
+            foreach ($inputs as $val) {
+                $this->addSequentialData($val);
+            }
+        } else {
+            foreach ($inputs as $key=>$val) {
+                $this->addData($key, $val);
+            }
         }
     }
 
-    function getData() {
+    public function getData()
+    {
         return $this->data;
     }
 
 
-    function getSlug() {
+    public function getSlug()
+    {
         return $this->slug;
     }
 
+    public function getValues($slug) {
+        return (!isset($this->data[$slug])) ? null : $this->data[$slug];
+    }
 }
