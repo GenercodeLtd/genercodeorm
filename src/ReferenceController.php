@@ -72,11 +72,11 @@ class ReferenceController extends AppController
         $crepo->fields();
         $obj = $crepo->setFromEntity()->take(1)->get()->first();
 
-        $model->to($cell->common);
+        $model->to($common);
 
-        $common_id = $cell->common + "/--id";
+        $common_id = $common . "/--id";
 
-        $this->bindID($model, $model->getCell("--id", $cell->common), $obj->$common_id);
+        $this->bindID($model, $model->getCell("--id", $common), $obj->$common_id);
     }
 
 

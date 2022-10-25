@@ -30,7 +30,6 @@ class Model extends Builder
         $this->structure = new \GenerCodeOrm\Builder\Structure($this);
         $this->fields_manager = new \GenerCodeOrm\Builder\Fields($this);
         $this->filter = new \GenerCodeOrm\Builder\Filter($this);
-        $this->active = [];
     }
 
     public function __set($key, $val)
