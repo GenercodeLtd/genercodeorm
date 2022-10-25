@@ -30,6 +30,24 @@ class AssetController extends AppController
     }
 
 
+    protected function createSrc($name, $alias, $file, $id)
+    {
+        $nmodel = $this->model($name);
+
+        $cell = $model->root->get($alias);
+
+        $fileHandler = $this->app->make(FileHandler::class);
+        $asset = new Binds\AssetBind($cell, $file);
+        $asset->validate("Create " . $name);
+        $file_name = $fileHandler->uploadFile($asset);
+
+        $bind = new Binds\SetBind($model->root->get("--id"), $id);
+        $bind->validate("Create Asset");
+
+        $model->setFromEntity()->filter($bind)->update([$cell->name => $file_name]);
+    }
+
+
     public function patchAsset(string $name, string $field, int $id, $body)
     {
         $this->checkPermission($name, "put");
@@ -37,12 +55,20 @@ class AssetController extends AppController
         $model= $this->model($name);
 
         $src = $this->fetchSrc($model, $name, $field, $name);
-        $cell = $model->getCell($name);
+        if (!$src) {
+            if (isset($_FILES[$field])) {
+                $this->createSrc($name, $field, $_FILES[$field]);
+                return true;
+            }
+            return false;
+        } else {
+            $cell = $model->getCell($name);
 
-        $cell->validateSize(strlen($body));
+            $cell->validateSize(strlen($body));
 
-        $fileHandler = $this->app->make(FileHandler::class);
-        return $fileHandler->put($src, $body);
+            $fileHandler = $this->app->make(FileHandler::class);
+            return $fileHandler->put($src, $body);
+        }
     }
 
 
