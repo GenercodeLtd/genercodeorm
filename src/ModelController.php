@@ -90,7 +90,10 @@ class ModelController extends AppController
 
         $fileHandler = $this->app->make(FileHandler::class);
 
-        if ($model->root->has("--parent")) {
+        if ($model->root->has("--owner")) {
+            $bind = new Binds\SimpleBind($model->root->get("--owner"), $this->profile->id);
+            $data->addBind("--parent", $bind);
+        } else if ($model->root->has("--parent")) {
             $bind = new Binds\SimpleBind($model->root->get("--parent"), $params["--parent"]);
             $data->addBind("--parent", $bind);
         }

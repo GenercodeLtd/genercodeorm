@@ -132,7 +132,7 @@ class RepositoryController extends AppController
 
 
 
-    private function buildStructure($model, array $arr)
+    private function buildStructure($model, $name, array $arr)
     {
         //define the structure
         if (isset($arr["__to"])) {
@@ -140,7 +140,7 @@ class RepositoryController extends AppController
         }
 
         if (isset($arr["__fields"])) {
-            $set = new InputSet($model->slug);
+            $set = new InputSet($name);
             $set->data($arr["__fields"]);
             $model->fields($set);
         } else {
@@ -186,7 +186,7 @@ class RepositoryController extends AppController
 
         $arr = $params->toArray();
 
-        $this->buildStructure($model, $arr);
+        $this->buildStructure($model, $name, $arr);
 
         $where = $this->getWhere($name, $params->toArray());
 
@@ -223,7 +223,7 @@ class RepositoryController extends AppController
         }
 
         $arr = $params->toArray();
-        $this->buildStructure($model, $arr);
+        $this->buildStructure($model, $name, $arr);
 
         $where = $this->getWhere($name, $arr);
 
@@ -279,7 +279,7 @@ class RepositoryController extends AppController
 
         $arr = $params->toArray();
 
-        $this->buildStructure($model, $arr);
+        $this->buildStructure($model, $name, $arr);
 
         $where = $this->getWhere($name, $arr);
 
