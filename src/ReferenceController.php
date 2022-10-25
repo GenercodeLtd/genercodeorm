@@ -21,7 +21,7 @@ class ReferenceController extends AppController
     {
         if ($model->root->has("--parent")) {
             $parent = $model->root->get("--parent");
-            if ($parent->reference == $cell->common) {
+            if ($parent->reference == $cell->reference) {
                 $this->bindID($model, $parent, $id);
                 return true;
             }
@@ -29,10 +29,9 @@ class ReferenceController extends AppController
         return false;
     }
 
-    public function getReferenceCell($name, $field) : Cells\MetaCell
+    public function getReferenceEntity($name) : Entity
     {
-        $entity = ($this->profile->factory)($name);
-        return $entity->get($field);
+        return ($this->profile->factory)($name);
     }
 
 
@@ -60,16 +59,17 @@ class ReferenceController extends AppController
     }
 
 
-    public function setCommon(Model $model, string $name, string $field, $id) : void
+    public function setCommon(Model $model, string $name, $common, string $field, $id) : void
     {
-        $crepo = $this->model($model);
+        $crepo = $this->model($name);
         if (!$this->profile->allowedAdminPrivilege($name)) {
-            $model->secure($this->profile->name, $this->profile->id);
+            $crepo->secure($this->profile->name, $this->profile->id);
         }
 
-        $crepo->to($cell->common);
-        $cell = $model->root->get("--parent");
-        $this->bindID($model, $cell, $id);
+        $crepo->to($common);
+        $cell = $crepo->root->get("--id");
+        $this->bindID($crepo, $cell, $id);
+        $crepo->fields();
         $obj = $crepo->setFromEntity()->take(1)->get()->first();
 
         $model->to($cell->common);
@@ -84,7 +84,8 @@ class ReferenceController extends AppController
     {
         $this->checkPermission($name, "get");
        
-        $ref_cell = $this->getReferenceCell($name, $field);
+        $ref_entity = $this->getReferenceEntity($name);
+        $ref_cell = $ref_entity->get($field);
 
         $model = $this->model($ref_cell->reference);
 
@@ -93,8 +94,9 @@ class ReferenceController extends AppController
         }
 
         if ($ref_cell->common) {
-            if (!$this->setParent($model, $ref_cell, $id)) {
-                $this->setCommon($model, $name, $field, $id);
+            if (!$this->setParent($model, $ref_entity->get("--parent"), $id)) {
+                $parent = $ref_entity->get("--parent");
+                $this->setCommon($model, $parent->reference, $ref_cell->common, $field, $id);
             }
         } elseif ($ref_cell->reference_type == Cells\ReferenceTypes::CIRCULAR or $ref_cell->reference_type == Cells\ReferenceTypes::RECURSIVE) {
             $cell = $model->root->get("--parent");

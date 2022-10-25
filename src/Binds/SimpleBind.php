@@ -9,6 +9,7 @@ class SimpleBind extends Bind {
     function __construct(\GenerCodeOrm\Cells\MetaCell $cell, $value = null) {
         parent::__construct($cell);
         if ($value) $this->setValue($value);
+        else $this->value = $cell->default; //leave as default unle
     }
 
    

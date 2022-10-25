@@ -46,23 +46,23 @@ class Fields
         }
     }
 
-    protected function selectAllCells( $entity)
+    protected function selectAllCells($entity, $include_references = true)
     {
         foreach ($entity->cells as $alias=>$cell) {
             $this->fields[] = $cell;
-            if ($cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
+            if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
                 $this->model->addReference($cell);
             }
         }
     }
 
 
-    protected function selectCells($entity, \GenerCodeOrm\InputValues $fields)
+    protected function selectCells($entity, \GenerCodeOrm\InputValues $fields, $include_references = true)
     {
         foreach ($entity->cells as $alias=>$cell) {
             if (in_array($cell->alias, $fields->values)) {
                 $this->fields[] = $cell;
-                if ($cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
+                if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
                     $this->model->addReference($cell);
                 }
             }
@@ -70,18 +70,21 @@ class Fields
     }
 
 
-    public function __invoke(?\GenerCodeOrm\InputSet $fields = null)
+    public function __invoke(?\GenerCodeOrm\InputSet $fields = null, $include_references = true)
     {
-        foreach ($this->model->entities as $slug=>$entity) {
+        for ($i=0; $i<count($this->model->active); ++$i) {
+            $slug = array_keys($this->model->active)[$i];
+            $entity = $this->model->active[$slug];
             if (!$fields) {
-                $this->selectAllCells($entity);
+                $this->selectAllCells($entity, $include_references);
             } else {
                 $cfields = $fields->getValues($slug);
                 if ($cfields) {
-                    $this->selectCells($entity, $cfields);
+                    $this->selectCells($entity, $cfields, $include_references);
                 }
             }
         }
+
 
         $this->selectFields();
         $this->fields = []; //reset so the class can go again.

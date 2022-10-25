@@ -7,7 +7,7 @@ use Illuminate\Support\Fluent;
 
 class ModelController extends AppController
 {
-    protected function audit($id, $action, ?array $data = null)
+    protected function audit($name, $id, $action, ?array $data = null)
     {
         $model = $this->model("audit");
         $data = ($data) ? json_encode($data) : "{}";
@@ -16,7 +16,7 @@ class ModelController extends AppController
         $dataSet = new DataSet($model);
 
         $data = [
-            "model"=>$this->name,
+            "model"=>$name,
             "model-id"=>$id,
             "action"=>$action,
             "user-login-id"=>$this->profile->id,
@@ -25,11 +25,11 @@ class ModelController extends AppController
 
         foreach ($data as $alias=>$val) {
             $bind = new Binds\SimpleBind($repo->getCell($alias), $val);
-            $dataSet->addBind($bind);
+            $dataSet->addBind($alias, $bind);
         }
 
         $dataSet->validate("Audit");
-        $model->setFromEntity()->create($dataSet->toCellNameArr());
+        $model->setFromEntity()->insert($dataSet->toCellNameArr());
     }
 
 
@@ -90,6 +90,11 @@ class ModelController extends AppController
 
         $fileHandler = $this->app->make(FileHandler::class);
 
+        if ($model->root->has("--parent")) {
+            $bind = new Binds\SimpleBind($model->root->get("--parent"), $params["--parent"]);
+            $data->addBind("--parent", $bind);
+        }
+
         foreach ($model->root->cells as $alias=>$cell) {
             if (get_class($cell) == Cells\AssetCell::class and isset($_FILES[$alias])) {
                 $asset = new Binds\AssetBind($cell, $_FILES[$alias]);
@@ -145,14 +150,16 @@ class ModelController extends AppController
 
         $model = $this->model($name);
 
+        if (!$this->profile->allowedAdminPrivilege($name)) {
+            $model->secure($this->profile->name, $this->profile->id);
+        }
+
         $bind = new Binds\SimpleBind($model->root->get("--id"), $params["--id"]);
         $bind->validate();
 
         $model->filter($bind);
 
-        if (!$this->profile->allowedAdminPrivilege($name)) {
-            $model->secure($this->profile->name, $this->profile->id);
-        }
+        
 
         $data = new DataSet($model);
 
@@ -173,7 +180,7 @@ class ModelController extends AppController
         if ($model->root->hasAudit()) {
             $changed_arr = [];
             foreach ($data->getBinds() as $alias=>$bind) {
-                $changed_arr[$alias] = $original_data[$alias];
+                $changed_arr[$alias] = $original_data->$alias;
             }
 
             $this->audit($params["--id"], "PUT", $changed_arr);
@@ -191,7 +198,7 @@ class ModelController extends AppController
     }
 
 
-    protected function deleteRecord(Model $model, $name, Binds\SimpleBind $id)
+    protected function deleteRecord(Model $model, $name, Binds\SimpleBind $id, $secure_id = 0)
     {
         $id->validate();
 
@@ -206,13 +213,16 @@ class ModelController extends AppController
 
 
         if ($model->root->hasAudit()) {
-            $this->audit($id, "DELETE", $original_data);
+            $odata = new Fluent($original_data);
+            $this->audit($name, $id, "DELETE", $odata->toArrary());
         }
 
         
 
         $stmt = $model->stmt;
-        $stmt->execute([$id->value]);
+        if ($secure_id) $vals = [$secure_id, $id->value];
+        else $vals = [$id->value];
+        $stmt->execute($vals);
 
         $res = [
             "original"=>$original_data,
@@ -229,8 +239,10 @@ class ModelController extends AppController
         $model= $this->model($name);
         $fileHandler = $this->app->make(FileHandler::class);
 
+        $secure_id = 0;
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure($this->profile->name, $this->profile->id);
+            $secure_id = $this->profile->id;
         }
 
         $model->children();
@@ -246,8 +258,8 @@ class ModelController extends AppController
             $res = [];
             foreach ($params["--id"] as $incoming_id) {
                 $id->value = $incoming_id;
-                $res[$id] = $this->deleteRecord($model, $name, $id);
-                if ($res[$id]["affected_rows"] > 0) {
+                $res[$id->value] = $this->deleteRecord($model, $name, $id,  $secure_id);
+                if ($res[$id->value]["affected_rows"] > 0) {
                     foreach ($model->root->cells as $alias=>$cell) {
                         if (get_class($cell) == Cells\AssetCell::class and $res[$id]["original"]->$alias) {
                             $fileHandler->delete($res[$id]["original"]->$alias);
@@ -258,7 +270,7 @@ class ModelController extends AppController
             return $res;
         } else {
             $id->value = $params["--id"];
-            $res = $this->deleteRecord($model, $name, $id);
+            $res = $this->deleteRecord($model, $name, $id, $secure_id);
             if ($res["affected_rows"] > 0) {
                 foreach ($model->root->cells as $alias=>$cell) {
                     if (get_class($cell) == Cells\AssetCell::class and $res["original"]->$alias) {

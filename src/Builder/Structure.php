@@ -25,7 +25,7 @@ class Structure
     }
 
 
-    public function joinTo($to)
+    public function joinTo($to, $active = true)
     {
         $ref = "";
         $entity = $this->model->root;
@@ -33,8 +33,11 @@ class Structure
             $parent = $entity->get("--parent");
             //joined at the same time as loaded, so if exists, it has already been joined
             if (!isset($this->model->entities[$parent->reference])) {
-                $entity = $this->model->load($parent->reference, $parent->reference);
+                $entity = $this->model->load($parent->reference, $parent->reference, $active);
                 $this->joinIn($parent, $entity->get("--id"));
+            } else {
+                $entity = $this->model->entities[$parent->reference];
+                if ($active) $this->model->addActive($parent->reference, $entity);
             }
             if ($parent->reference == $to) {
                 break;
@@ -55,7 +58,7 @@ class Structure
         if ($top->has("--owner")) {
             $owner = $top->get("--owner");
             if ($owner->reference == $profile) {
-                $top = $this->joinTo("*");
+                $top = $this->joinTo("*", false);
                 $owner = $top->get("--owner"); //get owner with the correct entity reference
                 $name = (count($this->model->entities) > 1) ? $owner->getDBAlias() : $owner->name;
                 $this->model->where($name, "=", $id);

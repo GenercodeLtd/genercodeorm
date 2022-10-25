@@ -28,6 +28,7 @@ class Model extends Builder
         $this->structure = new \GenerCodeOrm\Builder\Structure($this);
         $this->fields_manager = new \GenerCodeOrm\Builder\Fields($this);
         $this->filter = new \GenerCodeOrm\Builder\Filter($this);
+        $this->active = [];
     }
 
     public function __set($key, $val)
@@ -43,6 +44,11 @@ class Model extends Builder
     }
 
 
+    public function addActive($alias, $entity) {
+        $this->active[$alias] = $entity;
+    }
+
+
 
     public function getCell($name, $alias) {
         if (!$alias) {
@@ -54,7 +60,7 @@ class Model extends Builder
 
 
 
-    public function load(string $name, string $slug = "")
+    public function load(string $name, string $slug = "", $active = true)
     {
         $entity = ($this->entity_factory)($name);
         $entity->alias = "t" . (count($this->entities) + 1);
@@ -63,6 +69,7 @@ class Model extends Builder
         $key = ($slug) ? $slug : $name;
 
         $this->entities[$key] = $entity;
+        if ($active) $this->addActive($key, $entity);
         return $this->entities[$key];
     }
 
