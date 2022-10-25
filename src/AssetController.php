@@ -62,7 +62,7 @@ class AssetController extends AppController
             }
             return false;
         } else {
-            $cell = $model->getCell($name);
+            $cell = $model->root->get($name);
 
             $cell->validateSize(strlen($body));
 
