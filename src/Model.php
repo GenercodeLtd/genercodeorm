@@ -18,6 +18,7 @@ class Model extends Builder
     protected \GenerCodeOrm\Builder\Structure $structure;
     protected \GenerCodeOrm\Builder\Fields $fields_manager;
     protected \GenerCodeOrm\Builder\Filter $filter;
+    protected $active = [];
   
     public function __construct(\Illuminate\Database\Connection $connection, Factory $entities, string $name)
     {
