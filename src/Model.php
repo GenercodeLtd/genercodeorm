@@ -26,6 +26,7 @@ class Model extends Builder
         $this->entity_factory = $entities;
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
+        $this->active[$name] = $this->root;
         $this->structure = new \GenerCodeOrm\Builder\Structure($this);
         $this->fields_manager = new \GenerCodeOrm\Builder\Fields($this);
         $this->filter = new \GenerCodeOrm\Builder\Filter($this);
