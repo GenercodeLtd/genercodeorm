@@ -5,10 +5,9 @@ use \Illuminate\Container\Container;
 
 class Hooks extends Factory {
 
-    protected Container $container;
-
-    function __construct(Container $container) {
-        $this->container = $container;
+    
+    function __construct(Container $app) {
+        if ($app->config->hooks) $this->loadHooks($app->config->hooks);
     }
 
     function loadHooks(array $arr) {

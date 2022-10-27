@@ -20,54 +20,12 @@ class GenerCodeContainer extends Container {
         $this->instance(\Illuminate\Database\Connection::class, $manager->connection());
 
 
-        $this->bind(TokenHandler::class, function($app) {
-            $token = new TokenHandler();
-            $token->setConfigs($app->config->token);
-            return $token;
-        });
+        $this->instance(Container::class, $this);
 
-        $this->bind(Container::class, $this);
-
-        $this->bind(\GenerCodeOrm\Hooks::class, function($app) {
-            $hooks = new \GenerCodeOrm\Hooks($app);
-            if ($app->config->hooks) $hooks->loadHooks($app->config->hooks);
-            return $hooks;
-        });
-
-/*
-        $this->bind(\GenerCodeSlim\Queue::class, function($app) {
-            return new \GenerCodeSlim\Queue($app);
-        });
-
-
-        $this->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
-            return new \Illuminate\Filesystem\FilesystemManager($app);
-        });
-
-
-        $this->bind(\GenerCodeOrm\ProfileController::class, function($app) {
-            return new \GenerCodeOrm\ProfileController($app);
-        });
-
-        $this->bind(\GenerCodeOrm\ModelController::class, function($app) {
-            return new \GenerCodeOrm\ModelController($app);
-        });
-
-        $this->bind(\GenerCodeOrm\RepositoryController::class, function($app) {
-            return new \GenerCodeOrm\RepositoryController($app);
-        });
-
-        $this->bind(\GenerCodeOrm\AssetController::class, function($app) {
-            return new \GenerCodeOrm\AssetController($app);
-        });
-
-        $this->bind(\GenerCodeOrm\ReferenceController::class, function($app) {
-            return new \GenerCodeOrm\ReferenceController($app);
-        });
-        */
 
         $this->bind(\GenerCodeOrm\FileHandler::class, function($app) {
-            $file = $app->make(\Illuminate\Filesystem\FilesystemManager::class);
+
+            $file = new \Illuminate\Filesystem\FilesystemManager($app);
             $disk = $file->disk("s3");
             $fileHandler = new \GenerCodeOrm\FileHandler($disk);
             return $fileHandler;
@@ -77,8 +35,8 @@ class GenerCodeContainer extends Container {
 
 
     function bindUserDependencies(\GenerCodeOrm\Profile $profile) {
-        $this->instance("profile", $profile);
-        $this->bind(Factory::class, $profile->factory);
+        $this->instance(Profile::class, $profile);
+        $this->instance(Factory::class, $profile->factory);
     }
 
 }
