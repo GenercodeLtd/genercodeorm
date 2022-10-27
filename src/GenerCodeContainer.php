@@ -1,12 +1,6 @@
 <?php
 namespace GenerCodeOrm;
-use \Psr\Http\Message\ResponseInterface as Response;
-use \Psr\Http\Message\ServerRequestInterface as Request;
-use \Slim\App;
-use \Slim\Factory\AppFactory;
-use \Slim\Routing\RouteCollectorProxy;
-use \Slim\Routing\RouteContext;
-use \Slim\Exception\HttpException;
+
 use \Illuminate\Support\Fluent;
 use \Illuminate\Container\Container;
 use \Illuminate\Database\Connectors\ConnectionFactory;
@@ -18,15 +12,13 @@ use Psr\Log\LoggerInterface;
 class GenerCodeContainer extends Container {
 
      
-    function bindDependencies($configs, $profile_factory) {
+    function bindCommonDependencies(Fluent $configs) {
 
-        $this->instance('config', $fluent);
+        $this->instance('config', $configs);
 
         $manager = new DatabaseManager($this, new ConnectionFactory($this));
         $this->instance(\Illuminate\Database\Connection::class, $manager->connection());
 
-        $this->instance("profile", $profile_factory);
-        $this->bind(Factory::class, $profile_factory->factory);
 
         $this->bind(TokenHandler::class, function($app) {
             $token = new TokenHandler();
@@ -34,6 +26,7 @@ class GenerCodeContainer extends Container {
             return $token;
         });
 
+        $this->bind(Container::class, $this);
 
         $this->bind(\GenerCodeOrm\Hooks::class, function($app) {
             $hooks = new \GenerCodeOrm\Hooks($app);
@@ -41,17 +34,10 @@ class GenerCodeContainer extends Container {
             return $hooks;
         });
 
-
+/*
         $this->bind(\GenerCodeSlim\Queue::class, function($app) {
             return new \GenerCodeSlim\Queue($app);
         });
-
-
-     /*   $this->bind(\GenerCodeOrm\Model::class, function($app) {
-            $dbmanager = $app->get(\Illuminate\Database\DatabaseManager::class);
-            $schema = $app->make(\GenerCodeOrm\SchemaRepository::class);
-            return new \GenerCodeOrm\Model($dbmanager->connection(), $schema);
-        });*/
 
 
         $this->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
@@ -78,6 +64,7 @@ class GenerCodeContainer extends Container {
         $this->bind(\GenerCodeOrm\ReferenceController::class, function($app) {
             return new \GenerCodeOrm\ReferenceController($app);
         });
+        */
 
         $this->bind(\GenerCodeOrm\FileHandler::class, function($app) {
             $file = $app->make(\Illuminate\Filesystem\FilesystemManager::class);
@@ -86,6 +73,12 @@ class GenerCodeContainer extends Container {
             return $fileHandler;
         });
  
+    }
+
+
+    function bindUserDependencies(\GenerCodeOrm\Profile $profile) {
+        $this->instance("profile", $profile);
+        $this->bind(Factory::class, $profile->factory);
     }
 
 }
