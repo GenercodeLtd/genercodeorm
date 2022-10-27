@@ -21,7 +21,10 @@ class AssetController extends AppController
         $bind->validate("Fetch src");
 
         $model->filter($bind);
-        $model->fields([$field]);
+
+        $set = new InputSet($name);
+        $set->data([$field]);
+        $model->fields($set);
 
         $obj = $model->setFromEntity()->take(1)->get()->first();
         if ($obj) {
@@ -48,26 +51,27 @@ class AssetController extends AppController
     }
 
 
-    public function patchAsset(string $name, string $field, int $id, $body)
+    public function patchAsset(string $name, string $field, int $id)
     {
         $this->checkPermission($name, "put");
 
+        if (!isset($_FILES[$field])) {
+            throw new \Exception("Must upload a file");
+        }
+
         $model= $this->model($name);
 
-        $src = $this->fetchSrc($model, $name, $field, $name);
+        $src = $this->fetchSrc($model, $name, $field, $id);
         if (!$src) {
-            if (isset($_FILES[$field])) {
-                $this->createSrc($name, $field, $_FILES[$field]);
-                return true;
-            }
-            return false;
+            $this->createSrc($name, $field, $_FILES[$field]);
+            return true;
         } else {
-            $cell = $model->root->get($name);
+            $cell = $model->root->get($field);
 
-            $cell->validateSize(strlen($body));
+            $cell->validateSize($_FILES[$field]["size"]);
 
             $fileHandler = $this->app->make(FileHandler::class);
-            return $fileHandler->put($src, $body);
+            return $fileHandler->put($src, file_get_contents($_FILES[$field]["tmp_name"]));
         }
     }
 

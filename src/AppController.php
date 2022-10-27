@@ -34,6 +34,6 @@ class AppController
     }
 
     protected function model($name) {
-        return $this->app->makeWith(Model::class, ["name"=>$name, "entities"=>$this->profile->factory]);
+        return $this->app->makeWith(Model::class, ["name"=>$name]);
     }
 }
