@@ -26,19 +26,21 @@ function incrementLastTag($version) {
     return $tags->$version;
 }
 
-
+/*
 
 if ($argc < 2) {
     echo "You need to enter a version";
 }
+
 
 if ($argv[1] == 7) {
     writePHP7Config();
 } else if ($argv[1] == 8) {
     writePHP8Config();
 }
+*/
 
-
-$tag = incrementLastTag("v" . $argv[1]);
+$version = 8;
+$tag = incrementLastTag("v" . $version);
 echo "Set tag to " . $tag;
 

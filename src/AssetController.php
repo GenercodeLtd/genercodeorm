@@ -35,7 +35,7 @@ class AssetController extends AppController
 
     protected function createSrc($name, $alias, $file, $id)
     {
-        $nmodel = $this->model($name);
+        $model = $this->model($name);
 
         $cell = $model->root->get($alias);
 
@@ -44,7 +44,7 @@ class AssetController extends AppController
         $asset->validate("Create " . $name);
         $file_name = $fileHandler->uploadFile($asset);
 
-        $bind = new Binds\SetBind($model->root->get("--id"), $id);
+        $bind = new Binds\SimpleBind($model->root->get("--id"), $id);
         $bind->validate("Create Asset");
 
         $model->setFromEntity()->filter($bind)->update([$cell->name => $file_name]);
@@ -63,7 +63,7 @@ class AssetController extends AppController
 
         $src = $this->fetchSrc($model, $name, $field, $id);
         if (!$src) {
-            $this->createSrc($name, $field, $_FILES[$field]);
+            $this->createSrc($name, $field, $_FILES[$field], $id);
             return true;
         } else {
             $cell = $model->root->get($field);

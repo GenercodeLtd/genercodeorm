@@ -101,6 +101,7 @@ class Model extends Builder
         $inner = (!$cell->required) ? false : true;
         $ref = $this->load($cell->reference, $cell->getSlug());
         $this->structure->joinIn($cell, $ref->get("--id"), $inner);
+        return $this;
     }
 
 
@@ -118,6 +119,7 @@ class Model extends Builder
 
     public function filter(\GenerCodeOrm\Binds\Bind $bind) {
         $this->filter->filter($bind);
+        return $this;
     }
 
     public function order(InputSet $aliases) {
@@ -130,6 +132,7 @@ class Model extends Builder
                 $this->orderBy($cell->alias, ($val == "DESC") ? "DESC" : "ASC");
             }
         }
+        return $this;
     }
     
 
@@ -138,6 +141,7 @@ class Model extends Builder
         foreach($binds as $bind) {
             $this->filter->filter($bind);
         }
+        return $this;
     }
 
 

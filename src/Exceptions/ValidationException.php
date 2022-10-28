@@ -13,9 +13,10 @@ class ValidationException extends PtjException {
     protected $value;
 
     function __construct($name, $error, $value, $model = "") {
-        $arr = [$name => [$error, $value]];
-        if ($model) $arr["model"]=$model;
-        $this->message = json_encode($arr);
+        $this->error = $error;
+        $this->value = $value;
+        $this->model = $model;
+        $this->message = json_encode([$name=>["error"=>$this->error, "value"=>$this->value, "model"=>$this->model]]);
     }
 
     function getName() {
@@ -28,6 +29,10 @@ class ValidationException extends PtjException {
 
     function getValue() {
         return $this->value;
+    }
+
+    function getModel() {
+        return $this->model;
     }
 
 }

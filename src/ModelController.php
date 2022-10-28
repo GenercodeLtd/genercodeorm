@@ -24,7 +24,7 @@ class ModelController extends AppController
         ];
 
         foreach ($data as $alias=>$val) {
-            $bind = new Binds\SimpleBind($repo->getCell($alias), $val);
+            $bind = new Binds\SimpleBind($repo->get($alias), $val);
             $dataSet->addBind($alias, $bind);
         }
 
