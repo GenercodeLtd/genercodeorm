@@ -241,7 +241,8 @@ class RepositoryController extends AppController
             $res = new \StdClass();
         } else {
             if (isset($params["__children"])) {
-                $this->addChildren($name, $model, $params["__children"], [$res]);
+                $arr = [$res];
+                $this->addChildren($name, $model, $params["__children"], $arr);
             }
         }
         return $this->trigger($name, "get", $res);
