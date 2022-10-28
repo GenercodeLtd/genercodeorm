@@ -125,7 +125,7 @@ class ModelController extends AppController
         $id = $model->setFromEntity()->insertGetId($data->toCellNameArr());
 
         if ($model->root->hasAudit()) {
-            $this->audit($id, "POST");
+            $this->audit($name, $id, "POST");
         }
 
         $arr = $data->toArr();
@@ -186,7 +186,7 @@ class ModelController extends AppController
                 $changed_arr[$alias] = $original_data->$alias;
             }
 
-            $this->audit($params["--id"], "PUT", $changed_arr);
+            $this->audit($name, $params["--id"], "PUT", $changed_arr);
         }
 
         $rows = $model->setFromEntity()->update($data->toCellNameArr());
