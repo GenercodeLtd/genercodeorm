@@ -189,7 +189,8 @@ class ModelController extends AppController
             $this->audit($name, $params["--id"], "PUT", $changed_arr);
         }
 
-        $rows = $model->setFromEntity()->update($data->toCellNameArr());
+        $alias = (count($model->entities) > 1) ? $model->root->alias : "";
+        $rows = $model->setFromEntity()->update($data->toCellNameArr($alias));
 
         $result = [
             "original"=>$original_data,
