@@ -189,7 +189,7 @@ class ModelController extends AppController
             $this->audit($name, $params["--id"], "PUT", $changed_arr);
         }
 
-        $alias = (count($model->entities) > 1) ? $model->root->alias : "";
+        $alias = (count($model->entities) > 1) ? $model->root->alias . "." : "";
         $rows = $model->setFromEntity()->update($data->toCellNameArr($alias));
 
         $result = [
