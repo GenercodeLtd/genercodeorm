@@ -49,7 +49,7 @@ class DataSet
             foreach ($input->values as $key=>$val) {
                 $cell = $this->model->getCell($key, $slug);
                 if (is_array($val)) {
-                    if (isset($val['min']) or isest($val["max"])) {
+                    if (isset($val['min']) or isset($val["max"])) {
                         $bind = new Binds\RangeBind($cell, $val);
                     } else {
                         $bind = new Binds\SetBind($cell, $val);

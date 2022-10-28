@@ -19,7 +19,8 @@ class Fields
         $sql = "CONCAT_WS('" . $cell->ws . "', ";
         $sql_fields = [];
         foreach ($cell->cells as $icell) {
-            $sql_fields[] = $icell->entity->alias . "." . $icell->name;
+            if (count($this->model->entities) > 1) $sql_fields[] = $icell->entity->alias . "." . $icell->name;
+            else $sql_fields[] = $icell->name;
         }
         $sql .= implode(", ", $sql_fields);
         $sql .= ") AS '" . $cell->getSlug() . "'";
