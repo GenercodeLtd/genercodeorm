@@ -26,7 +26,7 @@ class GenerCodeContainer extends Container {
         $this->bind(\GenerCodeOrm\FileHandler::class, function($app) {
 
             $file = new \Illuminate\Filesystem\FilesystemManager($app);
-            $disk = $file->disk("s3");
+            $disk = $file->disk($this->config["filesystems.default"]);
             $fileHandler = new \GenerCodeOrm\FileHandler($disk);
             return $fileHandler;
         });
