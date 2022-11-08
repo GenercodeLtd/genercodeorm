@@ -8,7 +8,7 @@ class FileHandler
 {
     protected $disk;
 
-    public function __construct(\Illuminate\Filesystem\AwsS3V3Adapter $disk)
+    public function __construct(\\Illuminate\Filesystem\FilesystemAdapter $disk)
     {
       $this->disk = $disk;
     }
