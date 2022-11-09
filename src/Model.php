@@ -20,9 +20,9 @@ class Model extends Builder
     protected \GenerCodeOrm\Builder\Filter $filter;
     protected $active = [];
   
-    public function __construct(\Illuminate\Database\DatabaseManager $dbmanager, Factory $entities, string $name)
+    public function __construct(\Illuminate\Database\Connection $connection, Factory $entities, string $name)
     {
-        parent::__construct($dbmanager->connection());
+        parent::__construct($connection);
         $this->entity_factory = $entities;
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
