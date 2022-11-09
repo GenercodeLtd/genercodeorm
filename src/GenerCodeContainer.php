@@ -6,7 +6,6 @@ use \Illuminate\Container\Container;
 class GenerCodeContainer extends Container {
 
     function __construct() {
-        parent::__construct();
         $this->instance(Container::class, $this);
     }
 
