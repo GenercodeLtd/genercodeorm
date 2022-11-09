@@ -10,8 +10,8 @@ class GenerCodeContainer extends Container {
         $this->instance(Container::class, $this);
     }
 
-    function bindConfigs(\Illuminate\Contracts\Config $configs) {
-        $this->instance(\Illuminate\Contracts\Config::class, $configs);
+    function bindConfigs(\Illuminate\Config\Repository $configs) {
+        $this->instance("config", $configs);
     }
 
 
