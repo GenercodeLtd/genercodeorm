@@ -8,7 +8,7 @@ class Hooks extends Factory {
     protected $app;
     
     function __construct(Container $app) {
-        if ($app->config->hooks) $this->loadHooks($app->config->hooks);
+        if ($app->config->has("hooks")) $this->loadHooks($app->config->get("hooks"));
         $this->app = $app;
     }
 
