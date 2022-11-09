@@ -8,7 +8,7 @@ class FileHandler
 {
     protected $disk;
 
-    public function __construct(\Illuminate\Filesystem\FilesystemManager $disk)
+    public function __construct(\Illuminate\Filesystem\FilesystemManager $file)
     {
         $this->disk = $file->disk();
     }
