@@ -10,8 +10,11 @@ class GenerCodeContainer extends Container {
     function __construct() {
         $this->instance(Container::class, $this);
 
-        $manager = new DatabaseManager($this, new ConnectionFactory($this));
-        $this->instance(\Illuminate\Database\Connection::class, $manager->connection());
+        
+        $this->singleton(\Illuminate\Database\Connection::class, function($app) {
+            $manager = new DatabaseManager($this, new ConnectionFactory($this));
+            return $manager->connection();
+        });
     }
 
     function bindConfigs(\Illuminate\Config\Repository $configs) {
