@@ -12,8 +12,12 @@ class GenerCodeContainer extends Container {
 
         
         $this->singleton(\Illuminate\Database\Connection::class, function($app) {
-            $manager = new DatabaseManager($this, new ConnectionFactory($this));
+            $manager = new DatabaseManager($app, new ConnectionFactory($app));
             return $manager->connection();
+        });
+
+        $this->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
+            return new \Illuminate\Filesystem\FilesystemManager($app);
         });
     }
 
