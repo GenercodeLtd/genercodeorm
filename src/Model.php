@@ -124,11 +124,9 @@ class Model extends Builder
 
     public function order(InputSet $aliases) {
         $data = $aliases->getData();
-        foreach($aliases as $alias=>$val) {
-            if (is_object($val)) {
-                $this->order($val);
-            } else {
-                $cell = $this->getCell($alias, $data->getSlug());
+        foreach($data as $vals) {
+            foreach($vals->values as $alias=>$val) {
+                $cell = $this->getCell($alias, $vals->slug);
                 $this->orderBy($cell->alias, ($val == "DESC") ? "DESC" : "ASC");
             }
         }
