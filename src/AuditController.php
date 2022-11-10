@@ -17,7 +17,7 @@ class AuditController extends AppController
 
 
         $where = new InputSet("audit");
-        $where->addData("--model-id", $id);
+        $where->addData("model-id", $id);
         $where->addData("model", $name);
         $where->addData("--created", ["min"=>$last_published]);
       
@@ -35,7 +35,7 @@ class AuditController extends AppController
        
         if (count($vals) == 0) return new \StdClass;
 
-        if ($vals[count($vals - 1)]->action == "POST") return new \StdClass;
+        if ($vals[count($vals) - 1]->action == "POST") return new \StdClass;
 
         $vals = array_reverse($vals);
 
