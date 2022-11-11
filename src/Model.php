@@ -127,7 +127,8 @@ class Model extends Builder
         foreach($data as $vals) {
             foreach($vals->values as $alias=>$val) {
                 $cell = $this->getCell($alias, $vals->slug);
-                $this->orderBy($cell->alias, ($val == "DESC") ? "DESC" : "ASC");
+                $alias = (count($this->entities) > 1) ? $cell->entity->alias . "." : "";
+                $this->orderBy($alias . $cell->name, ($val == "DESC") ? "DESC" : "ASC");
             }
         }
         return $this;

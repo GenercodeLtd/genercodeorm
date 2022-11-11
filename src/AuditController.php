@@ -33,9 +33,9 @@ class AuditController extends AppController
 
         $vals = $model->setFromEntity()->get()->toArray();
        
-        if (count($vals) == 0) return new \StdClass;
+        if (count($vals) == 0) return null;
 
-        if ($vals[count($vals) - 1]->action == "POST") return new \StdClass;
+        if ($vals[count($vals) - 1]->action == "POST") return null;
 
         $vals = array_reverse($vals);
 
