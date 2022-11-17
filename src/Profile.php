@@ -33,7 +33,7 @@ class Profile {
         return true;
     } 
 
-    function allowAssume() {
+    function allowAssume($name) {
         return (isset($this->assumed_roles[$name]));
     }
 
