@@ -14,6 +14,32 @@ class FileHandler
     }
 
 
+    public function getContentType($ext) {
+        $content_types=array(
+            "css"=>"text/css",
+            "gz"=>"application/gzip",
+            "gif"=>"image/gif",
+            "htm"=>"text/html",
+            "html"=>"text/html",
+            "ico"=>"image/vnd.microsoft.icon",
+            "jpeg"=>"image/jpeg",
+            "js"=>"application/javascript",
+            "png"=>"image/png",
+            "txt"=>"text/plain",
+            "json"=>"application/json",
+            "xml"=>"application/xml",
+            "pdf"=>"application/pdf",
+            "odt"=>"application/vnd.oasis.opendocument.text",
+            "ttf"=>"font/ttf",
+            "woff"=>"font/woff",
+            "woff2"=>"font/woff2",
+            "eot"=>"application/vnd.ms-fontobject",
+            "svg"=>"image/svg+xml");
+
+        $ext = pathinfo($file_name, \PATHINFO_EXTENSION);
+        return  (isset($content_types[$ext])) ? $content_types[$ext] : "application/octet-stream";
+    }
+
 
     public function uniqueKey($dir, $ext) {
         $key = "";
@@ -35,7 +61,8 @@ class FileHandler
 
 
     public function put($src, $body) {
-        $res = $this->disk->put($src, $body);
+        $content_type = $this->getContentType(\pathinfo($src, \PATHINFO_EXTENSION));
+        $res = $this->disk->put($src, $body, ["ContentType"=>$content_type]);
         return "SUCCESS";
     }
 
