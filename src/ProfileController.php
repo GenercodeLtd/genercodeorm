@@ -19,8 +19,8 @@ class ProfileController extends AppController {
 
     
     function createAnon($name) {
-        if (!$this->profile->allowAnonymousCreate()) {
-            throw new Exceptions\PtjException("Anonymous profiles are not allowed");
+        if (!$this->profile->allowAnonymousCreate($name)) {
+            throw new Exceptions\PtjException("Anonymous profiles are not allowed for " . $name);
         }
         $inputSet = new InputSet();
         $inputSet->data(["type"=>$name, "terms"=>1]);
@@ -33,8 +33,8 @@ class ProfileController extends AppController {
 
 
     function create($name, $params) {
-        if (!$this->profile->allowCreate()) {
-            throw new Exceptions\PtjException("Cannot create profile " . $this->profile->name);
+        if (!$this->profile->allowCreate($name)) {
+            throw new Exceptions\PtjException("Cannot create profile " . $name);
         }
         $model = $this->model("users");
         if (isset($params["password"])) {
@@ -63,6 +63,10 @@ class ProfileController extends AppController {
 
 
     function login($type, $params) {
+
+        if (!$this->profile->allowAssume($name)) {
+            throw new Exceptions\PtjException("Cannot login to profile " . $name);
+        }
 
         $repo = $this->model("users");
         $repo->select("id", "password");

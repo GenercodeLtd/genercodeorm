@@ -6,7 +6,7 @@ class Profile {
 
     protected $models = [];
     protected $id = 0; //user id
-    protected $allow_anonymous = false;
+    protected $assumed_roles = [];
     protected $allow_create = true;
     protected $name = "public";
     protected Factory $factory;
@@ -33,13 +33,25 @@ class Profile {
         return true;
     } 
 
-    function allowCreate() {
-        return $this->allow_create;
+    function allowAssume() {
+        return (isset($this->assumed_roles[$name]));
+    }
+
+    function allowCreate($name) {
+        if (!isset($this->assumed_roles[$name]) OR !$this->assumed_roles[$name]["post"]) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 
-    function allowAnonymousCreate() {
-        return $this->allow_anonymous;
+    function allowAnonymousCreate($name) {
+        if (!isset($this->assumed_roles[$name]) OR !$this->assumed_roles[$name]["anon"]) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 
