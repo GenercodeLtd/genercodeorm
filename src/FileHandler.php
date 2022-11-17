@@ -55,14 +55,14 @@ class FileHandler
         $ext = \pathinfo($name, \PATHINFO_EXTENSION);
         $content_type = $this->getContentType(\pathinfo($src, \PATHINFO_EXTENSION));
         $key = $this->uniqueKey($dir, $ext);
-        $res = $this->disk->put($dir . $key, $bind->getBody(), ["Content-Type"=>$content_type]);
+        $res = $this->disk->put($dir . $key, $bind->getBody(), ["ContentType"=>$content_type]);
         return $dir . $key;
     }
 
 
     public function put($src, $body) {
         $content_type = $this->getContentType(\pathinfo($src, \PATHINFO_EXTENSION));
-        $res = $this->disk->put($src, $body, ["Content-Type"=>$content_type]);
+        $res = $this->disk->put($src, $body, ["ContentType"=>$content_type]);
         return "SUCCESS";
     }
 
