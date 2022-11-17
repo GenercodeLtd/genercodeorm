@@ -284,6 +284,12 @@ class RepositoryController extends AppController
 
         $where = $this->getWhere($name, $arr);
 
+        $dataSet = new DataSet($model);
+        $dataSet->data($where);
+        $dataSet->validate();
+
+        $model->filterBy($dataSet);
+
         $id = $model->root->get("--id");
         $name = ($model->use_alias) ? $model->root->alias . "." . $id->name : $id->name;
         $model->select($model->raw("count(" . $name . ") as 'count'"))
