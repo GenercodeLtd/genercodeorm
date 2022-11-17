@@ -64,8 +64,8 @@ class ProfileController extends AppController {
 
     function login($type, $params) {
 
-        if (!$this->profile->allowAssume($name)) {
-            throw new Exceptions\PtjException("Cannot login to profile " . $name);
+        if (!$this->profile->allowAssume($type)) {
+            throw new Exceptions\PtjException("Cannot login to profile " . $type);
         }
 
         $repo = $this->model("users");
