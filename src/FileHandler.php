@@ -35,8 +35,6 @@ class FileHandler
             "woff2"=>"font/woff2",
             "eot"=>"application/vnd.ms-fontobject",
             "svg"=>"image/svg+xml");
-
-        $ext = pathinfo($file_name, \PATHINFO_EXTENSION);
         return  (isset($content_types[$ext])) ? $content_types[$ext] : "application/octet-stream";
     }
 
