@@ -74,5 +74,9 @@ class FileHandler
     public function delete($src) {
         return $this->disk->delete($src);
     } 
+
+    public function exists($src) {
+        return $this->disk->exists($src);
+    }
     
 }

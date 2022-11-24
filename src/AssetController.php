@@ -94,7 +94,7 @@ class AssetController extends AppController
 
     public function removeAsset(string $name, string $field, int $id)
     {
-        $this->checkPermission($name, "get");
+        $this->checkPermission($name, "delete");
 
         $model= $this->app->makeWith(Model::class, ["name"=>$name, "factory"=>$this->profile->factory]);
 
@@ -102,5 +102,18 @@ class AssetController extends AppController
 
         $fileHandler = $this->app->make(FileHandler::class);
         return $fileHandler->delete($src);
+    }
+
+
+    public function exists(string $name, string $field, int $id) {
+        $this->checkPermission($name, "get");
+        $model= $this->model($name);
+
+        $src = $this->fetchSrc($model, $name, $field, $id);
+
+        if (!$str) return false;
+        
+        $fileHandler = $this->app->make(FileHandler::class);
+        return $fileHandler->exists($src);
     }
 }
