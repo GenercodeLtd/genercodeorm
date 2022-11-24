@@ -53,7 +53,7 @@ class FileHandler
         $dir = "assets/" . $bind->cell->entity->table . "/";
         $name = $bind->value['tmp_name'];
         $ext = \pathinfo($name, \PATHINFO_EXTENSION);
-        $content_type = $this->getContentType(\pathinfo($src, \PATHINFO_EXTENSION));
+        $content_type = $this->getContentType(\pathinfo($name, \PATHINFO_EXTENSION));
         $key = $this->uniqueKey($dir, $ext);
         $res = $this->disk->put($dir . $key, $bind->getBody(), ["ContentType"=>$content_type]);
         return $dir . $key;
