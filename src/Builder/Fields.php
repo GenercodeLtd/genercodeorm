@@ -6,7 +6,6 @@ class Fields
 {
     protected \GenerCodeOrm\Model $model;
 
-    protected $fields = [];
 
     public function __construct(\GenerCodeOrm\Model $model)
     {
@@ -30,27 +29,18 @@ class Fields
 
     protected function addField($cell)
     {
-        $name = (count($this->model->entities) > 1) ? $cell->getDBAlias() : $cell->name;
-        $this->model->addSelect($name . " as " . $cell->getSlug());
+        $this->model->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
     }
 
-
-    protected function selectFields()
-    {
-        foreach ($this->fields as $cell) {
-            if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
-                $this->addAggregatorStringField($cell);
-            } else {
-                $name = (count($this->model->entities) > 1) ? $cell->getDBAlias() : $cell->name;
-                $this->model->addSelect($name . " as " . $cell->getSlug());
-            }
-        }
-    }
 
     protected function selectAllCells($entity, $include_references = true)
     {
         foreach ($entity->cells as $alias=>$cell) {
-            $this->fields[] = $cell;
+            if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
+                $this->addAggregatorStringField($cell);
+            } else {
+                $this->model->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
+            }
             if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
                 $this->model->addReference($cell);
             }
@@ -62,7 +52,11 @@ class Fields
     {
         foreach ($entity->cells as $alias=>$cell) {
             if (in_array($cell->alias, $fields->values)) {
-                $this->fields[] = $cell;
+                if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
+                    $this->addAggregatorStringField($cell);
+                } else {
+                    $this->model->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
+                }
                 if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
                     $this->model->addReference($cell);
                 }
@@ -85,9 +79,5 @@ class Fields
                 }
             }
         }
-
-
-        $this->selectFields();
-        $this->fields = []; //reset so the class can go again.
     }
 }

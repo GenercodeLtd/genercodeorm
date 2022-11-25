@@ -111,8 +111,8 @@ class Model extends Builder
         return $this;
     }
 
-    public function setFromEntity() {
-        $alias = (count($this->entities) > 1) ? $this->root->alias : null;
+    public function setFromEntity($no_alias = false) {
+        $alias = (!$no_alias) ? $this->root->alias : null;
         $this->from($this->root->table, $alias);
         return $this;
     }
@@ -127,8 +127,7 @@ class Model extends Builder
         foreach($data as $vals) {
             foreach($vals->values as $alias=>$val) {
                 $cell = $this->getCell($alias, $vals->slug);
-                $alias = (count($this->entities) > 1) ? $cell->entity->alias . "." : "";
-                $this->orderBy($alias . $cell->name, ($val == "DESC") ? "DESC" : "ASC");
+                $this->orderBy($cell->getDBAlias(), ($val == "DESC") ? "DESC" : "ASC");
             }
         }
         return $this;

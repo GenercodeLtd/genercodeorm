@@ -60,8 +60,7 @@ class Structure
             if ($owner->reference == $profile) {
                 $top = $this->joinTo("*", false);
                 $owner = $top->get("--owner"); //get owner with the correct entity reference
-                $name = (count($this->model->entities) > 1) ? $owner->getDBAlias() : $owner->name;
-                $this->model->where($name, "=", $id);
+                $this->model->where($owner->getDBAlias(), "=", $id);
             }
         }
     }

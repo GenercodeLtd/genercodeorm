@@ -29,7 +29,7 @@ class ModelController extends AppController
         }
 
         $dataSet->validate("Audit");
-        $model->setFromEntity()->insert($dataSet->toCellNameArr());
+        $model->setFromEntity(true)->insert($dataSet->toCellNameArr());
     }
 
 
@@ -122,7 +122,7 @@ class ModelController extends AppController
         $data->validate();
         $this->checkUniques($name, $data);
 
-        $id = $model->setFromEntity()->insertGetId($data->toCellNameArr());
+        $id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
 
         if ($model->root->hasAudit()) {
             $this->audit($name, $id, "POST");

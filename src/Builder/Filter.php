@@ -92,7 +92,7 @@ class Filter
     {
         $cell = $bind->cell;
         $name = get_class($cell);
-        $alias_name = (count($this->model->entities) > 1) ? $cell->getDBAlias() : $cell->name;
+        $alias_name = $cell->getDBAlias();
         if ($name == Cells\IdCell::class) {
             $this->filterId($alias_name, $bind);
         } elseif ($name == Cells\TimeCell::class) {
