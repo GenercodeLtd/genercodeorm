@@ -28,7 +28,7 @@ class ProfileController extends AppController {
         $dataSet = new DataSet($model);
         $dataSet->data($inputSet);
         $dataSet->validate();
-        return $model->setFromEntity()->insertGetId($dataSet->toCellNameArr());
+        return $model->setFromEntity(true)->insertGetId($dataSet->toCellNameArr());
     }
 
 
@@ -50,7 +50,7 @@ class ProfileController extends AppController {
         $dataSet->data($inputSet);
         $dataSet->validate();
     
-        return $model->setFromEntity()->insertGetId($dataSet->toCellNameArr());
+        return $model->setFromEntity(true)->insertGetId($dataSet->toCellNameArr());
     }
 
 
