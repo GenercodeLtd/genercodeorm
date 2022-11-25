@@ -112,7 +112,7 @@ class AssetController extends AppController
 
         $src = $this->fetchSrc($model, $name, $field, $id);
 
-        if (!$str) return false;
+        if (!$src) return false;
         
         $fileHandler = $this->app->make(FileHandler::class);
         return $fileHandler->exists($src);
