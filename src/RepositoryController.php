@@ -180,14 +180,16 @@ class RepositoryController extends AppController
 
         $model= $this->model($name);
 
+
+        $arr = $params->toArray();
+        $this->buildStructure($model, $name, $arr);
+
+
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
 
-        $arr = $params->toArray();
-
-        $this->buildStructure($model, $name, $arr);
-
+        
         $where = $this->getWhere($name, $params->toArray());
 
         $dataSet = new DataSet($model);
@@ -218,12 +220,12 @@ class RepositoryController extends AppController
 
         $model= $this->model($name);
 
+        $arr = $params->toArray();
+        $this->buildStructure($model, $name, $arr);
+
         if (!$this->profile->allowedAdminPrivilege($name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
-
-        $arr = $params->toArray();
-        $this->buildStructure($model, $name, $arr);
 
         $where = $this->getWhere($name, $arr);
 

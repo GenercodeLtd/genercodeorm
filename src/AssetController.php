@@ -48,6 +48,7 @@ class AssetController extends AppController
         $bind->validate("Create Asset");
 
         $model->setFromEntity()->filter($bind)->update([$cell->name => $file_name]);
+        return $file_name;
     }
 
 
@@ -63,16 +64,16 @@ class AssetController extends AppController
 
         $src = $this->fetchSrc($model, $name, $field, $id);
         if (!$src) {
-            $this->createSrc($name, $field, $_FILES[$field], $id);
-            return true;
+            $src = $this->createSrc($name, $field, $_FILES[$field], $id);
         } else {
             $cell = $model->root->get($field);
 
             $cell->validateSize($_FILES[$field]["size"]);
 
             $fileHandler = $this->app->make(FileHandler::class);
-            return $fileHandler->put($src, file_get_contents($_FILES[$field]["tmp_name"]));
+            $fileHandler->put($src, file_get_contents($_FILES[$field]["tmp_name"]));
         }
+        return $src;
     }
 
 
