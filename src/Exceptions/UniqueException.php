@@ -4,7 +4,7 @@ namespace GenerCodeOrm\Exceptions;
 
 class UniqueException extends PtjException {
 
-    protected $code = 500;
+    protected $code = 422;
     protected $title = "Unique Exception Failure";
     protected $description = "Unique Exception Failure";
     protected $message = "";

@@ -4,7 +4,7 @@ namespace GenerCodeOrm\Exceptions;
 
 class ValidationException extends PtjException {
 
-    protected $code = 500;
+    protected $code = 422;
     protected $title = "Validation Errors";
     protected $description = "Validation Errors";
     protected $message = "";

@@ -200,7 +200,11 @@ class RepositoryController extends AppController
 
         $this->setLimit($model, $arr);
 
-        if (isset($params["__order"])) {
+        if ($model->root->has("--sort")) {
+            $orderSet = new InputSet($name);
+            $orderSet->data(["--sort"=>"ASC"]);
+            $model->order($orderSet);
+        } else if (isset($params["__order"])) {
             $orderSet = new InputSet($name);
             $orderSet->data($params["__order"]);
             $model->order($orderSet);
@@ -234,6 +238,17 @@ class RepositoryController extends AppController
         $dataSet->validate();
 
         $model->filterBy($dataSet);
+
+
+        if ($model->root->has("--sort")) {
+            $orderSet = new InputSet($name);
+            $orderSet->data(["--sort"=>"ASC"]);
+            $model->order($orderSet);
+        } else if (isset($params["__order"])) {
+            $orderSet = new InputSet($name);
+            $orderSet->data($params["__order"]);
+            $model->order($orderSet);
+        }
 
         
         $model->take(1);
