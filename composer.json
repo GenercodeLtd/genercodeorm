@@ -15,7 +15,9 @@
         "illuminate/container": ">=8.83.1",
         "illuminate/queue": ">=8.83.1",
         "illuminate/filesystem" : ">=8.83.24",
-        "league/flysystem-aws-s3-v3": ">=1.0"
+        "league/flysystem-aws-s3-v3": ">=1.0",
+        "laravel/sanctum": "^3.0",
+        "illuminate/auth": "^9.41"
     },
     "autoload" : {
         "psr-4" : {

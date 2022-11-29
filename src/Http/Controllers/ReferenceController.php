@@ -1,6 +1,6 @@
 <?php
 
-namespace GenerCodeOrm;
+namespace GenerCodeOrm\Http\Controllers;
 
 use PressToJam\Schemas as Schema;
 

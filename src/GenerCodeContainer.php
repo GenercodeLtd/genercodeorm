@@ -19,6 +19,11 @@ class GenerCodeContainer extends Container {
         $this->bind(\Illuminate\Filesystem\FilesystemManager::class, function($app) {
             return new \Illuminate\Filesystem\FilesystemManager($app);
         });
+
+
+        $this->bind(\Illuminate\Auth\DatabaseUserProvider::class, function ($app) {
+            return new \Illuminate\Auth\DatabaseUserProvider($this->make(\Illuminate\Database\Connection::class, Hasher, "users"));
+        });
     }
 
     function bindConfigs(\Illuminate\Config\Repository $configs) {

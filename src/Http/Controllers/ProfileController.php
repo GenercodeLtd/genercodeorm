@@ -1,5 +1,5 @@
 <?php
-namespace GenerCodeOrm;
+namespace GenerCodeOrm\Http\Controllers;
 
 use \Illuminate\Container\Container;
 
@@ -79,26 +79,13 @@ class ProfileController extends AppController {
         $dataSet = new DataSet($repo);
         $dataSet->data($inputSet);
         $dataSet->validate();
-      
-        $repo->filterBy($dataSet);
-        $repo->take(1);
 
-        $res = $repo->setFromEntity()->get()->first();
-        if (!$res) {
+        if (Auth::attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
+            $request->session()->regenerate();
+        } else {
             throw new Exceptions\PtjException("This username / password was not recognised");
         }
    
-       
-        if (!isset($params["password"])) {
-            throw new Exceptions\PtjException("This username / password was not recognised");
-        } 
-
-        if (!password_verify($params["password"], $res->password)) {
-            //now compare the password part of this
-            throw new Exceptions\PtjException("This username / password was not recognised");
-        }
-
-
         return $res->id;
     }
 
