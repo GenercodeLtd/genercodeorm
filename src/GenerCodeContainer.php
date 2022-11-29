@@ -4,6 +4,7 @@ namespace GenerCodeOrm;
 use \Illuminate\Container\Container;
 use \Illuminate\Database\Connectors\ConnectionFactory;
 use \Illuminate\Database\DatabaseManager;
+use \Illuminate\Auth\AuthManager;
 
 class GenerCodeContainer extends Container {
 
@@ -31,7 +32,19 @@ class GenerCodeContainer extends Container {
     }
 
 
-    function bindUserDependencies(\GenerCodeOrm\Profile $profile) {
+    function bindUserDependencies() {
+
+        $factory_name = $this->config->get("factory");
+        $factory = new $factory_name();
+
+        $auth = $this->get(AuthManager::class);
+        $user = $auth->user();
+
+        $profile = ($this->factory)($user->type);
+        $profile->id = $user->getAuthIdentifier();
+
+        $this->container->bindUserDependencies($profile);
+
         $this->instance(Profile::class, $profile);
         $this->instance(Factory::class, $profile->factory);
     }
