@@ -167,7 +167,7 @@ class ModelController extends AppController
         $data = new DataSet($model);
 
         foreach ($model->root->cells as $alias=>$cell) {
-            if (!$cell->system and isset($params[$alias]) and !$cell->immutable) {
+            if (!$cell->system and ($cell->required or isset($params[$alias])) and !$cell->immutable) {
                 $bind = new Binds\SimpleBind($cell);
                 if (isset($params[$alias])) {
                     $bind->value = $params[$alias];

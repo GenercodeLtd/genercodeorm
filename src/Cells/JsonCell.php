@@ -25,9 +25,11 @@ class JsonCell extends MetaCell {
         $errs = [];
         if (count($this->cells) > 0) {
             foreach($this->cells as $cell) {
-                $val = (isset($value[$cell->alias])) ? $value[$cell->alias] : null;
-                if ($validate = $cell->validate($val)) {
-                    $errs[$cell->alias] = $validate;
+                if (!$cell->system and ($cell->required or isset($value[$cell->alias]))) {
+                    $val = (isset($value[$cell->alias])) ? $value[$cell->alias] : null;
+                    if ($validate = $cell->validate($val)) {
+                        $errs[$cell->alias] = $validate;
+                    }
                 }
             }
         }

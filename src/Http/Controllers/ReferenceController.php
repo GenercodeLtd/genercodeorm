@@ -39,7 +39,7 @@ class ReferenceController extends AppController
     {
         $recursive = null;
         $aggregator = new Cells\AggregatorStringCell();
-        $aggregator->alias = "--value";
+        $aggregator->alias = "label";
         foreach ($model->root->cells as $cell) {
             if ($cell->summary) {
                 $aggregator->addCell($cell);
@@ -48,9 +48,9 @@ class ReferenceController extends AppController
         $model->root->addCell($aggregator);
 
         $idCell = $model->root->get("--id");
-        $idCell->alias = "--key";
+        $idCell->alias = "value";
 
-        $fields = ["--key", "--recursive", "--value"];
+        $fields = ["value", "--recursive", "label"];
     
         $inputSet = new InputSet($name);
         $inputSet->data($fields);
