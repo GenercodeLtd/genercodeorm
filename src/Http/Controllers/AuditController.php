@@ -4,6 +4,9 @@ namespace GenerCodeOrm\Http\Controllers;
 
 use Illuminate\Container\Container;
 use Illuminate\Support\Fluent;
+use \GenerCodeOrm\Exceptions as Exceptions;
+use \GenerCodeOrm\InputSet;
+
 
 class AuditController extends AppController
 {

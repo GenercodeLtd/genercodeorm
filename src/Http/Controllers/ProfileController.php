@@ -2,6 +2,9 @@
 namespace GenerCodeOrm\Http\Controllers;
 
 use \Illuminate\Container\Container;
+use \GenerCodeOrm\Exceptions as Exceptions;
+use \GenerCodeOrm\InputSet;
+use \GenerCodeOrm\DataSet;
 
 class ProfileController extends AppController {
 

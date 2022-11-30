@@ -4,6 +4,7 @@ namespace GenerCodeOrm\Http\Controllers;
 
 use \Illuminate\Container\Container;
 use \Illuminate\Support\Fluent;
+use \GenerCodeOrm\Exceptions as Exceptions;
 
 use \GenerCodeOrm\Model;
 
@@ -17,7 +18,7 @@ class AppController
         Container $app
     ) {
         $this->app = $app;
-        $this->profile = $app->get(\GenerCodeOrm\Profile::class);
+        $this->profile = $app->get("profile");
        // var_dump($this->profile);
        // exit;
         $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);

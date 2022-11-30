@@ -3,6 +3,12 @@
 namespace GenerCodeOrm\Http\Controllers;
 
 use Illuminate\Support\Fluent;
+use \GenerCodeOrm\Exceptions as Exceptions;
+use \GenerCodeOrm\Binds as Binds;
+use \GenerCodeOrm\InputSet;
+use \GenerCodeOrm\Model;
+use \GenerCodeOrm\FileHandler;
+use \GenerCodeOrm\DataSet;
 
 class AssetController extends AppController
 {

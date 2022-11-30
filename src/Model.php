@@ -8,6 +8,7 @@ use \GenerCodeOrm\Cells\MetaCell;
 use \GenerCodeOrm\Cells\ReferenceTypes;
 use \Illuminate\Database\Query\Builder;
 use \GenerCodeOrm\Exceptions\CellTypeException;
+use \Illuminate\Container\Container;
 
 class Model extends Builder
 {
@@ -20,10 +21,10 @@ class Model extends Builder
     protected \GenerCodeOrm\Builder\Filter $filter;
     protected $active = [];
   
-    public function __construct(\Illuminate\Database\Connection $connection, Factory $entities, string $name)
+    public function __construct(Container $app, string $name)
     {
-        parent::__construct($connection);
-        $this->entity_factory = $entities;
+        parent::__construct($app->make(\Illuminate\Database\Connection::class)->connection());
+        $this->entity_factory = $app["profile"]->factory;
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
         $this->active[$name] = $this->root;

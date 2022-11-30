@@ -4,6 +4,14 @@ namespace GenerCodeOrm\Http\Controllers;
 
 use Illuminate\Container\Container;
 use Illuminate\Support\Fluent;
+use \GenerCodeOrm\Exceptions as Exceptions;
+use \GenerCodeOrm\DataSet;
+use \GenerCodeOrm\InputSet;
+use \GenerCodeOrm\Binds as Binds;
+use \GenerCodeOrm\Model;
+use \GenerCodeOrm\FileHandler;
+use \GenerCodeOrm\Cells as Cells;
+
 
 class ModelController extends AppController
 {

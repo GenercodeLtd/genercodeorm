@@ -2,9 +2,14 @@
 
 namespace GenerCodeOrm\Http\Controllers;
 
-use PressToJam\Schemas as Schema;
-
 use Illuminate\Container\Container;
+use \GenerCodeOrm\Exceptions as Exceptions;
+use \GenerCodeOrm\DataSet;
+use \GenerCodeOrm\InputSet;
+use \GenerCodeOrm\Binds as Binds;
+use \GenerCodeOrm\Model;
+use \GenerCodeOrm\FileHandler;
+use \GenerCodeOrm\Cells as Cells;
 
 class ReferenceController extends AppController
 {
