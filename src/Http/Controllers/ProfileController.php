@@ -5,11 +5,10 @@ use \Illuminate\Container\Container;
 
 class ProfileController extends AppController {
 
-    protected Profile $profile;
+    
    
     function __construct(Container $app) {
         parent::__construct($app);
-        $this->profile = $app->get(\GenerCodeOrm\Profile::class);
     }
 
     function checkUser() {
