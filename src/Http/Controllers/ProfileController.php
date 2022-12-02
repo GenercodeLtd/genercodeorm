@@ -87,10 +87,10 @@ class ProfileController extends AppController {
 
         $auth = $this->app->get("auth");
         if ($auth->attempt(["email"=>$request->input("email"), "type"=>$type, "password"=>$request->input("password")])) {
-            $request->session()->regenerate();
+            $cookie = $auth->guard()->getCookieJar();
             $user = $auth->user();
-
-            $response->getBody()->write(json_encode(["--id"=>$user->getAuthIdentifier()]));
+            $response->setContent(json_encode(["--id"=>$user->getAuthIdentifier()]));
+            $response->withCookie($cookie->make($auth->guard()->getName(), json_encode(["type"=>$user->type, "id"=>$user->getAuthIdentifier()]), $this->app->config["session.lifetime"]));
             return $response;
         } else {
             throw new Exceptions\PtjException("This username / password was not recognised");

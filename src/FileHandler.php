@@ -3,14 +3,15 @@
 namespace GenerCodeOrm;
 
 use Psr\Http\Message\ServerRequestInterface;
+use \Illuminate\Container\Container;
 
 class FileHandler
 {
     protected $disk;
 
-    public function __construct(\Illuminate\Filesystem\FilesystemManager $file)
+    public function __construct(Container $app)
     {
-        $this->disk = $file->disk();
+        $this->disk = $app->get("filesystem.disk");
     }
 
 
