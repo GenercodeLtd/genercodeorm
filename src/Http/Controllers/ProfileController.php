@@ -84,11 +84,11 @@ class ProfileController extends AppController {
 
         if (Auth::attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
             $request->session()->regenerate();
+            $user = $auth->user();
+            return $user->getAuthIdentifier();
         } else {
             throw new Exceptions\PtjException("This username / password was not recognised");
         }
-   
-        return $res->id;
     }
 
 

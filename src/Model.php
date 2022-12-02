@@ -23,7 +23,7 @@ class Model extends Builder
   
     public function __construct(Container $app, string $name)
     {
-        parent::__construct($app->make(\Illuminate\Database\Connection::class)->connection());
+        parent::__construct($app->make(\Illuminate\Database\DatabaseManager::class)->connection());
         $this->entity_factory = $app["profile"]->factory;
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
