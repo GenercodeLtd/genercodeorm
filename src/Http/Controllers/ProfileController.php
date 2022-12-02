@@ -71,6 +71,8 @@ class ProfileController extends AppController {
             throw new Exceptions\PtjException("Cannot login to profile " . $type);
         }
 
+        $request = $this->app->get("request");
+
         $params = new Fluent($request->getParsedBody());
 
         $repo = $this->model("users");
