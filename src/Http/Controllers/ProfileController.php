@@ -5,6 +5,7 @@ use \Illuminate\Container\Container;
 use \GenerCodeOrm\Exceptions as Exceptions;
 use \GenerCodeOrm\InputSet;
 use \GenerCodeOrm\DataSet;
+use \Illuminate\Support\Fluent;
 
 class ProfileController extends AppController {
 
@@ -64,11 +65,13 @@ class ProfileController extends AppController {
     }
 
 
-    function login($type, $params) {
+    function login($request, $response, $type) {
 
         if (!$this->profile->allowAssume($type)) {
             throw new Exceptions\PtjException("Cannot login to profile " . $type);
         }
+
+        $params = new Fluent($request->getParsedBody());
 
         $repo = $this->model("users");
         $repo->select("id", "password");
@@ -86,7 +89,9 @@ class ProfileController extends AppController {
         if ($auth->attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
             $request->session()->regenerate();
             $user = $auth->user();
-            return $user->getAuthIdentifier();
+
+            $response->getBody()->write(json_encode(["--id"=>$user->getAuthIdentifier()]));
+            return $response;
         } else {
             throw new Exceptions\PtjException("This username / password was not recognised");
         }
