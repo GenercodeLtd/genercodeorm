@@ -82,7 +82,7 @@ class ProfileController extends AppController {
         $dataSet->data($inputSet);
         $dataSet->validate();
 
-        $auth = $this->app->get(\Illuminate\Auth\AuthManager::class);
+        $auth = $this->app->get("auth");
         if ($auth->attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
             $request->session()->regenerate();
             $user = $auth->user();
