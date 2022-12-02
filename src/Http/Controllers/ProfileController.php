@@ -73,22 +73,20 @@ class ProfileController extends AppController {
 
         $request = $this->app->get("request");
 
-        $params = new Fluent($request->getParsedBody());
-
         $repo = $this->model("users");
         $repo->select("id", "password");
     
         $params["type"] = $type;
 
         $inputSet = new InputSet();
-        $inputSet->data(["email"=>$params["email"], "type"=>$type]);
+        $inputSet->data(["email"=>$request->input("email"), "type"=>$type]);
 
         $dataSet = new DataSet($repo);
         $dataSet->data($inputSet);
         $dataSet->validate();
 
         $auth = $this->app->get("auth");
-        if ($auth->attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
+        if ($auth->attempt(["email"=>$request->input("email"), "type"=>$type, "password"=>$request->input("password")])) {
             $request->session()->regenerate();
             $user = $auth->user();
 
