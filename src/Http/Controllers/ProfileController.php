@@ -82,7 +82,8 @@ class ProfileController extends AppController {
         $dataSet->data($inputSet);
         $dataSet->validate();
 
-        if (Auth::attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
+        $auth = $this->app->get(\Illuminate\Auth\AuthManager::class);
+        if ($auth->attempt(["email"=>$params["email"], "type"=>$type, "password"=>$params["password"]])) {
             $request->session()->regenerate();
             $user = $auth->user();
             return $user->getAuthIdentifier();
