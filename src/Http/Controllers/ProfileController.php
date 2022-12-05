@@ -98,6 +98,15 @@ class ProfileController extends AppController {
     }
 
 
+    function logout() {
+        $auth = $this->app->get("auth");
+        Auth::logout();
+        $cookie = $auth->guard()->getCookieJar();
+        $response->withCookie($cookie->make($auth->guard()->getName(), "", time() - 300));
+        return $response;
+    }
+
+
     public function updatePasswordRequest($params) {
         $params->fields = ["--id"];
         if (!isset($params->data["code"]) OR !isset($params->data["password"])) {
