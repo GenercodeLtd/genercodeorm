@@ -100,7 +100,7 @@ class ProfileController extends AppController {
 
     function logout() {
         $auth = $this->app->get("auth");
-        Auth::logout();
+        $auth->logout();
         $cookie = $auth->guard()->getCookieJar();
         $response->withCookie($cookie->make($auth->guard()->getName(), "", time() - 300));
         return $response;
