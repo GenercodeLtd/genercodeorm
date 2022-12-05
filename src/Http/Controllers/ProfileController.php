@@ -102,7 +102,7 @@ class ProfileController extends AppController {
         $auth = $this->app->get("auth");
         $auth->logout();
         $cookie = $auth->guard()->getCookieJar();
-        $response->setContent(json_encode("success"))
+        $response->setContent(json_encode("success"));
         $response->withCookie($cookie->make($auth->guard()->getName(), "", time() - 300));
         return $response;
     }
