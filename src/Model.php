@@ -24,7 +24,7 @@ class Model extends Builder
     public function __construct(Container $app, string $name)
     {
         parent::__construct($app->make(\Illuminate\Database\DatabaseManager::class)->connection());
-        $this->entity_factory = $app["entity_factory"];
+        $this->entity_factory = $app["config"]["entity_factory"];
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
         $this->active[$name] = $this->root;
@@ -64,7 +64,7 @@ class Model extends Builder
 
     public function load(string $name, string $slug = "", $active = true)
     {
-        $entity = $this->entity_factory::create($name);
+        $entity = ($this->entity_factory)::create($name);
         $entity->alias = "t" . (count($this->entities) + 1);
         $entity->slug = $slug;
 
