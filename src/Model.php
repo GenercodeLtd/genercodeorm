@@ -19,6 +19,7 @@ class Model extends Builder
     protected \GenerCodeOrm\Builder\Fields $fields_manager;
     protected \GenerCodeOrm\Builder\Filter $filter;
     protected $active = [];
+    protected $entity_factory;
   
     public function __construct(Container $app, string $name)
     {
@@ -26,6 +27,7 @@ class Model extends Builder
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
         $this->active[$name] = $this->root;
+        $this->entity_factory = $app->get("entity_factory");
         $this->structure = new \GenerCodeOrm\Builder\Structure($this);
         $this->fields_manager = new \GenerCodeOrm\Builder\Fields($this);
         $this->filter = new \GenerCodeOrm\Builder\Filter($this);
@@ -62,7 +64,7 @@ class Model extends Builder
 
     public function load(string $name, string $slug = "", $active = true)
     {
-        $entity = ($this->app->get("entity_factory"))->create($name);
+        $entity = ($this->entity_factory)->create($name);
         $entity->alias = "t" . (count($this->entities) + 1);
         $entity->slug = $slug;
 
