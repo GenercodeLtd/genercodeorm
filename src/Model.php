@@ -24,10 +24,10 @@ class Model extends Builder
     public function __construct(Container $app, string $name)
     {
         parent::__construct($app->make(\Illuminate\Database\DatabaseManager::class)->connection());
+        $this->entity_factory = $app->get("entity_factory");
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
         $this->active[$name] = $this->root;
-        $this->entity_factory = $app->get("entity_factory");
         $this->structure = new \GenerCodeOrm\Builder\Structure($this);
         $this->fields_manager = new \GenerCodeOrm\Builder\Fields($this);
         $this->filter = new \GenerCodeOrm\Builder\Filter($this);
