@@ -13,7 +13,7 @@ use \Illuminate\Container\Container;
 class Model extends Builder
 {
     protected $stmt;
-    protected Factory $entity_factory;
+    protected $entity_factory;
     protected $entities = [];
     protected $root;
     protected \GenerCodeOrm\Builder\Structure $structure;
