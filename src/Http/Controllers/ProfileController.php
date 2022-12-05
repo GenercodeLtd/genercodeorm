@@ -98,7 +98,7 @@ class ProfileController extends AppController {
     }
 
 
-    function logout() {
+    function logout($request, $response) {
         $auth = $this->app->get("auth");
         $auth->logout();
         $cookie = $auth->guard()->getCookieJar();
