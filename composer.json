@@ -16,16 +16,16 @@
         "illuminate/queue": ">=8.83.1",
         "illuminate/filesystem" : ">=8.83.24",
         "league/flysystem-aws-s3-v3": ">=1.0",
-        "laravel/sanctum": "^3.0",
-        "illuminate/auth": "^9.41",
-        "illuminate/hashing": "^9.42",
-        "illuminate/session": "^9.42",
-        "illuminate/cookie": "^9.42",
-        "illuminate/events": "^9.42",
+        "laravel/sanctum": ">=2.15.1",
+        "illuminate/auth": ">=8.83.1",
+        "illuminate/hashing": ">=8.83.1",
+        "illuminate/session": ">=8.83.1",
+        "illuminate/cookie": ">=8.83.1",
+        "illuminate/events": ">=8.83.1",
         "symfony/http-foundation": "^6.1",
         "symfony/psr-http-message-bridge": "^2.1",
         "nyholm/psr7": "^1.5",
-        "illuminate/config": "^9.42"
+        "illuminate/config": ">=8.83.1"
     },
     "autoload" : {
         "psr-4" : {
