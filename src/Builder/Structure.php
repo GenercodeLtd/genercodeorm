@@ -52,7 +52,7 @@ class Structure
         $top = $this->model->root;
         while ($top->has("--parent")) {
             $parent = $top->get("--parent");
-            $top = ($this->model->entity_factory)($parent->reference);
+            $top = ($this->model->entity_factory)->create($parent->reference);
         }
 
         if ($top->has("--owner")) {
