@@ -13,9 +13,6 @@ class Profile {
 
     function __construct() {
         $this->factory = new Factory();
-        $this->factory->addProducts(["users"=> function() {
-            return new Entity\Users();
-        }]);
     }
 
     function __get($key) {
@@ -61,10 +58,10 @@ class Profile {
     }
 
 
-    function getSitemap() {
+    function getSitemap($factory) {
         $routes = [];
         foreach($this->models as $name=>$details) {
-            $schema = ($this->factory)($name);
+            $schema = ($factory)($name);
             $route = $schema->getSchema();
             $route["perms"] = $details["perms"];
             $route["admin"] = $details["admin"];

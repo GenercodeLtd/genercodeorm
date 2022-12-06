@@ -168,6 +168,6 @@ class ProfileController extends AppController {
 
  
     public function getSitemap() {
-        return $this->profile->getSitemap();
+        return $this->profile->getSitemap($this->app->get("entity_factory"));
     }
 }
