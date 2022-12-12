@@ -81,7 +81,7 @@ class ModelController extends AppController
         return $model
         ->setFromEntity()
         ->fields()
-        ->where($bind->cell->name, "=", $bind->value)
+        ->filter($bind)
         ->take(1)
         ->get()
         ->first();
