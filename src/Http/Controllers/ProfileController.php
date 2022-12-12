@@ -116,6 +116,7 @@ class ProfileController extends AppController {
         $cookie = $auth->guard()->getCookieJar();
         $response->setContent(json_encode("success"));
         $response->withCookie($cookie->forget($auth->guard()->getName()));
+        $response->withCookie($cookie->forget("laravel_session"));
         return $response;
     }
 
