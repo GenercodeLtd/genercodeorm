@@ -115,7 +115,7 @@ class ProfileController extends AppController {
         $auth->logout();
         $cookie = $auth->guard()->getCookieJar();
         $response->setContent(json_encode("success"));
-        $response->withCookie($cookie->make($auth->guard()->getName(), "", time() - 300));
+        $response->withCookie($cookie->forget($auth->guard()->getName()));
         return $response;
     }
 
