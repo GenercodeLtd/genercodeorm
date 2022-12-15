@@ -134,7 +134,7 @@ class ModelController extends AppController
         $id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
 
         if ($model->root->hasAudit()) {
-            $this->audit($name, $id, "POST");
+            $this->audit($name, $id, "POST", $data->toArr());
         }
 
         $arr = $data->toArr();
@@ -190,12 +190,7 @@ class ModelController extends AppController
         //mayby audit here
 
         if ($model->root->hasAudit()) {
-            $changed_arr = [];
-            foreach ($data->getBinds() as $alias=>$bind) {
-                $changed_arr[$alias] = $original_data->$alias;
-            }
-
-            $this->audit($name, $params["--id"], "PUT", $changed_arr);
+            $this->audit($name, $params["--id"], "PUT", $data->toArr());
         }
 
         $alias = (count($model->entities) > 1) ? $model->root->alias . "." : "";
@@ -227,7 +222,7 @@ class ModelController extends AppController
 
         if ($model->root->hasAudit()) {
             $odata = new Fluent($original_data);
-            $this->audit($name, $id->value, "DELETE", $odata->toArray());
+            $this->audit($name, $id->value, "DELETE";
         }
 
         

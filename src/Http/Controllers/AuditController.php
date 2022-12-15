@@ -12,7 +12,7 @@ class AuditController extends AppController
 {
     //audit functions
 
-    public function getObjectAt($name, $id, $last_published)
+    public function getObjectAt($name, $id, $date)
     {
         $this->checkPermission($name, "get");
 
@@ -22,7 +22,7 @@ class AuditController extends AppController
         $where = new InputSet("audit");
         $where->addData("model-id", $id);
         $where->addData("model", $name);
-        $where->addData("--created", ["min"=>$last_published]);
+        $where->addData("--created", ["max"=>$date]);
       
         $dataSet = new DataSet($model);
         $dataSet->data($where);
@@ -34,18 +34,13 @@ class AuditController extends AppController
         $orderSet->data(["--created"=>"ASC"]);
         $model->order($orderSet);
 
-        $vals = $model->setFromEntity()->get()->toArray();
+        $rows = $model->setFromEntity()->get()->toArray();
        
-        if (count($vals) == 0) return null;
-
-        if ($vals[count($vals) - 1]->action == "POST") return null;
-
-        $vals = array_reverse($vals);
+        if (count($rows) == 0) return null;
 
         $hist = [];
-        foreach($vals as $row) {
-            $log = json_decode($row->log);
-            foreach ($log as $key=>$val) {
+        foreach($rows as $row) {
+            foreach($row as $key=>$val) {
                 $hist[$key] = $val;
             }
         }
