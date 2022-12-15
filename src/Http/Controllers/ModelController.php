@@ -222,7 +222,7 @@ class ModelController extends AppController
 
         if ($model->root->hasAudit()) {
             $odata = new Fluent($original_data);
-            $this->audit($name, $id->value, "DELETE";
+            $this->audit($name, $id->value, "DELETE");
         }
 
         

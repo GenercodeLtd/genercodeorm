@@ -48,4 +48,30 @@ class AuditController extends AppController
     }
 
 
+    public function hasChangedSince($name, $id, $date) {
+        $this->checkPermission($name, "get");
+
+        $model = $this->model("audit");
+
+        $where = new InputSet("audit");
+        $where->addData("model-id", $id);
+        $where->addData("model", $name);
+        $where->addData("--created", ["min"=>$date]);
+      
+        $dataSet = new DataSet($model);
+        $dataSet->data($where);
+        $dataSet->validate();
+
+        $model->filterBy($dataSet);
+
+        $orderSet = new InputSet("audit");
+        $orderSet->data(["--created"=>"ASC"]);
+        $model->order($orderSet);
+        $model->take(1);
+
+        $obj = $model->setFromEntity()->first();
+        return ($obj) ? true : false;
+    }
+
+
 }
