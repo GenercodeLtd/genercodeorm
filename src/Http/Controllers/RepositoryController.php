@@ -18,6 +18,7 @@ class RepositoryController extends AppController
 {
     private function findChildLeaves(array $children, Entity $entity = null)
     {
+        $factory =  $this->app->get("entity_factory");
         if (!$entity) {
             $entity = $this->entities[""];
         }
@@ -26,7 +27,7 @@ class RepositoryController extends AppController
         $matches = [];
         foreach ($id->reference as $child) {
             if (in_array($child, $children)) {
-                $peek = ($this->profile->factory)($child);
+                $peek = ($factory)->create($child);
                 if (!$peek) {
                     $matches[$child] = $peek;
                     continue;
@@ -41,7 +42,7 @@ class RepositoryController extends AppController
                 //if we get this far, then we new matches
                 $matches = array_merge($matches, $res);
             } else {
-                $peek = ($this->profile->factory)($child);
+                $peek = ($factory)->create($child);
                 $res = $this->findChildLeaves($children, $peek);
                 $matches = array_merge($matches, $res);
             }
@@ -80,6 +81,7 @@ class RepositoryController extends AppController
 
     private function addChildren($name, $model, $children, &$rows)
     {
+        $factory =  $this->app->get("entity_factory");
         if (!is_array($children)) {
             $children = [$children];
         }
@@ -94,7 +96,7 @@ class RepositoryController extends AppController
         $idCell = $model->root->get("--id");
 
         foreach ($idCell->reference as $branch) {
-            $entity = ($this->profile->factory)($branch);
+            $entity = ($factory)->create($branch);
             $leaves = $this->findChildLeaves($children, $entity);
 
             if (!$leaves) {
