@@ -13,6 +13,8 @@ class Entity
     protected $has_export = false;
     protected $has_import = false;
     protected $has_audit = false;
+    protected $min_rows = null;
+    protected $max_rows = null;
   
 
  
@@ -78,6 +80,8 @@ class Entity
         if ($this->has_import) $schema["import"] = true;
         if ($this->has_export) $schema["export"] = true;
         if ($this->has_audit) $schema["audit"] = true;
+        if ($this->min_rows) $schema["min_rows"] = $this->min_rows;
+        if ($this->max_rows) $schema["max_rows"] = $this->max_rows;
         $schema["schema"] = [];
         foreach ($this->cells as $alias=>$cell) {
             $schema["schema"][$alias] = $cell->toSchema();

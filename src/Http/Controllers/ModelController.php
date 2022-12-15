@@ -88,6 +88,16 @@ class ModelController extends AppController
     }
 
 
+    public function getNumRows() {
+
+    }
+
+
+    public function createMinChildRows() {
+        
+    }
+
+
 
     public function create($name, Fluent $params)
     {
