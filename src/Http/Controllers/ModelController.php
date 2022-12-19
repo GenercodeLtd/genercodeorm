@@ -330,7 +330,9 @@ class ModelController extends AppController
         $dataSet->addBind("--id", $id);
 
         $model->setFromEntity();
-        $model->updateStmt([$sort->cell->name => "?"]);
+
+        $alias = (count($model->entities) > 1) ? $model->root->alias . "." : "";
+        $model->updateStmt([$alias . $sort->cell->name => "?"]);
 
         
         foreach ($params["_rows"] as $row) {

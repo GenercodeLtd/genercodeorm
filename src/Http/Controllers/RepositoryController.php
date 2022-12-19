@@ -106,6 +106,12 @@ class RepositoryController extends AppController
                 $child_model->filter($bind);
                 $child_model->fields();
 
+                if ($child_model->root->has("--sort")) {
+                    $orderSet = new InputSet($name);
+                    $orderSet->data(["--sort"=>"ASC"]);
+                    $child_model->order($orderSet);
+                }
+
                 $results = new Builder\ResultsTree($child_model->entities);
 
                 $cursor = $child_model->setFromEntity()->cursor();
@@ -119,6 +125,12 @@ class RepositoryController extends AppController
                     $child_model = $this->model($leaf);
                     $child_model->to($branch);
                     $child_model->fields();
+
+                    if ($child_model->root->has("--sort")) {
+                        $orderSet = new InputSet($name);
+                        $orderSet->data(["--sort"=>"ASC"]);
+                        $child_model->order($orderSet);
+                    }
 
                     $bind = new Binds\SetBind($child_model->entities[$branch]->get("--parent"), $ids);
                     $child_model->filter($bind);
