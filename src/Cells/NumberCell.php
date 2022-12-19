@@ -6,6 +6,7 @@ class NumberCell extends MetaCell {
 
     protected $round = 0;
     protected $is_currency = false;
+    protected $range = false;
 
     function __construct() {
         parent::__construct();
@@ -37,6 +38,9 @@ class NumberCell extends MetaCell {
         $arr = parent::toSchema();
         $arr["type"] = "number";
         $arr["round"] = $this->round;
+        if ($this->range) {
+            $arr["range"] = true;
+        }
         return $arr;
     }
 }

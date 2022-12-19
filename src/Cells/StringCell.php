@@ -8,6 +8,7 @@ class StringCell extends MetaCell
     protected $list = [];
     protected $pattern;
     protected $not_pattern;
+    protected $multiple = false;
 
     public function __construct()
     {
@@ -58,6 +59,10 @@ class StringCell extends MetaCell
 
         if ($this->not_pattern) {
             $arr["not_pattern"] = $this->not_pattern;
+        }
+
+        if ($this->multiple) {
+            $arr["multiple"] = true;
         }
         return $arr;
     }

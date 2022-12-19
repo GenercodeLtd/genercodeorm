@@ -5,6 +5,7 @@ namespace GenerCodeOrm\Cells;
 class TimeCell extends MetaCell {
 
     protected $format;
+	protected $range = false;
 
 
 
@@ -29,6 +30,9 @@ class TimeCell extends MetaCell {
         $arr=parent::toSchema();
         $arr["type"] = "time";
         $arr["format"] = $this->format;
+		if ($this->range) {
+			$arr["range"] = true;
+		}
         return $arr;
     }
 
