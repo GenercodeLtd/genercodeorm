@@ -107,7 +107,7 @@ class RepositoryController extends AppController
                 $child_model->fields();
 
                 if ($child_model->root->has("--sort")) {
-                    $orderSet = new InputSet($name);
+                    $orderSet = new InputSet($branch);
                     $orderSet->data(["--sort"=>"ASC"]);
                     $child_model->order($orderSet);
                 }
@@ -127,7 +127,7 @@ class RepositoryController extends AppController
                     $child_model->fields();
 
                     if ($child_model->root->has("--sort")) {
-                        $orderSet = new InputSet($name);
+                        $orderSet = new InputSet($leaf);
                         $orderSet->data(["--sort"=>"ASC"]);
                         $child_model->order($orderSet);
                     }

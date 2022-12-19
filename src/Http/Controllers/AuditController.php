@@ -41,7 +41,8 @@ class AuditController extends AppController
 
         $hist = [];
         foreach($rows as $row) {
-            foreach($row as $key=>$val) {
+            $log = json_decode($row->log, true);
+            foreach($log as $key=>$val) {
                 $hist[$key] = $val;
             }
         }
@@ -72,6 +73,21 @@ class AuditController extends AppController
 
         $obj = $model->setFromEntity()->first();
         return ($obj) ? true : false;
+    }
+
+
+    public function getAllDeletedSince($date) {
+        $model = $this->model("audit");
+
+        $where = new InputSet("audit");
+        $where->addData("action", "DELETE");
+        $where->addData("--created", ["min"=>$date]);
+
+        $dataSet = new DataSet("audit");
+        $dataSet->data($where);
+        $dataSet->validate();
+
+        return $model->setFromEntity()->get()->toArray();
     }
 
 
