@@ -54,14 +54,14 @@ class ModelController extends AppController
                 $model->where($bind->cell->name, "=", $bind->value);
 
                 if (isset($binds["--parent"])) {
-                    $model->where("--parent", "=", $binds["--parent"]->value);
+                    $model->where($binds["--parent"]->cell->name, "=", $binds["--parent"]->value);
                 }
 
                 if (isset($binds["--id"])) {
-                    $model->where("--id", "!=", $binds["--id"]->value);
+                    $model->where($binds["--id"]->cell->name, "!=", $binds["--id"]->value);
                 }
 
-                $res = $model->take(1)->get();
+                $res = $model->setFromEntity()->take(1)->get();
                 if (count($res) > 0) {
                     throw new Exceptions\UniqueException($alias, $data->$alias);
                 }
@@ -151,6 +151,67 @@ class ModelController extends AppController
         $arr["--id"] = $id;
 
         return $this->trigger($name, "post", $arr);
+    }
+
+
+    public function importFromCSV($name, Fluent $params)
+    {
+        $this->checkPermission($name, "post");
+
+        $model= $this->model($name);
+      
+        $data = new DataSet($model);
+
+        $fileHandler = $this->app->make(FileHandler::class);
+
+        $headers = $params["headers"];
+
+        $asset = new Binds\AssetBind($cell, $_FILES["upload-csv"]);
+        $asset->validate("Create " . $name);
+
+        $csv = new ImportCSV($asset);
+        $csv->headers($headers);
+
+        if ($model->root->has("--owner")) {
+            $bind = new Binds\SimpleBind($model->root->get("--owner"), $this->profile->id);
+            $data->addBind("--parent", $bind);
+        } else if ($model->root->has("--parent")) {
+            $bind = new Binds\SimpleBind($model->root->get("--parent"), $params["--parent"]);
+            $data->addBind("--parent", $bind);
+        }
+
+        foreach ($model->root->cells as $alias=>$cell) {
+            if (!$cell->system) {
+                $bind = new Binds\SimpleBind($cell);
+                if (isset($params[$alias])) {
+                    $bind->value = $params[$alias];
+                }
+                $data->addBind($alias, $bind);
+            } elseif (strpos($alias, "--owner") and $this->secure) {
+                $bind = new Binds\SimpleBind($cell, $this->secure);
+                $data->addBind($alias, $bind);
+            }
+        }
+
+
+        $model->insertStmt($data->toCellArr());
+
+
+        $rows = 0;
+        $errs = 0;
+        while($arr = $csv->next()) {
+            $data->apply($arr);
+            try {
+                $data->validate();
+                $this->checkUniques($name, $data);
+                ++$rows;
+            } catch(\Exception $e) {
+                ++$errs;
+            }
+            $model->execute($data);
+        }
+
+        return ["success"=>$rows, "failure"=>$errs];
     }
 
 
