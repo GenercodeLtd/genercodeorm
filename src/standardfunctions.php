@@ -14,8 +14,6 @@ function regAutoload($namespace, $base) {
             if (file_exists($file)) {
                 require_once($file);
                 return;
-            } else {
-                echo "Can't find file " . $file;
             }
         }
     });
