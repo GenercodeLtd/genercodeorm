@@ -98,6 +98,12 @@ final class ImportCsvTest extends TestCase
             return $app->get("session");
         });
 
+
+        $container->singleton('filesystem.disk', function ($app) {
+            return $app['filesystem']->disk("s3");
+        });
+
+
         
         //$container->instance("entity_factory", new \PressToJam\EntityFactory());
 
@@ -110,7 +116,7 @@ final class ImportCsvTest extends TestCase
 
     public function testBulkImport() {
         $controller = $this->app->make(ModelController::class);
-        $controller->importFromCSV("primary-business", new Fluent([]));
+        $controller->importFromCSV("primary-business", new Fluent(["headers"=>["company-type"=>"Company_type"]]));
     }
 
 }

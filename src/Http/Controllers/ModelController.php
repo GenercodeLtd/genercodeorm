@@ -11,6 +11,7 @@ use \GenerCodeOrm\Binds as Binds;
 use \GenerCodeOrm\Model;
 use \GenerCodeOrm\FileHandler;
 use \GenerCodeOrm\Cells as Cells;
+use \GenerCodeOrm\ImportCSV;
 
 
 class ModelController extends AppController
@@ -166,11 +167,14 @@ class ModelController extends AppController
 
         $headers = $params["headers"];
 
-        $asset = new Binds\AssetBind($cell, $_FILES["upload-csv"]);
-        $asset->validate("Create " . $name);
+        if (!isset($_FILES['upload-csv']) OR !$_FILES['upload-csv']["size"]) {
+            throw new \Exception("Must upload a csv file");
+        }
+        //$asset = new Binds\AssetBind($cell, $_FILES["upload-csv"]);
+        //$asset->validate("Create " . $name);
 
-        $csv = new ImportCSV($asset);
-        $csv->headers($headers);
+        $csv = new ImportCSV($headers, $_FILES["upload-csv"]["tmp_name"]);
+        
 
         if ($model->root->has("--owner")) {
             $bind = new Binds\SimpleBind($model->root->get("--owner"), $this->profile->id);
@@ -194,7 +198,7 @@ class ModelController extends AppController
         }
 
 
-        $model->insertStmt($data->toCellArr());
+        $model->insertStmt($data->toCellNameArr());
 
 
         $rows = 0;
@@ -208,6 +212,7 @@ class ModelController extends AppController
             } catch(\Exception $e) {
                 ++$errs;
             }
+            
             $model->execute($data);
         }
 
