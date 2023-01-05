@@ -198,25 +198,29 @@ class ModelController extends AppController
         }
 
 
-        $model->insertStmt($data->toCellNameArr());
+        $model->setFromEntity(true)->insertStmt($data->toCellNameArr());
 
 
         $rows = 0;
         $errs = 0;
+        $err_details = [];
         while($arr = $csv->next()) {
             $data->apply($arr);
             try {
                 $data->validate();
                 $this->checkUniques($name, $data);
+                $model->execute($data);
                 ++$rows;
             } catch(\Exception $e) {
+                $err_details[] = [
+                    "data" => $arr,
+                    "err" => $e->getMessage()
+                ];
                 ++$errs;
             }
-            
-            $model->execute($data);
         }
 
-        return ["success"=>$rows, "failure"=>$errs];
+        return ["success"=>$rows, "failure"=>$errs, "failure_details"=>$err_details];
     }
 
 
