@@ -76,12 +76,27 @@ class AuditController extends AppController
     }
 
 
-    public function getAllDeletedSince($date) {
+    public function getAllDeletedSince($date, $name) {
         $model = $this->model("audit");
 
         $where = new InputSet("audit");
         $where->addData("action", "DELETE");
+        $where->addData("model", $name);
         $where->addData("--created", ["min"=>$date]);
+
+        $dataSet = new DataSet("audit");
+        $dataSet->data($where);
+        $dataSet->validate();
+
+        return $model->setFromEntity()->get()->toArray();
+    }
+
+
+    public function getAll($name) {
+        $model = $this->model("audit");
+
+        $where = new InputSet("audit");
+        $where->addData("model", $name);
 
         $dataSet = new DataSet("audit");
         $dataSet->data($where);
