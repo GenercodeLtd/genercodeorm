@@ -84,7 +84,7 @@ class AuditController extends AppController
         $where->addData("model", $name);
         $where->addData("--created", ["min"=>$date]);
 
-        $dataSet = new DataSet("audit");
+        $dataSet = new DataSet($model);
         $dataSet->data($where);
         $dataSet->validate();
 
@@ -101,11 +101,15 @@ class AuditController extends AppController
         $where->addData("model", $name);
         $where->addData("model-id", $id);
 
-        $dataSet = new DataSet("audit");
+        $dataSet = new DataSet($model);
         $dataSet->data($where);
         $dataSet->validate();
 
         $model->filterBy($dataSet);
+
+        $orderSet = new InputSet("audit");
+        $orderSet->data(["--created"=>"ASC"]);
+        $model->order($orderSet);
 
         return $model->setFromEntity()->get()->toArray();
     }
