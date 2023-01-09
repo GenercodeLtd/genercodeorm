@@ -88,19 +88,24 @@ class AuditController extends AppController
         $dataSet->data($where);
         $dataSet->validate();
 
+        $model->filterBy($dataSet);
+
         return $model->setFromEntity()->get()->toArray();
     }
 
 
-    public function getAll($name) {
+    public function getAll($name, $id) {
         $model = $this->model("audit");
 
         $where = new InputSet("audit");
         $where->addData("model", $name);
+        $where->addData("model-id", $id);
 
         $dataSet = new DataSet("audit");
         $dataSet->data($where);
         $dataSet->validate();
+
+        $model->filterBy($dataSet);
 
         return $model->setFromEntity()->get()->toArray();
     }
