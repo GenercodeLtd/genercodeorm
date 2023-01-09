@@ -20,7 +20,7 @@ abstract class Job extends \Illuminate\Queue\Jobs\Job
     protected $progress = "pending";
     protected $message = "";
     protected $id = 0;
-    protected $is_fifo = false;
+   
    
     public function __construct(Container $app)
     {
@@ -49,7 +49,7 @@ abstract class Job extends \Illuminate\Queue\Jobs\Job
     }
 
     public function getRawBody() {
-        return $this->data;
+        return json_encode($this->data);
     }
 
 
@@ -120,14 +120,16 @@ abstract class Job extends \Illuminate\Queue\Jobs\Job
 
 
     function dispatch() {
+        $name = get_class($this);
         $model = $this->getModel();
         $root = $model->root;
         $params  = [
             "user-login-id"=>$this->profile->id,
-            "name"=>$this->profile->name,
+            "name"=>$name,
             "data"=>json_encode($this->data),
             "progress"=>"PENDING"
         ];
+
 
         $data = new \GenerCodeOrm\DataSet($model);
         foreach($model->root->cells as $alias=>$cell) {
@@ -141,8 +143,8 @@ abstract class Job extends \Illuminate\Queue\Jobs\Job
 
         $this->id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
 
-        $queue = $app->get("queue");
-        $queue->push($job);
+        $queue = $this->app->get("queue");
+        $queue->push($this);
         return $this->id;
     }
 
