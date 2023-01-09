@@ -142,7 +142,7 @@ abstract class Job extends \Illuminate\Queue\Jobs\Job
         $this->id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
 
         $queue = $app->get("queue");
-        $queue->popOn($job);
+        $queue->push($job);
         return $this->id;
     }
 
