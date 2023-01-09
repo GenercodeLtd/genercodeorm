@@ -105,11 +105,15 @@ class AuditController extends AppController
         $dataSet->data($where);
         $dataSet->validate();
 
+        $model->fields();
+
         $model->filterBy($dataSet);
 
         $orderSet = new InputSet("audit");
         $orderSet->data(["--created"=>"ASC"]);
         $model->order($orderSet);
+
+        
 
         $results = $model->setFromEntity()->get()->toArray();
         foreach($results as $key=>$result) {
