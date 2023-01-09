@@ -111,7 +111,11 @@ class AuditController extends AppController
         $orderSet->data(["--created"=>"ASC"]);
         $model->order($orderSet);
 
-        return $model->setFromEntity()->get()->toArray();
+        $results = $model->setFromEntity()->get()->toArray();
+        foreach($results as $key=>$result) {
+            $results[$key]->log = json_decode($result->log);
+        }
+        return $results;
     }
 
 
