@@ -1,6 +1,7 @@
 <?php
 
 namespace GenerCodeOrm\Queues;
+use \GenerCodeOrm\Model;
 
 class Feedback {
 
@@ -14,13 +15,12 @@ class Feedback {
         return app()->makeWith(Model::class, ["name"=>"queue"]);
     }
 
-    function create($name) {
+    function create() {
         $profile = app()->get("profile");
         $model = $this->getModel();
     
         $params  = [
             "user-login-id"=>$profile->id,
-            "name"=>$name,
             "progress"=>"PENDING"
         ];
 
