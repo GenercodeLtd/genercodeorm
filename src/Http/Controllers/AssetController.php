@@ -44,7 +44,7 @@ class AssetController extends AppController
 
         $cell = $model->root->get($alias);
 
-        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler = app()->make(FileHandler::class);
         $asset = new Binds\AssetBind($cell, $file);
         $asset->validate("Create " . $name);
         $file_name = $fileHandler->uploadFile($asset);
@@ -75,7 +75,7 @@ class AssetController extends AppController
 
             $cell->validateSize($_FILES[$field]["size"]);
 
-            $fileHandler = $this->app->make(FileHandler::class);
+            $fileHandler = app()->make(FileHandler::class);
             $fileHandler->put($src, file_get_contents($_FILES[$field]["tmp_name"]));
         }
         return $src;
@@ -90,7 +90,7 @@ class AssetController extends AppController
 
         $src = $this->fetchSrc($model, $name, $field, $id);
         if ($src) {
-            $fileHandler = $this->app->make(FileHandler::class);
+            $fileHandler = app()->make(FileHandler::class);
             return $fileHandler->get($src);
         } else {
             return "";
@@ -102,11 +102,11 @@ class AssetController extends AppController
     {
         $this->checkPermission($name, "delete");
 
-        $model= $this->app->makeWith(Model::class, ["name"=>$name, "factory"=>$this->profile->factory]);
+        $model= app()->makeWith(Model::class, ["name"=>$name, "factory"=>$this->profile->factory]);
 
         $src = $this->fetchSrc($model, $name, $field, $id);
 
-        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler = app()->make(FileHandler::class);
         return $fileHandler->delete($src);
     }
 
@@ -119,7 +119,7 @@ class AssetController extends AppController
 
         if (!$src) return false;
         
-        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler = app()->make(FileHandler::class);
         return $fileHandler->exists($src);
     }
 }

@@ -5,11 +5,10 @@ use \Illuminate\Container\Container;
 
 class Hooks extends Factory {
 
-    protected $app;
     
-    function __construct(Container $app) {
-        if ($app->config->has("hooks")) $this->loadHooks($app->config->get("hooks"));
-        $this->app = $app;
+    function __construct() {
+        $config = app()->get("config");
+        if ($config->has("hooks")) $this->loadHooks($config->get("hooks"));
     }
 
     function loadHooks(array $arr) {
@@ -25,7 +24,7 @@ class Hooks extends Factory {
 	{
         $action = $name . "." . strtolower($method);
 		if (isset($this->products[$action])) {
-            return ($this->products[$action])($this->app, $method, $data);
+            return ($this->products[$action])($method, $data);
 		} else {
             return $data;
         }

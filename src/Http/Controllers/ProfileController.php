@@ -71,7 +71,7 @@ class ProfileController extends AppController {
             throw new Exceptions\PtjException("Cannot login to profile " . $type);
         }
 
-        $request = $this->app->get("request");
+        $request = app()->get("request");
 
         $repo = $this->model("users");
         $repo->select("id", "password");
@@ -85,7 +85,7 @@ class ProfileController extends AppController {
         $dataSet->data($inputSet);
         $dataSet->validate();
 
-        $auth = $this->app->get("auth");
+        $auth = app()->get("auth");
         if ($auth->attempt(["email"=>$request->input("email"), "type"=>$type, "password"=>$request->input("password")])) {
             $user = $auth->user();
             $response->setContent(json_encode(["--id"=>$user->getAuthIdentifier()]));
@@ -98,7 +98,7 @@ class ProfileController extends AppController {
 
 
     function logout($request, $response) {
-        $auth = $this->app->get("auth");
+        $auth = app()->get("auth");
         $auth->logout();
         $response->setContent(json_encode("success"));
         return $response;
@@ -153,6 +153,6 @@ class ProfileController extends AppController {
 
  
     public function getSitemap() {
-        return $this->profile->getSitemap($this->app->get("entity_factory"));
+        return $this->profile->getSitemap(app()->get("entity_factory"));
     }
 }

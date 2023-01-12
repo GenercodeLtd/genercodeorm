@@ -35,7 +35,7 @@ class ReportsController extends AppController
 
         if (isset($arr["__agg"])) {
             $set = new InputSet($name);
-            $set->data($arr[""])
+            $set->data($arr[""]);
         }
     }
 

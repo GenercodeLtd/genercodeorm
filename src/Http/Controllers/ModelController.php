@@ -108,7 +108,7 @@ class ModelController extends AppController
       
         $data = new DataSet($model);
 
-        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler = app()->make(FileHandler::class);
 
         if ($model->root->has("--owner")) {
             $bind = new Binds\SimpleBind($model->root->get("--owner"), $this->profile->id);
@@ -163,7 +163,7 @@ class ModelController extends AppController
       
         $data = new DataSet($model);
 
-        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler = app()->make(FileHandler::class);
 
         $headers = $params["headers"];
 
@@ -325,7 +325,7 @@ class ModelController extends AppController
         $this->checkPermission($name, "delete");
 
         $model= $this->model($name);
-        $fileHandler = $this->app->make(FileHandler::class);
+        $fileHandler = app()->make(FileHandler::class);
 
         $secure_id = 0;
         if (!$this->profile->allowedAdminPrivilege($name)) {

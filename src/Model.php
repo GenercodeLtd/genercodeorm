@@ -21,8 +21,9 @@ class Model extends Builder
     protected $active = [];
     protected $entity_factory;
   
-    public function __construct(Container $app, string $name)
+    public function __construct(string $name)
     {
+        $app = app();
         parent::__construct($app->make(\Illuminate\Database\DatabaseManager::class)->connection());
         $this->entity_factory = $app->get("entity_factory");
         $this->root = $this->load($name);

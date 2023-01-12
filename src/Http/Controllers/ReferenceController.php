@@ -36,7 +36,7 @@ class ReferenceController extends AppController
 
     public function getReferenceEntity($name) : \GenerCodeOrm\Entity
     {
-        return ($this->app->get("entity_factory"))->create($name);
+        return (app()->get("entity_factory"))->create($name);
     }
 
 

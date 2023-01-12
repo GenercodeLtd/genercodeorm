@@ -15,9 +15,8 @@ class AppController
     protected \GenerCodeOrm\Profile $profile;
 
     public function __construct(
-        Container $app
     ) {
-        $this->app = $app;
+        $app = app();
         $this->profile = $app->get("profile");
        // var_dump($this->profile);
        // exit;
@@ -37,6 +36,6 @@ class AppController
     }
 
     protected function model($name) {
-        return $this->app->makeWith(Model::class, ["name"=>$name]);
+        return app()->makeWith(Model::class, ["name"=>$name]);
     }
 }

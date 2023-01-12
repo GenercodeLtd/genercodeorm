@@ -9,9 +9,9 @@ class FileHandler
 {
     protected $disk;
 
-    public function __construct(Container $app)
+    public function __construct()
     {
-        $this->disk = $app->get("filesystem.disk");
+        $this->disk = app()->get("filesystem.disk");
     }
 
 

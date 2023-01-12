@@ -18,7 +18,7 @@ class RepositoryController extends AppController
 {
     private function findChildLeaves(array $children, Entity $entity = null)
     {
-        $factory =  $this->app->get("entity_factory");
+        $factory =  app()->get("entity_factory");
         if (!$entity) {
             $entity = $this->entities[""];
         }
@@ -81,7 +81,7 @@ class RepositoryController extends AppController
 
     private function addChildren($name, $model, $children, &$rows)
     {
-        $factory =  $this->app->get("entity_factory");
+        $factory =  app()->get("entity_factory");
         if (!is_array($children)) {
             $children = [$children];
         }
