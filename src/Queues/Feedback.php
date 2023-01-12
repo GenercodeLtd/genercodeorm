@@ -50,4 +50,8 @@ class Feedback {
         return $model->setFromEntity()->delete();
     }
 
+    public function getId() {
+        return $this->id;
+    }
+
 }
