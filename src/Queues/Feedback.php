@@ -42,13 +42,13 @@ class Feedback {
 
     public function update($status) {
         $model = $this->getModel();
-        $model->where("id", "=", $this->id);
+        $model->where("name", "=", $this->id);
         return $model->setFromEntity()->update(["progress"=>$status]);
     }
 
     public function clear() {
         $model = $this->getModel();
-        $model->where("id", "=", $this->id);
+        $model->where("name", "=", $this->id);
         return $model->setFromEntity()->delete();
     }
 
