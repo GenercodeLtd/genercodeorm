@@ -5,11 +5,11 @@ use \GenerCodeOrm\Model;
 
 class Feedback {
 
-    protected $id = 0;
+    protected $name = 0;
 
-    function __construct($id) {
-        $this->id = $id;
-        $this->create();
+    function __construct($name, $id = null) {
+        $this->name = $name;
+        if (!$id) $this->create();
     }
 
     function getModel() {
@@ -22,7 +22,7 @@ class Feedback {
     
         $params  = [
             "user-login-id"=>$profile->id,
-            "name" => $this->id,
+            "name" => $this->name,
             "progress"=>"PENDING"
         ];
 
