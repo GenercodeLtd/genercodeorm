@@ -7,7 +7,8 @@ class Feedback {
 
     protected $id = 0;
 
-    function __construct() {
+    function __construct($id) {
+        $this->id = $id;
         $this->create();
     }
 
@@ -21,6 +22,7 @@ class Feedback {
     
         $params  = [
             "user-login-id"=>$profile->id,
+            "name" => $this->id,
             "progress"=>"PENDING"
         ];
 
@@ -35,7 +37,7 @@ class Feedback {
 
         $data->validate();
 
-        $this->id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
+        $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
     }
 
     public function update($status) {
