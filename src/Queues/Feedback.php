@@ -6,10 +6,12 @@ use \GenerCodeOrm\Model;
 class Feedback {
 
     protected $name = 0;
+    protected $id;
 
     function __construct($name, $id = null) {
         $this->name = $name;
         if (!$id) $this->create();
+        else $this->id = $id;
     }
 
     function getModel() {
@@ -37,7 +39,7 @@ class Feedback {
 
         $data->validate();
 
-        $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
+        $this->id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
     }
 
     public function update($status) {
