@@ -8,8 +8,7 @@ class Feedback {
     protected $name = 0;
     protected $id;
 
-    function __construct($name, $id = null) {
-        $this->name = $name;
+    function __construct($id = null) {
         if (!$id) $this->create();
         else $this->id = $id;
     }
@@ -24,7 +23,6 @@ class Feedback {
     
         $params  = [
             "user-login-id"=>$profile->id,
-            "name" => $this->name,
             "progress"=>"PENDING"
         ];
 
