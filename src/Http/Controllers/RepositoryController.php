@@ -277,9 +277,7 @@ class RepositoryController extends AppController
         $model->take(1);
 
         $res = $model->setFromEntity()->get()->first();
-        if ($res === null) {
-            $res = new \StdClass();
-        } else {
+        if ($res) {
             if (isset($params["__children"])) {
                 $arr = [$res];
                 $this->addChildren($name, $model, $params["__children"], $arr);

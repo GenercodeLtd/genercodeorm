@@ -51,7 +51,7 @@ class Feedback {
     public function clear() {
         $model = $this->getModel();
         $model->where("id", "=", $this->id);
-        return $model->setFromEntity()->delete();
+        return $model->setFromEntity(true)->delete();
     }
 
     public function getId() {
