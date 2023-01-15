@@ -42,7 +42,7 @@ class ModelController extends AppController
     }
 
 
-    protected function checkUniques($name, \GenerCodeOrm\DataSet $data, $id_bind)
+    protected function checkUniques($name, \GenerCodeOrm\DataSet $data, $id_bind = null)
     {
         $binds = $data->getBinds();
         foreach ($binds as $alias=>$bind) {
