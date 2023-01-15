@@ -42,7 +42,7 @@ class ModelController extends AppController
     }
 
 
-    protected function checkUniques($name, \GenerCodeOrm\DataSet $data)
+    protected function checkUniques($name, \GenerCodeOrm\DataSet $data, $id_bind)
     {
         $binds = $data->getBinds();
         foreach ($binds as $alias=>$bind) {
@@ -58,8 +58,8 @@ class ModelController extends AppController
                     $model->where($binds["--parent"]->cell->name, "=", $binds["--parent"]->value);
                 }
 
-                if (isset($binds["--id"])) {
-                    $model->where($binds["--id"]->cell->name, "!=", $binds["--id"]->value);
+                if ($id_bind) {
+                    $model->where($id_bind->cell->name, "!=", $id_bind->value);
                 }
 
                 $res = $model->setFromEntity()->take(1)->get();
@@ -266,7 +266,7 @@ class ModelController extends AppController
         }
 
         $data->validate($name);
-        $this->checkUniques($name, $data);
+        $this->checkUniques($name, $data, $bind);
         //mayby audit here
 
         if ($model->root->hasAudit()) {
