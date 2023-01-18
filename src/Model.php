@@ -18,6 +18,7 @@ class Model extends Builder
     protected \GenerCodeOrm\Builder\Structure $structure;
     protected \GenerCodeOrm\Builder\Fields $fields_manager;
     protected \GenerCodeOrm\Builder\Filter $filter;
+    protected \GenerCodeOrm\Builder\HavingFilter $having;
     protected $active = [];
     protected $entity_factory;
   
@@ -32,6 +33,7 @@ class Model extends Builder
         $this->structure = new \GenerCodeOrm\Builder\Structure($this);
         $this->fields_manager = new \GenerCodeOrm\Builder\Fields($this);
         $this->filter = new \GenerCodeOrm\Builder\Filter($this);
+        $this->having = new \GenerCodeOrm\Builder\HavingFilter($this);
     }
 
     public function __set($key, $val)
@@ -107,9 +109,9 @@ class Model extends Builder
     }
 
 
-    public function fields(?InputSet $fields = null)
+    public function fields(?InputSet $fields = null, ?InputValues $aggregates = null)
     {
-        ($this->fields_manager)($fields);
+        ($this->fields_manager)($fields, true, $aggregates);
         return $this;
     }
 
@@ -123,6 +125,7 @@ class Model extends Builder
         $this->filter->filter($bind);
         return $this;
     }
+    
 
     public function order(InputSet $aliases) {
         $data = $aliases->getData();
@@ -137,6 +140,15 @@ class Model extends Builder
     
 
     public function filterBy(\GenerCodeOrm\DataSet $set) {
+        $binds = $set->getBinds();
+        foreach($binds as $bind) {
+            $this->filter->filter($bind);
+        }
+        return $this;
+    }
+
+
+    public function having(\GenerCodeOrm\DataSet $set) {
         $binds = $set->getBinds();
         foreach($binds as $bind) {
             $this->filter->filter($bind);

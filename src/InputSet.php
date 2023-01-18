@@ -102,4 +102,11 @@ class InputSet
     public function getValues($slug) {
         return (!isset($this->data[$slug])) ? null : $this->data[$slug];
     }
+
+    public function hasKey($key, $slug = null) {
+        if (!$slug) $slug = $this->slug;
+        if (!isset($this->data[$slug])) return false;
+        if (!isset($this->data[$slug][$key])) return false;
+    }
+
 }
