@@ -83,7 +83,7 @@ class Fields
     }
 
 
-    public function __invoke(?\GenerCodeOrm\InputSet $fields = null, $include_references = true, ?\GenerCodeOrm\InputValues $aggregrates = null)
+    public function __invoke(?\GenerCodeOrm\InputSet $fields = null, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
     {
         for ($i=0; $i<count($this->model->active); ++$i) {
             $slug = array_keys($this->model->active)[$i];
