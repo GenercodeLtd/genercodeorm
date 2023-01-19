@@ -148,7 +148,7 @@ class Model extends Builder
     }
 
 
-    public function having(\GenerCodeOrm\DataSet $set) {
+    public function havingBy(\GenerCodeOrm\DataSet $set) {
         $binds = $set->getBinds();
         foreach($binds as $bind) {
             $this->filter->filter($bind);

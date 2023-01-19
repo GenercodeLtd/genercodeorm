@@ -122,7 +122,7 @@ class ReportsController extends AppController
     }
 
 
-    public function getAggregte(string $name, Fluent $params)
+    public function getAggregate(string $name, string $field, string $agg, Fluent $params)
     {
         $this->checkPermission($name, "get");
 
