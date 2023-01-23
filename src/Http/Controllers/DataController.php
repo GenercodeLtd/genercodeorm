@@ -1,8 +1,8 @@
 <?php
 
-namespace GenerCodeOrm;
+namespace GenerCodeOrm\Http\Controllers;
 
-class DataValidator {
+class DataController extends AppController {
 
 
     protected function validateChild(string $name, ?Binds\Bind $parent = null) {
