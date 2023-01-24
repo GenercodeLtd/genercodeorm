@@ -18,7 +18,7 @@ class DataController extends AppController {
 
 
     protected function getEntity($name) {
-        return app()->get("factory")->create($name);
+        return app()->get("entity_factory")->create($name);
     }
 
 
