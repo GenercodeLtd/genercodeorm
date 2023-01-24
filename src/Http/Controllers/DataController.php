@@ -29,27 +29,32 @@ class DataController extends AppController {
     public function validate(string $name = null, int $parent_id = 0)
     {
         $children = [];
-        $bind = null;
         if ($name) {
-            $this->checkPermission($name, "get");
             $entity = $this->getEntity($name);
             $children = $entity->get("--id")->reference;
-            $bind = new Binds\SimpleBind($entity->get("--parent"), $parent_id);
         } else {
             $children = app()->get("entity_factory")::getRootEntities();
         }
 
         $checks = [];
         foreach($children as $slug) {
+            try {
+                $this->checkPermission($slug, "get");
+            } catch(\Exception $e) {
+                continue; //just continue if no permission
+            }
+            
             $child_entity = $this->getEntity($slug);
-            if ($child_entity->min_rows OR $child_entity->max_rows) {
-                $cbind = null;
-                if ($child_entity->has("--owner")) {
-                    $cbind = new Binds\SimpleBind($child_entity->get("--owner"), $this->profile->id);
-                }
+            $child_entity->alias = "t1";
 
-                $ibind = ($cbind) ? $cbind : $bind;
-                $checks[$slug] = $this->validateChild($slug, $ibind);
+            if ($child_entity->min_rows OR $child_entity->max_rows) {
+                $bind = null;
+                if ($child_entity->has("--owner")) {
+                    $bind = new Binds\SimpleBind($child_entity->get("--owner"), $this->profile->id);
+                } else if ($child_entity->has("--parent")) {
+                    $bind = new Binds\SimpleBind($child_entity->get("--parent"), $parent_id);
+                }
+                $checks[$slug] = $this->validateChild($slug, $bind);
             } 
         }
 
