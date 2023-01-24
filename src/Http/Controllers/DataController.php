@@ -6,7 +6,7 @@ use \GenerCodeOrm\Binds;
 class DataController extends AppController {
 
 
-    protected function validateChild(string $name, ?Binds\Bind $bind = null) {
+    protected function validateChild(string $name, ?Binds\SimpleBind $bind = null) {
         $model= $this->model($name);
         $model->select($model->raw("count(" . $name . ") as 'count'"))
         ->setFromEntity()
@@ -31,8 +31,7 @@ class DataController extends AppController {
             $this->checkPermission($name, "get");
             $entity = $this->getEntity($name);
             $children = $entity->get("--id")->reference;
-            $bind = new Binds\Bind($entity->get("--parent"));
-            $bind->value = $parent_id;
+            $bind = new Binds\SimpleBind($entity->get("--parent"), $parent_id);
         } else {
             $children = app()->get("entity_factory")::getRootEntities();
         }
@@ -43,8 +42,7 @@ class DataController extends AppController {
             if ($child_entity->min_rows OR $child_entity->max_rows) {
                 $cbind = null;
                 if ($child_entity->has("--owner")) {
-                    $cbind = new Binds\Bind($child_entity->get("--owner"));
-                    $cbind->value = $this->profile->id;
+                    $cbind = new Binds\SimpleBind($child_entity->get("--owner"), $this->profile->id);
                 }
 
                 $ibind = ($cbind) ? $cbind : $bind;
