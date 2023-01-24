@@ -33,7 +33,7 @@ class DataController extends AppController {
             $bind = new Binds\Bind($entity->get("--parent"));
             $bind->value = $parent_id;
         } else {
-            $children = app()->get("factory")::getRootEntities();
+            $children = app()->get("entity_factory")::getRootEntities();
         }
 
         $checks = [];
