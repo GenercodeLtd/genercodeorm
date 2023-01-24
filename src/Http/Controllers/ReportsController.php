@@ -72,7 +72,7 @@ class ReportsController extends AppController
 
 
     private function setParams($model, array $params) {
-        $where = $this->getWhere($model->name, $params->toArray());
+        $where = $this->getWhere($model->name, $params);
 
         $dataSet = new DataSet($model);
         $dataSet->data($where);
@@ -80,7 +80,7 @@ class ReportsController extends AppController
 
         $model->filterBy($dataSet);
 
-        $having = $this->getHaving($model->name, $params->toArray());
+        $having = $this->getHaving($model->name, $params);
         $dataSet = new DataSet($model);
         $dataSet->data($having);
         $dataSet->validate();
