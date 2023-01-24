@@ -114,9 +114,8 @@ class ReportsController extends AppController
         
 
         $id = $model->root->get("--id");
-        $name = ($model->use_alias) ? $model->root->alias . "." . $id->name : $id->name;
         $res = $model->setFromEntity()
-        ->select($model->raw("count(" . $name . ") as 'count'"))
+        ->select($model->raw("count(" . $id->getDBAlias() . ") as 'count'"))
         ->toArray();
         return $this->trigger($name, "report-get", $res);
     }
