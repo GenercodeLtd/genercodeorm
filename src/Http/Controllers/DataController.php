@@ -8,7 +8,11 @@ class DataController extends AppController {
 
     protected function validateChild(string $name, ?Binds\SimpleBind $bind = null) {
         $model= $this->model($name);
-        $model->select($model->raw("count(" . $name . ") as 'count'"))
+
+        $id = $model->root->get("--id");
+        $id_name = ($model->use_alias) ? $model->root->alias . "." . $id->name : $id->name;
+
+        $model->select($model->raw("count(" . $id_name . ") as 'count'"))
         ->setFromEntity()
         ->take(1);
         if ($bind) {
