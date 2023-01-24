@@ -1,6 +1,7 @@
 <?php
 
 namespace GenerCodeOrm\Http\Controllers;
+use \GenerCodeOrm\Binds;
 
 class DataController extends AppController {
 
