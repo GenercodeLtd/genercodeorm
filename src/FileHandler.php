@@ -9,9 +9,9 @@ class FileHandler
 {
     protected $disk;
 
-    public function __construct()
+    public function __construct($is_cdn = false)
     {
-        $this->disk = app()->get("filesystem.disk");
+        $this->disk = ($is_cdn) ? app()->get("filesystem.cloud") : app()->get("filesystem.disk");
     }
 
 
