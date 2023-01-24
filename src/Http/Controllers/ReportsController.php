@@ -84,7 +84,7 @@ class ReportsController extends AppController
         $dataSet = new DataSet($model);
         $dataSet->data($having);
         $dataSet->validate();
-        $model->having($dataSet);
+        $model->havingBy($dataSet);
 
 
         if (isset($params["__order"])) {
