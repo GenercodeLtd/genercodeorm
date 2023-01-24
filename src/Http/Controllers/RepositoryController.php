@@ -331,8 +331,7 @@ class RepositoryController extends AppController
         $model->filterBy($dataSet);
 
         $id = $model->root->get("--id");
-        $name = ($model->use_alias) ? $model->root->alias . "." . $id->name : $id->name;
-        $model->select($model->raw("count(" . $name . ") as 'count'"))
+        $model->select($model->raw("count(" . $id->getDBAlias() . ") as 'count'"))
         ->setFromEntity()
         ->take(1);
         return  $model->get()->first();

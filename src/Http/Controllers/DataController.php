@@ -10,9 +10,8 @@ class DataController extends AppController {
         $model= $this->model($name);
 
         $id = $model->root->get("--id");
-        $id_name = ($model->use_alias) ? $model->root->alias . "." . $id->name : $id->name;
-
-        $model->select($model->raw("count(" . $id_name . ") as 'count'"))
+    
+        $model->select($model->raw("count(" . $id->getDBAlias() . ") as 'count'"))
         ->setFromEntity()
         ->take(1);
         if ($bind) {
