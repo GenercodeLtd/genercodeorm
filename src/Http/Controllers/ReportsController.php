@@ -40,6 +40,12 @@ class ReportsController extends AppController
             $model->fields($aggregates);
         }
 
+        if (isset($arr["__group"])) {
+            $set = new InputSet($name);
+            $set->data($arr["__group"]);
+            $model->order($set);
+        }
+
         
     }
 
