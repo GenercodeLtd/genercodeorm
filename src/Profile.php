@@ -66,6 +66,15 @@ class Profile {
             $route["perms"] = $details["perms"];
             $route["admin"] = $details["admin"];
             $routes[$name] = $route;
+
+            foreach($schema->cells as $cell) {
+                if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
+                    //load in this entity as well
+                    $ref_schema = ($factory)->create($cell->reference);
+                    $route = $schema->getSchema();
+                    $routes[$cell->reference] = $route;
+                }
+            }
         }
         return $routes;
     }

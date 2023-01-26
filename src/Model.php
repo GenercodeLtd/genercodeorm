@@ -139,6 +139,18 @@ class Model extends Builder
     }
     
 
+    public function group(InputSet $aliases) {
+        $data = $aliases->getData();
+        foreach($data as $vals) {
+            foreach($vals->values as $alias) {
+                $cell = $this->getCell($alias, $vals->slug);
+                $this->groupBy($cell->getDBAlias());
+            }
+        }
+        return $this;
+    }
+    
+
     public function filterBy(\GenerCodeOrm\DataSet $set) {
         $binds = $set->getBinds();
         foreach($binds as $bind) {

@@ -43,7 +43,8 @@ class ReportsController extends AppController
         if (isset($arr["__group"])) {
             $set = new InputSet($name);
             $set->data($arr["__group"]);
-            $model->order($set);
+            $model->group($set);
+            $model->fields($set);
         }
 
         
@@ -121,7 +122,7 @@ class ReportsController extends AppController
 
         $id = $model->root->get("--id");
         $res = $model->setFromEntity()
-        ->select($model->raw("count(" . $id->getDBAlias() . ") as 'count'"))
+        ->selectRaw("count(" . $id->getDBAlias() . ") as 'count'")
         ->setFromEntity()
         ->get()
         ->toArray();
