@@ -71,7 +71,7 @@ class Profile {
                 if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
                     //load in this entity as well
                     $ref_schema = ($factory)->create($cell->reference);
-                    $route = $schema->getSchema();
+                    $route = $ref_schema->getSchema();
                     $routes[$cell->reference] = $route;
                 }
             }
