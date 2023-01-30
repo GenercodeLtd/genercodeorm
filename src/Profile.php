@@ -70,9 +70,11 @@ class Profile {
             foreach($schema->cells as $cell) {
                 if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
                     //load in this entity as well
-                    $ref_schema = ($factory)->create($cell->reference);
-                    $route = $ref_schema->getSchema();
-                    $routes[$cell->reference] = $route;
+                    if (!isset($routes[$cell->reference])) {
+                        $ref_schema = ($factory)->create($cell->reference);
+                        $route = $ref_schema->getSchema();
+                        $routes[$cell->reference] = $route;
+                    }
                 }
             }
         }
