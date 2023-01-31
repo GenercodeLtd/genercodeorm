@@ -1,7 +1,7 @@
 <?php
 
 namespace GenerCodeOrm\Queues;
-use \GenerCodeOrm\Model;
+use \GenerCodeOrm\Builder\Builder;
 
 class Feedback {
 
@@ -14,7 +14,7 @@ class Feedback {
     }
 
     function getModel() {
-        return app()->makeWith(Model::class, ["name"=>"queue"]);
+        return app()->makeWith(Builder::class, ["name"=>"queue"]);
     }
 
     function create() {
@@ -43,7 +43,7 @@ class Feedback {
     public function update($status) {
         $model = $this->getModel();
         $model->where("id", "=", $this->id);
-        return $model->setFromEntity()->update(["progress"=>$status]);
+        return $model->setFromEntity(true)->update(["progress"=>$status]);
     }
 
     public function clear() {

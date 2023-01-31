@@ -89,5 +89,6 @@ trait Fields
                 }
             }
         }
+        return $this;
     }
 }
