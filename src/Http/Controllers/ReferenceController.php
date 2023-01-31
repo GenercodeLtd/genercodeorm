@@ -7,14 +7,14 @@ use \GenerCodeOrm\Exceptions as Exceptions;
 use \GenerCodeOrm\DataSet;
 use \GenerCodeOrm\InputSet;
 use \GenerCodeOrm\Binds as Binds;
-use \GenerCodeOrm\Model;
+use \GenerCodeOrm\Builder\Builder;
 use \GenerCodeOrm\FileHandler;
 use \GenerCodeOrm\Cells as Cells;
 
 class ReferenceController extends AppController
 {
 
-    public function bindID(Model $model, Cells\MetaCell $cell, $id)
+    public function bindID(Builder $model, Cells\MetaCell $cell, $id)
     {
         $bind = new Binds\SimpleBind($cell, $id);
         $bind->validate();
@@ -64,7 +64,7 @@ class ReferenceController extends AppController
     }
 
 
-    public function setCommon(Model $model, string $name, $common, string $field, $id) : void
+    public function setCommon(Builder $model, string $name, $common, string $field, $id) : void
     {
         $crepo = $this->model($name);
         if (!$this->profile->allowedAdminPrivilege($name)) {
