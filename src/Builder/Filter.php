@@ -5,16 +5,9 @@ namespace GenerCodeOrm\Builder;
 use GenerCodeOrm\Cells as Cells;
 use GenerCodeOrm\Binds as Binds;
 
-class Filter
+trait Filter
 {
-    protected \GenerCodeOrm\Model $model;
-
-    public function __construct(\GenerCodeOrm\Model $model)
-    {
-        $this->model = $model;
-    }
-
-
+    
     public function filterId($alias, $bind)
     {
         $cls = get_class($bind);
@@ -106,5 +99,6 @@ class Filter
         } else {
             throw new \GenerCodeOrm\Exceptions\CellTypeException($name);
         }
+        return $this;
     }
 }

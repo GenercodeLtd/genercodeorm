@@ -5,17 +5,10 @@ namespace GenerCodeOrm\Builder;
 use GenerCodeOrm\Cells as Cells;
 use GenerCodeOrm\Binds as Binds;
 
-class HavingFilter
+trait HavingFilter
 {
-    protected \GenerCodeOrm\Model $model;
 
-    public function __construct(\GenerCodeOrm\Model $model)
-    {
-        $this->model = $model;
-    }
-
-
-    public function filterId($alias, $bind)
+    public function havingId($alias, $bind)
     {
         $cls = get_class($bind);
         if ($cls == Binds\SetBind::class) {
@@ -27,7 +20,7 @@ class HavingFilter
     }
 
 
-    public function filterTime($alias, $bind)
+    public function havingTime($alias, $bind)
     {
         $cls = get_class($bind);
         if ($cls == Binds\RangeBind::class) {
@@ -46,7 +39,7 @@ class HavingFilter
     }
 
 
-    public function filterNumber($alias, $bind)
+    public function havingNumber($alias, $bind)
     {
         $cls = get_class($bind);
         if ($cls == Binds\RangeBind::class) {
@@ -65,13 +58,13 @@ class HavingFilter
     }
 
 
-    public function filterFlag($alias, $bind)
+    public function havingFlag($alias, $bind)
     {
         $this->model->having($alias, "=", $bind->value);
     }
 
 
-    public function filterString($alias, $bind)
+    public function havingString($alias, $bind)
     {
         $cls = get_class($bind);
         if ($cls == Binds\SetBind::class) {
@@ -89,21 +82,21 @@ class HavingFilter
     }
 
 
-    public function filter(\GenerCodeOrm\Binds\Bind $bind)
+    public function having(\GenerCodeOrm\Binds\Bind $bind)
     {
         $cell = $bind->cell;
         $name = get_class($cell);
         $alias_name = $cell->getDBAlias();
         if ($name == Cells\IdCell::class) {
-            $this->filterId($alias_name, $bind);
+            $this->havingId($alias_name, $bind);
         } elseif ($name == Cells\TimeCell::class) {
-            $this->filterTime($alias_name, $bind);
+            $this->havingTime($alias_name, $bind);
         } elseif ($name == Cells\NumberCell::class) {
-            $this->filterNumber($alias_name, $bind);
+            $this->havingNumber($alias_name, $bind);
         } elseif ($name == Cells\FlagCell::class) {
-            $this->filterFlag($alias_name, $bind);
+            $this->havingFlag($alias_name, $bind);
         } elseif ($name == Cells\StringCell::class) {
-            $this->filterString($alias_name, $bind);
+            $this->havingString($alias_name, $bind);
         } else {
             throw new \GenerCodeOrm\Exceptions\CellTypeException($name);
         }

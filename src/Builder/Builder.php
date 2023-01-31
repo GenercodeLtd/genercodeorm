@@ -6,19 +6,17 @@ use Psr\Http\Message\ServerRequestInterface;
 use \Illuminate\Support\Fluent;
 use \GenerCodeOrm\Cells\MetaCell;
 use \GenerCodeOrm\Cells\ReferenceTypes;
-use \Illuminate\Database\Query\Builder;
+use \Illuminate\Database\Query\Builder as QBuilder;
 use \GenerCodeOrm\Exceptions\CellTypeException;
 use \Illuminate\Container\Container;
 
-class Model extends Builder
+class Builder extends QBuilder
 {
+    use Structure, Fields, Filter, HavingFilter;
+
     protected $stmt;
     protected $entities = [];
     protected $root;
-    protected Structure $structure;
-    protected Fields $fields_manager;
-    protected Filter $filter;
-    protected HavingFilter $having;
     protected $active = [];
     protected $entity_factory;
   
@@ -29,10 +27,6 @@ class Model extends Builder
         $this->root = $this->load($name);
         $this->entities[$name] = $this->root;
         $this->active[$name] = $this->root;
-        $this->structure = new Structure($this);
-        $this->fields_manager = new Fields($this);
-        $this->filter = new Filter($this);
-        $this->having = new HavingFilter($this);
     }
 
     public function __set($key, $val)
@@ -80,21 +74,21 @@ class Model extends Builder
 
     public function to($to)
     {
-        $this->structure->joinTo($to);
+        $this->joinTo($to);
         return $this;
     }
 
 
     public function children(?array $children = null)
     {
-        $this->structure->loadChildren($children);
+        $this->loadChildren($children);
         return $this;
     }
 
 
     public function secure($profile, $id)
     {
-       $this->structure->secureTo($profile, $id);
+       $this->secureTo($profile, $id);
        return $this;
     }
 
@@ -103,14 +97,7 @@ class Model extends Builder
     {
         $inner = (!$cell->required) ? false : true;
         $ref = $this->load($cell->reference, $cell->getSlug());
-        $this->structure->joinIn($cell, $ref->get("--id"), $inner);
-        return $this;
-    }
-
-
-    public function fields(?InputSet $fields = null, ?InputValues $aggregates = null)
-    {
-        ($this->fields_manager)($fields, true, $aggregates);
+        $this->joinIn($cell, $ref->get("--id"), $inner);
         return $this;
     }
 
@@ -120,11 +107,6 @@ class Model extends Builder
         return $this;
     }
 
-    public function filter(\GenerCodeOrm\Binds\Bind $bind) {
-        $this->filter->filter($bind);
-        return $this;
-    }
-    
 
     public function order(InputSet $aliases) {
         $data = $aliases->getData();
@@ -153,7 +135,7 @@ class Model extends Builder
     public function filterBy(\GenerCodeOrm\DataSet $set) {
         $binds = $set->getBinds();
         foreach($binds as $bind) {
-            $this->filter->filter($bind);
+            $this->filter($bind);
         }
         return $this;
     }
@@ -162,7 +144,7 @@ class Model extends Builder
     public function havingBy(\GenerCodeOrm\DataSet $set) {
         $binds = $set->getBinds();
         foreach($binds as $bind) {
-            $this->filter->filter($bind);
+            $this->having($bind);
         }
         return $this;
     }
@@ -221,7 +203,7 @@ class Model extends Builder
 
     public function copy($fields, $model)
     {
-        $this->insertUsing($this->fields, $model);
+        $this->insertUsing($fields, $model);
     }
 
    

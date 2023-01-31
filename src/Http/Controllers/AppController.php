@@ -16,11 +16,11 @@ class AppController
 
     public function __construct(
     ) {
-        $app = app();
-        $this->profile = $app->get("profile");
+        $this->app = app();
+        $this->profile = $this->app->get("profile");
        // var_dump($this->profile);
        // exit;
-        $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);
+        $this->hooks = $this->app->make(\GenerCodeOrm\Hooks::class);
     }
 
     protected function checkPermission($name, $perm)

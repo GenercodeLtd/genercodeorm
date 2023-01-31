@@ -2,32 +2,24 @@
 
 namespace GenerCodeOrm\Builder;
 
-class Fields
+trait Fields
 {
-    protected \GenerCodeOrm\Model $model;
-
-
-    public function __construct(\GenerCodeOrm\Model $model)
-    {
-        $this->model = $model;
-    }
-
-
-    protected function addAggregatorStringField($cell)
+  
+    private function addAggregatorStringField($cell)
     {
         $sql = "CONCAT_WS('" . $cell->ws . "', ";
         $sql_fields = [];
         foreach ($cell->cells as $icell) {
-            if (count($this->model->entities) > 1) $sql_fields[] = $icell->entity->alias . "." . $icell->name;
+            if (count($this->entities) > 1) $sql_fields[] = $icell->entity->alias . "." . $icell->name;
             else $sql_fields[] = $icell->name;
         }
         $sql .= implode(", ", $sql_fields);
         $sql .= ") AS '" . $cell->getSlug() . "'";
-        $this->model->addSelect($this->model->raw($sql));
+        $this->addSelect($this->raw($sql));
     }
 
 
-    protected function addAggregateField($cell, $aggregate)
+    private function addAggregateField($cell, $aggregate)
     {
         $allowed_aggs = ["sum", "min", "max", "avg"];
         if (!in_array(strtolower($aggregate), $allowed_aggs)) {
@@ -35,40 +27,40 @@ class Fields
         }
 
         $sql = $aggregate . "('" . $cell->getDBAlias() . ") as " . $cell->getSlug() . ")";
-        $this->model->addSelect($this->model->raw($sql));
+        $this->addSelect($this->raw($sql));
     }
 
 
-    protected function addField($cell)
+    private function addField($cell)
     {
-        $this->model->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
+        $this->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
     }
 
 
-    protected function applyCell($cell, ?\GenerCodeOrm\InputValues $aggregates = null) {
+    private function applyCell($cell, ?\GenerCodeOrm\InputValues $aggregates = null) {
         if (isset($aggregates->values[$cell->alias])) {
             //this is an aggregate value
             $this->addAggregateField($cell, $aggregates->values[$cell->alias]);
         } else if (get_class($cell) == \GenerCodeOrm\Cells\AggregatorStringCell::class) {
             $this->addAggregatorStringField($cell);
         } else {
-            $this->model->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
+            $this->addSelect($cell->getDBAlias() . " as " . $cell->getSlug());
         }
     }
 
 
-    protected function selectAllCells($entity, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
+    private function selectAllCells($entity, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
     {
         foreach ($entity->cells as $alias=>$cell) {
             $this->applyCell($cell, $aggregates);
             if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
-                $this->model->addReference($cell);
+                $this->addReference($cell);
             }
         }
     }
 
 
-    protected function selectCells($entity, \GenerCodeOrm\InputValues $fields, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
+    private function selectCells($entity, \GenerCodeOrm\InputValues $fields, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
     {
         foreach ($entity->cells as $alias=>$cell) {
             if (in_array($cell->alias, $fields->values)) {
@@ -76,18 +68,18 @@ class Fields
                 $this->applyCell($cell, $aggregates);
 
                 if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
-                    $this->model->addReference($cell);
+                    $this->addReference($cell);
                 }
             }
         }
     }
 
 
-    public function __invoke(?\GenerCodeOrm\InputSet $fields = null, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
+    public function fields(?\GenerCodeOrm\InputSet $fields = null, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
     {
-        for ($i=0; $i<count($this->model->active); ++$i) {
-            $slug = array_keys($this->model->active)[$i];
-            $entity = $this->model->active[$slug];
+        for ($i=0; $i<count($this->active); ++$i) {
+            $slug = array_keys($this->active)[$i];
+            $entity = $this->active[$slug];
             if (!$fields) {
                 $this->selectAllCells($entity, $include_references, $aggregates);
             } else {

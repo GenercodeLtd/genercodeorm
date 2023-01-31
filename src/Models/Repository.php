@@ -334,7 +334,7 @@ class Repository extends App
     }
 
 
-    public function applyParams($arr) {
+    public function apply($arr) {
         foreach($arr as $key=>$val) {
             if (substr($key, 0, 2) == "__") {
                 $key = substr($key, 2);

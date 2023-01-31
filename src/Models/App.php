@@ -7,8 +7,8 @@ use \GenerCodeOrm\Exceptions as Exceptions;
 
 use \GenerCodeOrm\Model;
 
-class AppController
-{
+class App {
+    
     protected $app;
     protected \GenerCodeOrm\Hooks $hooks;
     protected \GenerCodeOrm\Profile $profile;

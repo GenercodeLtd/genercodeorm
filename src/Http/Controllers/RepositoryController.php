@@ -7,14 +7,19 @@ use \GenerCodeOrm\Models\Repository;
 
 class RepositoryController extends AppController
 {
+
+    protected function buildRepo($name, $params) {
+        $repo = new Repository($this->app->make(\GenerCodeOrm\Hooks::class), $this->app->get("profile"), $name);
+        $repo->apply($params->toArray());
+        return $repo;
+    }
     
     public function get(string $name, Fluent $params)
     {
         $this->checkPermission($name, "get");
 
-        $repo = new Repository();
-        $repo->apply($params->toArray());
-        return $repo->get($name);
+        $repo = $this->buildRepo($name, $params);
+        return $repo->get();
     }
 
 
@@ -22,9 +27,8 @@ class RepositoryController extends AppController
     {
         $this->checkPermission($name, "get");
 
-        $repo = new Repository();
-        $repo->apply($params->toArray());
-        return $repo->getActive($name);
+        $repo = $this->buildRepo($name, $params);
+        return $repo->getActive();
     }
 
 
@@ -33,9 +37,8 @@ class RepositoryController extends AppController
     {
         $this->checkPermission($name, "get");
 
-        $repo = new Repository();
-        $repo->apply($params->toArray());
-        return $repo->getFirst($name);
+        $repo = $this->buildRepo($name, $params);
+        return $repo->getFirst();
     }
 
 
@@ -43,9 +46,8 @@ class RepositoryController extends AppController
     {
         $this->checkPermission($name, "get");
 
-        $repo = new Repository();
-        $repo->apply($params->toArray());
-        return $repo->getLast($name);
+        $repo = $this->buildRepo($name, $params);
+        return $repo->getLast();
     }
 
 
@@ -53,9 +55,8 @@ class RepositoryController extends AppController
     {
         $this->checkPermission($name, "get");
 
-        $repo = new Repository();
-        $repo->apply($params->toArray());
-        return $repo->count($name);
+        $repo = $this->buildRepo($name, $params);
+        return $repo->count();
     }
 
 
