@@ -9,6 +9,7 @@ use \GenerCodeOrm\Cells\ReferenceTypes;
 use \Illuminate\Database\Query\Builder as QBuilder;
 use \GenerCodeOrm\Exceptions\CellTypeException;
 use \Illuminate\Container\Container;
+use \GenerCodeOrm\InputSet;
 
 class Builder extends QBuilder
 {

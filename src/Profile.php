@@ -57,6 +57,29 @@ class Profile {
         return $this->models[$model]["admin"];
     }
 
+    function getReferenceCells($factory, $schema, &$routes) {
+        foreach($schema->cells as $cell) {
+            if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
+                //load in this entity as well
+                if (!isset($routes[$cell->reference])) {
+                    $ref_schema = ($factory)->create($cell->reference);
+                    $route = $ref_schema->getSchema();
+                    $routes[$cell->reference] = $route;
+                    $this->getReferenceCells($factory, $ref_schema, $routes);
+                }
+            }
+        }
+
+        if ($schema->has("--parent")) {
+            $parent = $schema->get("--parent");
+            if (!isset($routes[$parent->reference])) {
+                $schema = ($factory)->create($parent->reference);
+                $route = $schema->getSchema();
+                $routes[$parent->reference] = $route;
+            }
+        }
+    }
+
 
     function getSitemap($factory) {
         $routes = [];
@@ -67,16 +90,7 @@ class Profile {
             $route["admin"] = $details["admin"];
             $routes[$name] = $route;
 
-            foreach($schema->cells as $cell) {
-                if ($cell->reference_type == Cells\ReferenceTypes::REFERENCE) {
-                    //load in this entity as well
-                    if (!isset($routes[$cell->reference])) {
-                        $ref_schema = ($factory)->create($cell->reference);
-                        $route = $ref_schema->getSchema();
-                        $routes[$cell->reference] = $route;
-                    }
-                }
-            }
+            $this->getReferenceCells($factory, $schema, $routes);
         }
         return $routes;
     }
