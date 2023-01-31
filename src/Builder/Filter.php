@@ -12,9 +12,9 @@ trait Filter
     {
         $cls = get_class($bind);
         if ($cls == Binds\SetBind::class) {
-            $this->model->whereIn($alias, $bind->value);
+            $this->whereIn($alias, $bind->value);
         } else {
-            $this->model->where($alias, "=", $bind->value);
+            $this->where($alias, "=", $bind->value);
         }
     }
 
@@ -24,16 +24,16 @@ trait Filter
         $cls = get_class($bind);
         if ($cls == Binds\RangeBind::class) {
             if (isset($bind->value["min"])) {
-                $this->model->where($alias, ">=", $bind->value["min"]);
+                $this->where($alias, ">=", $bind->value["min"]);
             }
 
             if (isset($bind->value["max"])) {
-                $this->model->where($alias, "<=", $bind->value["max"]);
+                $this->where($alias, "<=", $bind->value["max"]);
             }
         } elseif ($cls == Binds\SetBind::class) {
-            $this->model->whereIn($alias, $bind->value);
+            $this->whereIn($alias, $bind->value);
         } else {
-            $this->model->where($alias, "=", $bind->value);
+            $this->where($alias, "=", $bind->value);
         }
     }
 
@@ -43,23 +43,23 @@ trait Filter
         $cls = get_class($bind);
         if ($cls == Binds\RangeBind::class) {
             if (isset($bind->value["min"])) {
-                $this->model->where($alias, ">=", $bind->value["min"]);
+                $this->where($alias, ">=", $bind->value["min"]);
             }
 
             if (isset($bind->value["max"])) {
-                $this->model->where($alias, "<=", $bind->value["max"]);
+                $this->where($alias, "<=", $bind->value["max"]);
             }
         } elseif ($cls == Binds\SetBind::class) {
-            $this->model->whereIn($alias, $bind->value);
+            $this->whereIn($alias, $bind->value);
         } else {
-            $this->model->where($alias, "=", $bind->value);
+            $this->where($alias, "=", $bind->value);
         }
     }
 
 
     public function filterFlag($alias, $bind)
     {
-        $this->model->where($alias, "=", $bind->value);
+        $this->where($alias, "=", $bind->value);
     }
 
 
@@ -76,7 +76,7 @@ trait Filter
                 }
             });
         } else {
-            $this->model->where($alias, "=", $bind->value);
+            $this->where($alias, "=", $bind->value);
         }
     }
 

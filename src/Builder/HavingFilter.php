@@ -13,9 +13,9 @@ trait HavingFilter
         $cls = get_class($bind);
         if ($cls == Binds\SetBind::class) {
             //need to set this
-            $this->model->havingIn($alias, $bind->value);
+            $this->havingIn($alias, $bind->value);
         } else {
-            $this->model->having($alias, "=", $bind->value);
+            $this->having($alias, "=", $bind->value);
         }
     }
 
@@ -25,16 +25,16 @@ trait HavingFilter
         $cls = get_class($bind);
         if ($cls == Binds\RangeBind::class) {
             if (isset($bind->value["min"])) {
-                $this->model->having($alias, ">=", $bind->value["min"]);
+                $this->having($alias, ">=", $bind->value["min"]);
             }
 
             if (isset($bind->value["max"])) {
-                $this->model->having($alias, "<=", $bind->value["max"]);
+                $this->having($alias, "<=", $bind->value["max"]);
             }
         } elseif ($cls == Binds\SetBind::class) {
-            $this->model->havingIn($alias, $bind->value);
+            $this->havingIn($alias, $bind->value);
         } else {
-            $this->model->having($alias, "=", $bind->value);
+            $this->having($alias, "=", $bind->value);
         }
     }
 
@@ -44,23 +44,23 @@ trait HavingFilter
         $cls = get_class($bind);
         if ($cls == Binds\RangeBind::class) {
             if (isset($bind->value["min"])) {
-                $this->model->having($alias, ">=", $bind->value["min"]);
+                $this->having($alias, ">=", $bind->value["min"]);
             }
 
             if (isset($bind->value["max"])) {
-                $this->model->having($alias, "<=", $bind->value["max"]);
+                $this->having($alias, "<=", $bind->value["max"]);
             }
         } elseif ($cls == Binds\SetBind::class) {
-            $this->model->havingIn($alias, $bind->value);
+            $this->havingIn($alias, $bind->value);
         } else {
-            $this->model->having($alias, "=", $bind->value);
+            $this->having($alias, "=", $bind->value);
         }
     }
 
 
     public function havingFlag($alias, $bind)
     {
-        $this->model->having($alias, "=", $bind->value);
+        $this->having($alias, "=", $bind->value);
     }
 
 
@@ -77,12 +77,12 @@ trait HavingFilter
                 }
             });
         } else {
-            $this->model->having($alias, "=", $bind->value);
+            $this->having($alias, "=", $bind->value);
         }
     }
 
 
-    public function having(\GenerCodeOrm\Binds\Bind $bind)
+    public function havingBind(\GenerCodeOrm\Binds\Bind $bind)
     {
         $cell = $bind->cell;
         $name = get_class($cell);

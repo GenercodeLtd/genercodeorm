@@ -4,15 +4,9 @@ namespace GenerCodeOrm\Builder;
 
 use GenerCodeOrm\Cells\MetaCell;
 
-class Structure
+trait Structure
 {
-    protected \GenerCodeOrm\Model $model;
-
-    public function __construct(\GenerCodeOrm\Model $model)
-    {
-        $this->model = $model;
-    }
-
+    
 
     public function joinIn(
         MetaCell $field,
@@ -21,23 +15,23 @@ class Structure
     ): void {
         $func = (!$inner) ? "leftJoin" : "join";
         $right_table = $right_field->entity->table . " as " . $right_field->entity->alias;
-        $this->model->$func($right_table, $field->getDBAlias(), '=', $right_field->getDBAlias());
+        $this->$func($right_table, $field->getDBAlias(), '=', $right_field->getDBAlias());
     }
 
 
     public function joinTo($to, $active = true)
     {
         $ref = "";
-        $entity = $this->model->root;
+        $entity = $this->root;
         while ($entity->has("--parent")) {
             $parent = $entity->get("--parent");
             //joined at the same time as loaded, so if exists, it has already been joined
-            if (!isset($this->model->entities[$parent->reference])) {
-                $entity = $this->model->load($parent->reference, $parent->reference, $active);
+            if (!isset($this->entities[$parent->reference])) {
+                $entity = $this->load($parent->reference, $parent->reference, $active);
                 $this->joinIn($parent, $entity->get("--id"));
             } else {
-                $entity = $this->model->entities[$parent->reference];
-                if ($active) $this->model->addActive($parent->reference, $entity);
+                $entity = $this->entities[$parent->reference];
+                if ($active) $this->addActive($parent->reference, $entity);
             }
             if ($parent->reference == $to) {
                 break;
@@ -49,10 +43,10 @@ class Structure
 
     public function secureTo($profile, $id)
     {
-        $top = $this->model->root;
+        $top = $this->root;
         while ($top->has("--parent")) {
             $parent = $top->get("--parent");
-            $top = ($this->model->entity_factory)->create($parent->reference);
+            $top = ($this->entity_factory)->create($parent->reference);
         }
 
         if ($top->has("--owner")) {
@@ -60,7 +54,7 @@ class Structure
             if ($owner->reference == $profile) {
                 $top = $this->joinTo("*", false);
                 $owner = $top->get("--owner"); //get owner with the correct entity reference
-                $this->model->where($owner->getDBAlias(), "=", $id);
+                $this->where($owner->getDBAlias(), "=", $id);
             }
         }
     }
@@ -69,11 +63,11 @@ class Structure
     public function loadChildren(?array $children = null, $id = null)
     {
         if (!$id) {
-            $id = $this->model->root->get("--id");
+            $id = $this->root->get("--id");
         }
         foreach ($id->reference as $child) {
             if (!$children or in_array($child, $children)) {
-                $entity = $this->model->load($child, $child);
+                $entity = $this->load($child, $child);
                 $this->joinIn($id, $entity->get("--parent"), false);
                 $this->loadChildren($children, $entity->get("--id"));
             }

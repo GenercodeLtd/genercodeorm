@@ -7,7 +7,7 @@ class DataSet
     protected $model;
     protected $binds = [];
 
-    public function __construct(\GenerCodeOrm\Model $model)
+    public function __construct(\GenerCodeOrm\Builder\Builder $model)
     {
         $this->model = $model;
     }

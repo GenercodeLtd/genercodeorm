@@ -6,7 +6,7 @@ use \Illuminate\Container\Container;
 use \Illuminate\Support\Fluent;
 use \GenerCodeOrm\Exceptions as Exceptions;
 
-use \GenerCodeOrm\Model;
+use \GenerCodeOrm\Builder\Builder;
 
 class AppController
 {
@@ -36,6 +36,6 @@ class AppController
     }
 
     protected function model($name) {
-        return app()->makeWith(Model::class, ["name"=>$name]);
+        return app()->makeWith(Builder::class, ["name"=>$name]);
     }
 }
