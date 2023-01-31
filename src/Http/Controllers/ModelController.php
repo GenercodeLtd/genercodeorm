@@ -12,9 +12,8 @@ class ModelController extends AppController
     {
         $this->checkPermission($name, "post");
 
-        $model= new Model();
-        $model->apply($params);
-        return $model->create($name);
+        $model= new Model($name);
+        return $model->create($params->toArray());
     }
 
 
@@ -22,9 +21,8 @@ class ModelController extends AppController
     {
         $this->checkPermission($name, "post");
 
-        $model= new Model();
-        $model->apply($params);
-        return $model->importFromCSV($name);
+        $model= new Model($name);
+        return $model->importFromCSV($params->toArray());
     }
 
 
@@ -33,9 +31,8 @@ class ModelController extends AppController
     {
         $this->checkPermission($name, "put");
 
-        $model= new Model();
-        $model->apply($params);
-        return $model->update($name);
+        $model= new Model($name);
+        return $model->update($params->toArray());
     }
 
 
@@ -44,9 +41,8 @@ class ModelController extends AppController
     {
         $this->checkPermission($name, "delete");
 
-        $model= new Model();
-        $model->apply($params);
-        return $model->delete($name);
+        $model= new Model($name);
+        return $model->delete($params->toArray());
     }
 
 
@@ -57,8 +53,7 @@ class ModelController extends AppController
 
         if (count($params["_rows"]) == 0) return false; //nothing to do
 
-        $model= new Model();
-        $model->apply($params);
-        return $model->resort($name);
+        $model= new Model($name);
+        return $model->resort($params->toArray());
     }
 }

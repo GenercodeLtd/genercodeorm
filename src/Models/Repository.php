@@ -162,7 +162,7 @@ class Repository extends App
 
 
 
-    private function buildStructure($model, $name)
+    private function buildStructure($model)
     {
         //define the structure
         if ($this->to) {
@@ -170,7 +170,7 @@ class Repository extends App
         }
 
         if ($this->fields) {
-            $set = new InputSet($name);
+            $set = new InputSet($this->name);
             $set->data($this->fields);
             $model->fields($set);
         } else {
@@ -179,10 +179,10 @@ class Repository extends App
     }
 
 
-    private function getWhere($name): InputSet
+    private function getWhere(): InputSet
     {
         $where = [];
-        $set = new InputSet($name);
+        $set = new InputSet($this->name);
         foreach ($this->filters as $key=>$val) {
             if (substr($key, 0, 2) != "__") {
                 $set->addData($key, $val);
@@ -204,20 +204,20 @@ class Repository extends App
 
 
 
-    public function get(string $name)
+    public function get()
     {
        
-        $model= $this->model($name);
+        $model= $this->builder();
 
-        $this->buildStructure($model, $name);
+        $this->buildStructure($model);
 
 
-        if (!$this->profile->allowedAdminPrivilege($name)) {
+        if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
 
         
-        $where = $this->getWhere($name);
+        $where = $this->getWhere();
 
         $dataSet = new DataSet($model);
         $dataSet->data($where);
@@ -225,37 +225,37 @@ class Repository extends App
 
         $model->filterBy($dataSet);
 
-        $this->setLimit($model, $arr);
+        $this->setLimit($model);
 
         if ($model->root->has("--sort")) {
-            $orderSet = new InputSet($name);
+            $orderSet = new InputSet($this->name);
             $orderSet->data(["--sort"=>"ASC"]);
             $model->order($orderSet);
         } else if ($this->order) {
-            $orderSet = new InputSet($name);
+            $orderSet = new InputSet($this->name);
             $orderSet->data($this->order);
             $model->order($orderSet);
         }
 
         $res = $model->setFromEntity()->get()->toArray();
         if ($this->children) {
-            $this->addChildren($name, $model, $res);
+            $this->addChildren($this->name, $model, $res);
         }
-        return $this->trigger($name, "get", $res);
+        return $this->trigger("get", $res);
     }
 
 
-    public function getActive(string $name)
+    public function getActive()
     {
-        $model= $this->model($name);
+        $model= $this->builder();
 
-        $this->buildStructure($model, $name);
+        $this->buildStructure($model);
 
-        if (!$this->profile->allowedAdminPrivilege($name)) {
+        if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
 
-        $where = $this->getWhere($name);
+        $where = $this->getWhere();
 
         $dataSet = new DataSet($model);
         $dataSet->data($where);
@@ -265,11 +265,11 @@ class Repository extends App
 
 
         if ($model->root->has("--sort")) {
-            $orderSet = new InputSet($name);
+            $orderSet = new InputSet($this->name);
             $orderSet->data(["--sort"=>"ASC"]);
             $model->order($orderSet);
         } else if ($this->order) {
-            $orderSet = new InputSet($name);
+            $orderSet = new InputSet($this->name);
             $orderSet->data($this->order);
             $model->order($orderSet);
         }
@@ -280,46 +280,45 @@ class Repository extends App
         $res = $model->setFromEntity()->get()->first();
         if ($res) {
             if ($this->children) {
-                $arr = [$res];
-                $this->addChildren($name, $model, $arr);
+                $this->addChildren($this->name, $model, [$res]);
             }
         } else {
             $res = new \StdClass;
         }
-        return $this->trigger($name, "get", $res);
+        return $this->trigger("get", $res);
     }
 
 
 
-    public function getFirst($name)
+    public function getFirst()
     {
         $this->order["--id"] = "ASC";
         $this->offset = 0;
         $this->limit = 1;
-        return $this->getActive($name);
+        return $this->getActive();
     }
 
 
-    public function getLast($name)
+    public function getLast()
     {
         $this->order["--id"] = "DESC";
         $this->offset = 0;
         $this->limit = 1;
-        return $this->getActive($name);
+        return $this->getActive();
     }
 
 
-    public function count(string $names)
+    public function count()
     {
-        $model= $this->model($name);
+        $model= $this->builder();
 
-        if (!$this->profile->allowedAdminPrivilege($name)) {
+        if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
 
-        $this->buildStructure($model, $name);
+        $this->buildStructure($model);
 
-        $where = $this->getWhere($name);
+        $where = $this->getWhere();
 
         $dataSet = new DataSet($model);
         $dataSet->data($where);

@@ -16,19 +16,16 @@ use \GenerCodeOrm\ImportCSV;
 class Model extends App
 {
 
-    protected $data = [];
-
-
-    protected function audit($name, $id, $action, ?array $data = null)
+    protected function audit($id, $action, ?array $data = null)
     {
-        $model = $this->model("audit");
+        $model = $this->builder("audit");
         $data = ($data) ? json_encode($data) : "{}";
         $repo = $model->root;
 
         $dataSet = new DataSet($model);
 
         $data = [
-            "model"=>$name,
+            "model"=>$this->name,
             "model-id"=>$id,
             "action"=>$action,
             "user-login-id"=>$this->profile->id,
@@ -45,7 +42,7 @@ class Model extends App
     }
 
 
-    protected function checkUniques($name, \GenerCodeOrm\DataSet $data, $id_bind = null)
+    protected function checkUniques(\GenerCodeOrm\DataSet $data, $id_bind = null)
     {
         $binds = $data->getBinds();
         foreach ($binds as $alias=>$bind) {
@@ -53,7 +50,7 @@ class Model extends App
                 continue;
             }
             if ($bind->cell->unique) {
-                $model = $this->model($name);
+                $model = $this->builder();
                 $model->select($bind->cell->name);
                 $model->where($bind->cell->name, "=", $bind->value);
 
@@ -74,9 +71,9 @@ class Model extends App
     }
 
 
-    public function select($name, $id)
+    public function select($id)
     {
-        $model = $this->model($name);
+        $model = $this->builder();
         $bind = new Binds\SimpleBind($model->root->get("--id"), $id);
         $bind->validate();
 
@@ -96,33 +93,33 @@ class Model extends App
 
 
 
-    public function create($name)
+    public function create(array $params)
     {
-        $model= $this->model($name);
+        $model= $this->builder();
       
         $data = new DataSet($model);
 
-        $fileHandler = app()->make(FileHandler::class);
+        $fileHandler = new FileHandler();
 
         if ($model->root->has("--owner")) {
             $bind = new Binds\SimpleBind($model->root->get("--owner"), $this->profile->id);
             $data->addBind("--parent", $bind);
         } else if ($model->root->has("--parent")) {
-            $bind = new Binds\SimpleBind($model->root->get("--parent"), $this->data["--parent"]);
+            $bind = new Binds\SimpleBind($model->root->get("--parent"), $params["--parent"]);
             $data->addBind("--parent", $bind);
         }
 
         foreach ($model->root->cells as $alias=>$cell) {
             if (get_class($cell) == Cells\AssetCell::class and isset($_FILES[$alias])) {
                 $asset = new Binds\AssetBind($cell, $_FILES[$alias]);
-                $asset->validate("Create " . $name);
-                $name = $fileHandler->uploadFile($asset);
-                $bind = new Binds\SimpleBind($cell, $name);
+                $asset->validate("Create " . $this->name);
+                $file_name = $fileHandler->uploadFile($asset);
+                $bind = new Binds\SimpleBind($cell, $file_name);
                 $data->addBind($alias, $bind);
-            } else if (!$cell->system and ($cell->required or isset($this->data[$alias]))) {
+            } else if (!$cell->system and ($cell->required or isset($params[$alias]))) {
                 $bind = new Binds\SimpleBind($cell);
-                if (isset($this->data[$alias])) {
-                    $bind->value = $this->data[$alias];
+                if (isset($params[$alias])) {
+                    $bind->value = $params[$alias];
                 }
                 $data->addBind($alias, $bind);
             } elseif (strpos($alias, "--owner") and $this->secure) {
@@ -134,30 +131,30 @@ class Model extends App
 
 
         $data->validate();
-        $this->checkUniques($name, $data);
+        $this->checkUniques($data);
 
         $id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
 
         if ($model->root->hasAudit()) {
-            $this->audit($name, $id, "POST", $data->toArr());
+            $this->audit($id, "POST", $data);
         }
 
         $arr = $data->toArr();
         $arr["--id"] = $id;
 
-        return $this->trigger($name, "post", $arr);
+        return $this->trigger("post", $arr);
     }
 
 
-    public function importFromCSV($name)
+    public function importFromCSV($params)
     {
-        $model= $this->model($name);
+        $model= $this->builder();
       
         $data = new DataSet($model);
 
-        $fileHandler = app()->make(FileHandler::class);
+        $fileHandler = new FileHandler();
 
-        $headers = $this->data["headers"];
+        $headers = $params["headers"];
 
         if (!isset($_FILES['upload-csv']) OR !$_FILES['upload-csv']["size"]) {
             throw new \Exception("Must upload a csv file");
@@ -172,15 +169,15 @@ class Model extends App
             $bind = new Binds\SimpleBind($model->root->get("--owner"), $this->profile->id);
             $data->addBind("--parent", $bind);
         } else if ($model->root->has("--parent")) {
-            $bind = new Binds\SimpleBind($model->root->get("--parent"), $this->data["--parent"]);
+            $bind = new Binds\SimpleBind($model->root->get("--parent"), $params["--parent"]);
             $data->addBind("--parent", $bind);
         }
 
         foreach ($model->root->cells as $alias=>$cell) {
             if (!$cell->system) {
                 $bind = new Binds\SimpleBind($cell);
-                if (isset($this->data[$alias])) {
-                    $bind->value = $this->data[$alias];
+                if (isset($params[$alias])) {
+                    $bind->value = $params[$alias];
                 }
                 $data->addBind($alias, $bind);
             } elseif (strpos($alias, "--owner") and $this->secure) {
@@ -200,7 +197,7 @@ class Model extends App
             $data->apply($arr);
             try {
                 $data->validate();
-                $this->checkUniques($name, $data);
+                $this->checkUniques($data);
                 $model->execute($data);
                 ++$rows;
             } catch(\Exception $e) {
@@ -217,9 +214,9 @@ class Model extends App
 
 
 
-    public function update($name)
+    public function update($params)
     {
-        $original_data = $this->select($name, $this->data["--id"]);
+        $original_data = $this->select($params["--id"]);
 
       
         if (!$original_data) {
@@ -230,13 +227,13 @@ class Model extends App
         }
 
 
-        $model = $this->model($name);
+        $model = $this->builder();
 
-        if (!$this->profile->allowedAdminPrivilege($name)) {
+        if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
 
-        $bind = new Binds\SimpleBind($model->root->get("--id"), $this->data["--id"]);
+        $bind = new Binds\SimpleBind($model->root->get("--id"), $params["--id"]);
         $bind->validate();
 
         $model->filter($bind);
@@ -246,21 +243,21 @@ class Model extends App
         $data = new DataSet($model);
 
         foreach ($model->root->cells as $alias=>$cell) {
-            if (!$cell->system and isset($this->data[$alias]) and !$cell->immutable) {
+            if (!$cell->system and isset($params[$alias]) and !$cell->immutable) {
                 $bind = new Binds\SimpleBind($cell);
-                if (isset($this->data[$alias])) {
-                    $bind->value = $this->data[$alias];
+                if (isset($params[$alias])) {
+                    $bind->value = $params[$alias];
                 }
                 $data->addBind($alias, $bind);
             }
         }
 
-        $data->validate($name);
-        $this->checkUniques($name, $data, $bind);
+        $data->validate($this->name);
+        $this->checkUniques($data, $bind);
         //mayby audit here
 
         if ($model->root->hasAudit()) {
-            $this->audit($name, $this->data["--id"], "PUT", $data->toArr());
+            $this->audit($params["--id"], "PUT", $data);
         }
 
         $alias = (count($model->entities) > 1) ? $model->root->alias . "." : "";
@@ -272,15 +269,15 @@ class Model extends App
             "affected_rows"=>$rows
         ];
 
-        return $this->trigger($name, "put", $result);
+        return $this->trigger("put", $result);
     }
 
 
-    protected function deleteRecord(Model $model, $name, Binds\SimpleBind $id, $secure_id = 0)
+    protected function deleteRecord(Model $model, Binds\SimpleBind $id, $secure_id = 0)
     {
         $id->validate();
 
-        $original_data = $this->select($name, $id->value);
+        $original_data = $this->select($id->value);
 
         if (!$original_data) {
             return [
@@ -292,7 +289,7 @@ class Model extends App
 
         if ($model->root->hasAudit()) {
             $odata = new Fluent($original_data);
-            $this->audit($name, $id->value, "DELETE");
+            $this->audit($id->value, "DELETE");
         }
 
         
@@ -306,17 +303,17 @@ class Model extends App
             "original"=>$original_data,
             "affected_rows"=>$stmt->rowCount()
         ];
-        return $this->trigger($name, "delete", $res);
+        return $this->trigger("delete", $res);
     }
 
 
-    public function delete(string $name)
+    public function delete($params)
     {
-        $model= $this->model($name);
-        $fileHandler = app()->make(FileHandler::class);
+        $model= $this->builder();
+        $fileHandler = new FileHandler();
 
         $secure_id = 0;
-        if (!$this->profile->allowedAdminPrivilege($name)) {
+        if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
             $secure_id = $this->profile->id;
         }
@@ -330,11 +327,11 @@ class Model extends App
         $model->setFromEntity()->deleteStmt();
 
 
-        if (is_array($this->data["--id"])) {
+        if (is_array($params["--id"])) {
             $res = [];
-            foreach ($this->data["--id"] as $incoming_id) {
+            foreach ($params["--id"] as $incoming_id) {
                 $id->value = $incoming_id;
-                $res[$id->value] = $this->deleteRecord($model, $name, $id,  $secure_id);
+                $res[$id->value] = $this->deleteRecord($model, $id,  $secure_id);
                 if ($res[$id->value]["affected_rows"] > 0) {
                     foreach ($model->root->cells as $alias=>$cell) {
                         if (get_class($cell) == Cells\AssetCell::class and $res[$id]["original"]->$alias) {
@@ -345,8 +342,8 @@ class Model extends App
             }
             return $res;
         } else {
-            $id->value = $this->data["--id"];
-            $res = $this->deleteRecord($model, $name, $id, $secure_id);
+            $id->value = $params["--id"];
+            $res = $this->deleteRecord($model, $id, $secure_id);
             if ($res["affected_rows"] > 0) {
                 foreach ($model->root->cells as $alias=>$cell) {
                     if (get_class($cell) == Cells\AssetCell::class and $res["original"]->$alias) {
@@ -360,20 +357,20 @@ class Model extends App
 
 
 
-    public function resort($name)
+    public function resort(array $params)
     {
-        if (count($this->data["_rows"]) == 0) return false; //nothing to do
+        if (count($params["_rows"]) == 0) return false; //nothing to do
 
-        $model= $this->model($name);
+        $model= $this->builder();
 
         $dataSet = new DataSet($model);
 
-        $id = new Binds\SimpleBind($model->root->get("--id"), $this->data["_rows"][0]["--id"]);
+        $id = new Binds\SimpleBind($model->root->get("--id"), $params["_rows"][0]["--id"]);
         $sort = new Binds\SimpleBind($model->root->get("--sort"));
 
         $dataSet->addBind("--sort", $sort); //order is crucial here
 
-        if (!$this->profile->allowedAdminPrivilege($name)) {
+        if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
             //add to give the correnct number of cells.
             $cell = new Cells\IdCell();
@@ -391,7 +388,7 @@ class Model extends App
         $model->updateStmt([$alias . $sort->cell->name => "?"]);
 
         
-        foreach ($this->data["_rows"] as $row) {
+        foreach ($params["_rows"] as $row) {
             $dataSet->{"--sort"} = $row['--sort'];
             $dataSet->{"--id"} = $row["--id"];
             $dataSet->validate();
@@ -408,7 +405,7 @@ class Model extends App
                 $key = substr($key, 2);
                 $this->$key = $val;
             } else {
-                $this->data[$key] = $val;
+                $params[$key] = $val;
             }
         }
     }
