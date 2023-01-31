@@ -9,16 +9,16 @@ use \GenerCodeOrm\Model;
 
 class App {
     
-    protected $app;
     protected \GenerCodeOrm\Hooks $hooks;
     protected \GenerCodeOrm\Profile $profile;
     protected $name;
 
-    public function __construct(\GenerCodeOrm\Hooks $hooks, \GenerCodeOrm\Profile $profile, $name) 
+    public function __construct($name) 
     {
+        $app = app();
         $this->name = $name;
-        $this->profile = $profile;
-        $this->hooks = $hooks;
+        $this->profile = $app->get("profile");
+        $this->hooks = $app->make(\GenerCodeOrm\Hooks::class);
     }
 
     function __set($key, $val) {

@@ -6,7 +6,7 @@ use Illuminate\Support\Fluent;
 use \GenerCodeOrm\Exceptions as Exceptions;
 use \GenerCodeOrm\Binds as Binds;
 use \GenerCodeOrm\InputSet;
-use \GenerCodeOrm\Model;
+use \GenerCodeOrm\Builder\Builder;
 use \GenerCodeOrm\FileHandler;
 use \GenerCodeOrm\DataSet;
 
@@ -14,7 +14,7 @@ class AssetController extends AppController
 {
     //asset functions
 
-    protected function fetchSrc(Model $model, $name, $field, $id)
+    protected function fetchSrc(Builder $model, $name, $field, $id)
     {
         $this->checkPermission($name, "get");
 
@@ -102,7 +102,7 @@ class AssetController extends AppController
     {
         $this->checkPermission($name, "delete");
 
-        $model= app()->makeWith(Model::class, ["name"=>$name, "factory"=>$this->profile->factory]);
+        $model= $this->model($name);
 
         $src = $this->fetchSrc($model, $name, $field, $id);
 

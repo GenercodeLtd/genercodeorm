@@ -9,7 +9,7 @@ class RepositoryController extends AppController
 {
 
     protected function buildRepo($name, $params) {
-        $repo = new Repository($this->app->make(\GenerCodeOrm\Hooks::class), $this->app->get("profile"), $name);
+        $repo = new Repository($name);
         $repo->apply($params->toArray());
         return $repo;
     }

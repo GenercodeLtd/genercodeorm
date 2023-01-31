@@ -20,8 +20,10 @@ class Builder extends QBuilder
     protected $active = [];
     protected $entity_factory;
   
-    public function __construct(\Illuminate\Database\DatabaseManager $dbmanager, string $name)
+    public function __construct(string $name)
     {
+        $app = app();
+        $dbmanager = $app->get(\Illuminate\Database\DatabaseManager::class);
         parent::__construct($dbmanager->connection());
         $this->entity_factory = $app->get("entity_factory");
         $this->root = $this->load($name);
@@ -93,7 +95,7 @@ class Builder extends QBuilder
     }
 
 
-    public function addReference(Cells\MetaCell $cell)
+    public function addReference(MetaCell $cell)
     {
         $inner = (!$cell->required) ? false : true;
         $ref = $this->load($cell->reference, $cell->getSlug());
