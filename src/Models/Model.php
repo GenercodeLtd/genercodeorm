@@ -7,10 +7,11 @@ use \GenerCodeOrm\Exceptions as Exceptions;
 use \GenerCodeOrm\DataSet;
 use \GenerCodeOrm\InputSet;
 use \GenerCodeOrm\Binds as Binds;
-use \GenerCodeOrm\Model as Builder;
+use \GenerCodeOrm\Builder\Builder;
 use \GenerCodeOrm\FileHandler;
 use \GenerCodeOrm\Cells as Cells;
 use \GenerCodeOrm\ImportCSV;
+use \Illuminate\Support\Fluent;
 
 
 class Model extends App
@@ -136,7 +137,7 @@ class Model extends App
         $id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
 
         if ($model->root->hasAudit()) {
-            $this->audit($id, "POST", $data);
+            $this->audit($id, "POST", $data->toArr());
         }
 
         $arr = $data->toArr();
@@ -257,7 +258,7 @@ class Model extends App
         //mayby audit here
 
         if ($model->root->hasAudit()) {
-            $this->audit($params["--id"], "PUT", $data);
+            $this->audit($params["--id"], "PUT", $data->toArr());
         }
 
         $alias = (count($model->entities) > 1) ? $model->root->alias . "." : "";
@@ -273,7 +274,7 @@ class Model extends App
     }
 
 
-    protected function deleteRecord(Model $model, Binds\SimpleBind $id, $secure_id = 0)
+    protected function deleteRecord(Builder $model, Binds\SimpleBind $id, $secure_id = 0)
     {
         $id->validate();
 
@@ -334,8 +335,8 @@ class Model extends App
                 $res[$id->value] = $this->deleteRecord($model, $id,  $secure_id);
                 if ($res[$id->value]["affected_rows"] > 0) {
                     foreach ($model->root->cells as $alias=>$cell) {
-                        if (get_class($cell) == Cells\AssetCell::class and $res[$id]["original"]->$alias) {
-                            $fileHandler->delete($res[$id]["original"]->$alias);
+                        if (get_class($cell) == Cells\AssetCell::class and $res[$id->value]["original"]->$alias) {
+                            $fileHandler->delete($res[$id->value]["original"]->$alias);
                         }
                     }
                 }
