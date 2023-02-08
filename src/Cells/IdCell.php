@@ -7,6 +7,7 @@ class IdCell extends MetaCell {
     protected $reference_type;
     protected $reference = null;
     protected $reverse_references = [];
+    protected $many_table;
     protected $common;
 
     function __construct() {
