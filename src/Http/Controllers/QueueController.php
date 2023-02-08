@@ -19,12 +19,13 @@ class QueueController extends AppController
         $repo = new Repository("queue");
         $repo->apply(["--id"=>$id, "__fields"=>["progress"]]);
         $row = $repo->getActive();
-        return $row["progress"];
+        return $row->progress;
     }
 
     public function remove($id) {
         $model= new Model("queue");
         $model->delete(["--id"=>$id]);
+        return "success";
     }
 
    
