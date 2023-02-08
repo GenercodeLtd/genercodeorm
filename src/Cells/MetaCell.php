@@ -18,6 +18,7 @@ class MetaCell
     protected $entity;
     protected $where = [];
     protected $required = false;
+    protected $multiple = false;
     
     
 
@@ -119,6 +120,10 @@ class MetaCell
         }
         if ($this->where) {
             $arr["where"] = $this->where;
+        }
+
+        if ($this->multiple) {
+            $arr["multiple"] = $this->multiple;
         }
 
         return $arr;

@@ -52,6 +52,7 @@ trait Fields
     private function selectAllCells($entity, $include_references = true, ?\GenerCodeOrm\InputValues $aggregates = null)
     {
         foreach ($entity->cells as $alias=>$cell) {
+            if ($cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE AND $cell->multiple) continue;
             $this->applyCell($cell, $aggregates);
             if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {
                 $this->addReference($cell);
@@ -64,7 +65,7 @@ trait Fields
     {
         foreach ($entity->cells as $alias=>$cell) {
             if (in_array($cell->alias, $fields->values)) {
-
+                if ($cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE AND $cell->multiple) continue;
                 $this->applyCell($cell, $aggregates);
 
                 if ($include_references AND $cell->reference_type == \GenerCodeOrm\Cells\ReferenceTypes::REFERENCE) {

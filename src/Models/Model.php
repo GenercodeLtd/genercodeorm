@@ -327,33 +327,26 @@ class Model extends App
 
         $model->setFromEntity()->deleteStmt();
 
-
-        if (is_array($params["--id"])) {
-            $res = [];
-            foreach ($params["--id"] as $incoming_id) {
-                $id->value = $incoming_id;
-                $res[$id->value] = $this->deleteRecord($model, $id,  $secure_id);
-                if ($res[$id->value]["affected_rows"] > 0) {
-                    foreach ($model->root->cells as $alias=>$cell) {
-                        if (get_class($cell) == Cells\AssetCell::class and $res[$id->value]["original"]->$alias) {
-                            $fileHandler->delete($res[$id->value]["original"]->$alias);
-                        }
-                    }
-                }
-            }
-            return $res;
-        } else {
-            $id->value = $params["--id"];
-            $res = $this->deleteRecord($model, $id, $secure_id);
-            if ($res["affected_rows"] > 0) {
-                foreach ($model->root->cells as $alias=>$cell) {
-                    if (get_class($cell) == Cells\AssetCell::class and $res["original"]->$alias) {
-                        $fileHandler->delete($res["original"]->$alias);
-                    }
-                }
-            }
-            return $res;
+        //if not array, convert to array
+        if (!is_array($params["--id"])) {
+            $params["--id"] = [$params["--id"]];
         }
+
+        $res = [];
+        foreach ($params["--id"] as $incoming_id) {
+            $id->value = $incoming_id;
+            $res[$id->value] = $this->deleteRecord($model, $id,  $secure_id);
+            if ($res[$id->value]["affected_rows"] > 0) {
+                foreach ($model->root->cells as $alias=>$cell) {
+                    if (get_class($cell) == Cells\AssetCell::class and $res[$id->value]["original"]->$alias) {
+                        $fileHandler->delete($res[$id->value]["original"]->$alias);
+                    }
+                }
+            }
+        }
+
+        if (count($res) == 0) return array_shift($res);
+        else return $res;
     }
 
 

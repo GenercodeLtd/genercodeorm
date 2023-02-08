@@ -153,6 +153,7 @@ class ProfileController extends AppController {
 
  
     public function getSitemap() {
-        return $this->profile->getSitemap(app()->get("entity_factory"));
+        $map = $this->profile->getSitemap(app()->get("entity_factory"));
+        return $this->trigger("site-map", "get", $map);
     }
 }
