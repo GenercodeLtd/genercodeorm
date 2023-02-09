@@ -19,7 +19,8 @@ class QueueController extends AppController
         $repo = new Repository("queue");
         $repo->apply(["--id"=>$id, "__fields"=>["progress"]]);
         $row = $repo->getActive();
-        return $row->progress;
+        if (!$row) return "success";
+        else return $row->progress;
     }
 
     public function remove($id) {
