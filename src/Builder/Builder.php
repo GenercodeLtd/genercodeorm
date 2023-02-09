@@ -10,6 +10,7 @@ use \Illuminate\Database\Query\Builder as QBuilder;
 use \GenerCodeOrm\Exceptions\CellTypeException;
 use \Illuminate\Container\Container;
 use \GenerCodeOrm\InputSet;
+use \GenerCodeOrm\DataSet;
 
 class Builder extends QBuilder
 {
