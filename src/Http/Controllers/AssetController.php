@@ -78,6 +78,8 @@ class AssetController extends AppController
             $fileHandler = app()->make(FileHandler::class);
             $fileHandler->put($src, file_get_contents($_FILES[$field]["tmp_name"]));
         }
+
+        $this->trigger($name . "-" . $field, "patch", ["--id"=>$id, "src"=>$src]);
         return $src;
     }
 
@@ -91,7 +93,10 @@ class AssetController extends AppController
         $src = $this->fetchSrc($model, $name, $field, $id);
         if ($src) {
             $fileHandler = app()->make(FileHandler::class);
-            return $fileHandler->get($src);
+            return [
+                "type"=>$fileHandler->getContentType(\pathinfo($src, \PATHINFO_EXTENSION)), 
+                "data"=>$fileHandler->get($src)
+            ];
         } else {
             return "";
         }
