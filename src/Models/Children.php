@@ -1,5 +1,6 @@
 <?php
 namespace GenerCodeOrm\Models;
+use GenerCodeOrm\Entity;
 
 trait Children {
 

@@ -30,7 +30,7 @@ class Model extends App
             "model-id"=>$id,
             "action"=>$action,
             "user-login-id"=>$this->profile->id,
-            "log"=>$data
+            "log"=>json_encode($data)
         ];
 
         foreach ($data as $alias=>$val) {
