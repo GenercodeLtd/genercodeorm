@@ -17,9 +17,14 @@ class JsonCell extends MetaCell {
     }
 
 
+    function clean($value) {
+        if (is_string($value)) $value = json_decode($value, true);
+        return $value;
+    }
+
+
     public function validate($value)
     {
-        if (is_string($value)) $value = json_decode($value, true);
         if ($value === null) return ValidationRules::Characters;
 
         $errs = [];

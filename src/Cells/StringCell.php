@@ -8,7 +8,6 @@ class StringCell extends MetaCell
     protected $list = [];
     protected $pattern;
     protected $not_pattern;
-    protected $multiple = false;
 
     public function __construct()
     {
