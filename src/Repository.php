@@ -1,6 +1,6 @@
 <?php
 
-namespace GenerCodeOrm\Models;
+namespace GenerCodeOrm;
 
 use Illuminate\Container\Container;
 use \GenerCodeOrm\Exceptions as Exceptions;
@@ -25,12 +25,24 @@ class Repository extends App
     protected $offset = 0;
     protected $order = [];
     protected $filters = [];
+    protected $with = [];
 
+
+
+
+
+    protected function audit($id, $action, ?array $data = null)
+    {
+        $data = ($data) ? json_encode($data) : "{}";
     
+        $model = new \GenerCodeOrm\Models\Audit();
+        $model->withAuthen()->create($data);
+    }
 
 
 
-    private function buildStructure($model)
+
+    private function buildStructure()
     {
         //define the structure
         if ($this->to) {
@@ -60,27 +72,25 @@ class Repository extends App
     }
 
 
-    private function setLimit($model)
+    private function setLimit($model, $struc)
     {
-        if ($this->offset) {
-            $model->skip($this->offset);
+        if ($struc->offset) {
+            $model->skip($struc->offset);
         }
-        if ($this->limit) {
-            $model->take($this->limit);
+        if ($struc->limit) {
+            $model->take($struc->limit);
         }
     }
 
 
 
-    public function get()
+    public function get($params, $structure)
     {
-       
-        $model= $this->builder();
-
-        $this->buildStructure($model);
+        return $this->model->with($structure['with'])->fields()->owner()->get()->toArray();
+       // $this->buildStructure();
 
 
-        if (!$this->profile->allowedAdminPrivilege($this->name)) {
+      /*  if (!$this->profile->allowedAdminPrivilege($this->name)) {
             $model->secure($this->profile->name, $this->profile->id);
         }
 
@@ -110,49 +120,17 @@ class Repository extends App
             $this->addChildren($this->name, $model, $res);
         }
         return $this->trigger("get", $res);
+        */
     }
 
 
-    public function getActive()
+    public function active($params, $structure)
     {
-        $model= $this->builder();
+        return $this->model->with($structure['with'])
+            ->fields()
+            ->owner()
+            ->find($params[$this->model->getPrimaryKey()]);
 
-        $this->buildStructure($model);
-
-        if (!$this->profile->allowedAdminPrivilege($this->name)) {
-            $model->secure($this->profile->name, $this->profile->id);
-        }
-
-        $where = $this->getWhere();
-
-        $dataSet = new DataSet($model);
-        $dataSet->data($where);
-        $dataSet->validate();
-
-        $model->filterBy($dataSet);
-
-
-        if ($model->root->has("--sort")) {
-            $orderSet = new InputSet($this->name);
-            $orderSet->data(["--sort"=>"ASC"]);
-            $model->order($orderSet);
-        } else if ($this->order) {
-            $orderSet = new InputSet($this->name);
-            $orderSet->data($this->order);
-            $model->order($orderSet);
-        }
-
-        
-        $model->take(1);
-
-        $res = $model->setFromEntity()->get()->first();
-        if ($res) {
-            if ($this->children) {
-                $this->addChildren($this->name, $model, [$res]);
-            }
-        } else {
-            $res = new \StdClass;
-        }
         return $this->trigger("get", $res);
     }
 

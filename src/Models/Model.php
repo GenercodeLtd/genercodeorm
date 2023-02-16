@@ -2,98 +2,50 @@
 
 namespace GenerCodeOrm\Models;
 
-use Illuminate\Container\Container;
-use \GenerCodeOrm\Exceptions as Exceptions;
-use \GenerCodeOrm\DataSet;
-use \GenerCodeOrm\InputSet;
-use \GenerCodeOrm\Binds as Binds;
-use \GenerCodeOrm\Builder\Builder;
-use \GenerCodeOrm\FileHandler;
-use \GenerCodeOrm\Cells as Cells;
-use \GenerCodeOrm\ImportCSV;
-use \Illuminate\Support\Fluent;
+use Illuminate\Database\Eloquent\Model as Eloquent;
 
 
-class Model extends App
+class Model extends Eloquent
 {
 
-    protected function audit($id, $action, ?array $data = null)
-    {
-        $model = $this->builder("audit");
-        $data = ($data) ? json_encode($data) : "{}";
-        $repo = $model->root;
+    const CREATED_AT = "date_created";
+    const UPDATED_AT = "last_updated";
 
-        $dataSet = new DataSet($model);
+    protected $entity;
 
-        $data = [
-            "model"=>$this->name,
-            "model-id"=>$id,
-            "action"=>$action,
-            "user-login-id"=>$this->profile->id,
-            "log"=>json_encode($data)
-        ];
-
-        foreach ($data as $alias=>$val) {
-            $bind = new Binds\SimpleBind($repo->get($alias), $val);
-            $dataSet->addBind($alias, $bind);
-        }
-
-        $dataSet->validate("Audit");
-        $model->setFromEntity(true)->insert($dataSet->toCellNameArr());
+    public function getPrimaryKey() {
+        return $this->primaryKey;
     }
 
-
-    protected function checkUniques(\GenerCodeOrm\DataSet $data, $id_bind = null)
-    {
-        $binds = $data->getBinds();
-        foreach ($binds as $alias=>$bind) {
-            if ($alias == "--id") {
-                continue;
-            }
-            if ($bind->cell->unique) {
-                $model = $this->builder();
-                $model->select($bind->cell->name);
-                $model->where($bind->cell->name, "=", $bind->value);
-
-                if (isset($binds["--parent"])) {
-                    $model->where($binds["--parent"]->cell->name, "=", $binds["--parent"]->value);
-                }
-
-                if ($id_bind) {
-                    $model->where($id_bind->cell->name, "!=", $id_bind->value);
-                }
-
-                $res = $model->setFromEntity()->take(1)->get();
-                if (count($res) > 0) {
-                    throw new Exceptions\UniqueException($alias, $data->$alias);
-                }
+    public function scopeFields($query) {
+        $bindings = $query->getQuery()->getRawBindings()['select'];
+        $cols = [];
+        foreach($bindings as $name) {
+            $cell = $this->entity->cells[$name];
+            $cols[] = $cell->getDBAlias() . " AS " . $cell->alias;
+        }
+        
+        if (count($cols) == 0) {
+            foreach($this->entity->cells as $alias=>$cell) {
+                $cols[] = $cell->getDBAlias() . " AS " . $cell->alias;
             }
         }
+        $query->select($cols);
     }
 
-
-    public function select($id)
-    {
-        $model = $this->builder();
-        $bind = new Binds\SimpleBind($model->root->get("--id"), $id);
-        $bind->validate();
-
-        return $model
-        ->setFromEntity()
-        ->fields()
-        ->filter($bind)
-        ->take(1)
-        ->get()
-        ->first();
+    public function scopeOwner($query) {
+        if ($this->entity->has("--owner")) {
+            $profile = app()->get("profile");
+            $query->where($this->entity->get("--owner")->getDBAlias(), "=", $profile->id);
+        }
     }
-
 
     public function getNumRows() {
 
     }
 
 
-
+/*
     public function create(array $params)
     {
         $model= $this->builder();
@@ -403,4 +355,5 @@ class Model extends App
             }
         }
     }
+    */
 }

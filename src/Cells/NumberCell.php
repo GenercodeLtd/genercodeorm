@@ -27,6 +27,12 @@ class NumberCell extends MetaCell {
     }
     
 
+    function asRules() {
+        $rules = parent::asRules();
+        $rules[] = "numeric";
+        return $rules;
+    }
+
 
     function clean($val) {
         return ($this->round > 0) ? (float) $val : (int) $val;

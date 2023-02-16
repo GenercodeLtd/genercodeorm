@@ -4,56 +4,121 @@ namespace GenerCodeOrm\Http\Controllers;
 
 use Illuminate\Support\Fluent;
 use GenerCodeOrm\Models\Model;
+use Nyholm\Psr7\Response;
+use GenerCodeOrm\Inputs;
 
 
 class ModelController extends AppController
 {
-    public function create($name, Fluent $params)
-    {
-        $this->checkPermission($name, "post");
 
-        $model= new Model($name);
-        return $model->create($params->toArray());
+
+    protected $collection;
+
+    public function response($results) {
+        $response = new Response();
+        $response->getBody()->write(json_encode($results, JSON_INVALID_UTF8_SUBSTITUTE));
+        return $response;
+    }
+
+    public function create($request)
+    {
+        $this->checkPermission("post");
+
+        $this->collection->create($request);
+        
+        return $this->response($this->repo->create($request->safe()));
     }
 
 
-    public function importFromCSV($name, Fluent $params)
+    public function importFromCSV($request)
     {
-        $this->checkPermission($name, "post");
+        $this->checkPermission("post");
 
-        $model= new Model($name);
-        return $model->importFromCSV($params->toArray());
-    }
-
-
-
-    public function update($name, Fluent $params)
-    {
-        $this->checkPermission($name, "put");
-
-        $model= new Model($name);
-        return $model->update($params->toArray());
-    }
-
-
-
-    public function delete(string $name, Fluent $params)
-    {
-        $this->checkPermission($name, "delete");
-
-        $model= new Model($name);
-        return $model->delete($params->toArray());
+        $this->collection->import($request);
+      
+        return $model->import($request->safe());
     }
 
 
 
-    public function resort($name, Fluent $params)
+    public function update($request)
     {
-        $this->checkPermission($name, "put");
+        $this->checkPermission("put");
 
-        if (count($params["_rows"]) == 0) return false; //nothing to do
-
-        $model= new Model($name);
-        return $model->resort($params->toArray());
+        $this->collection->update($request);
+      
+        return $this->response($this->repo->update($request->safe()));
     }
+
+
+
+    public function destroy($request)
+    {
+        $this->checkPermission("delete");
+
+        $this->collection->destroy($request);
+     
+        return $this->response($this->repo->destroy($request->safe()));
+    }
+
+
+
+    public function resort($request)
+    {
+        $this->checkPermission("put");
+
+        $this->collection->resort($request);
+     
+        return $this->response($this->repo->resort($request->safe()));
+    }
+
+
+
+
+    public function get($request) {
+
+        $this->checkPermission("get");
+
+        $this->collection->get($request);
+
+        return $this->response($this->repo->get($request->safe(), $inputs->structure()));
+    }
+
+
+    public function active($request)
+    {
+        $this->checkPermission("get");
+        $this->collection->active($request);
+        return $this->response($this->repo->active($request->safe(), $inputs->structure()));
+    }
+
+
+
+    public function first($request)
+    {
+        $this->checkPermission("get");
+        $this->collection->get($request);
+        return $this->response($this->repo->first($request->safe(), $inputs->structure()));
+    }
+
+
+    public function last($request)
+    {
+        $this->checkPermission("get");
+        $this->collection->get($request);
+        return $this->response($this->repo->last($request->safe(), $inputs->structure()));
+    }
+
+
+    public function count($request)
+    {
+        $this->checkPermission("get");
+        $this->collection->get($request);
+        return $this->response($this->repo->count($request->safe(), $inputs->structure()));
+    }
+
 }
+
+
+
+//$response->getBody()->write(json_encode($results, JSON_INVALID_UTF8_SUBSTITUTE));

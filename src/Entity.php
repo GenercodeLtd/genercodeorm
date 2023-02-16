@@ -16,7 +16,6 @@ class Entity
     protected $min_rows = null;
     protected $max_rows = null;
   
-
  
     public function __construct(String $table)
     {

@@ -24,26 +24,14 @@ class StringCell extends MetaCell
     }
 
 
-    public function validate($value)
-    {
-        if ($this->list) {
-            if (in_array($value, $this->list) or isset($this->list[$value])) {
-                return ValidationRules::OK;
-            } else {
-                return ValidationRules::Characters;
-            }
-        } else {
-            if ($this->pattern AND !preg_match("/" . $this->pattern . "/", $value)) {
-                return ValidationRules::Characters;
-            }
-
-            if ($this->not_pattern AND preg_match("/" . $this->not_pattern . "/", $value)) {
-                return ValidationRules::CharactersNegative;
-            }
-            return $this->validateSize(strlen($value));
-        }
+  
+    public function asRules() {
+        $rules = parent::asRules();
+        if ($this->pattern !== null) $rules[] = "regex:" . $this->pattern;
+        if ($this->not_pattern !== null) $rules[] = "not_regex:" . $this->pattern;
+        if ($this->unique) $rules[] = "unique:" . $this->entity->table;
+        return $rules;
     }
-
 
     public function toSchema()
     {

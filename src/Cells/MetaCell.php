@@ -35,7 +35,9 @@ class MetaCell
 
     public function __get($name)
     {
-        if (property_exists($this, $name)) {
+        if ($name == "alias") {
+            return $this->alias["kebab"];
+        } else if (property_exists($this, $name)) {
             return $this->$name;
         } else {
             return null;
@@ -48,39 +50,11 @@ class MetaCell
         $this->max = $max;
     }
 
-
-    public function validateSize($size)
-    {
-        if ($this->min !== null and $size < $this->min) {
-            return ValidationRules::OutOfRangeMin;
-        } elseif ($this->max !== null and $size > $this->max) {
-            return ValidationRules::OutOfRangeMax;
-        } else {
-            return ValidationRules::OK;
-        }
-    }
-
-
-    public function validate($value)
-    {
-        if ($this->max !== null or $this->min !== null) {
-            $error = $this->validateSize($value);
-            if ($error != ValidationRules::OK) {
-                return $error;
-            }
-        }
-    }
-
-
-    public function getDBAlias() {
-        return $this->entity->alias . "." . $this->name;
-    }
-
-
-    public function getSlug() {
-        $str = "";
-        if ($this->entity->slug) $str .= $this->entity->slug . "/";
-        return $str . $this->alias;
+    public function asRules() {
+        $rules = [];
+        if ($this->min !== null) $rules[] = "min:" . $this->min;
+        if ($this->max !== null) $rules[] = "max:" . $this->max;
+        return $rules;
     }
 
 

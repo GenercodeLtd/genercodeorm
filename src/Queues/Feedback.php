@@ -13,43 +13,26 @@ class Feedback {
         else $this->id = $id;
     }
 
-    function getModel() {
-        return app()->makeWith(Builder::class, ["name"=>"queue"]);
-    }
-
     function create() {
         $profile = app()->get("profile");
-        $model = $this->getModel();
-    
-        $params  = [
-            "user-login-id"=>$profile->id,
-            "progress"=>"PENDING"
-        ];
-
-
-        $data = new \GenerCodeOrm\DataSet($model);
-        foreach($model->root->cells as $alias=>$cell) {
-            if(isset($params[$alias])) {
-                $bind = new \GenerCodeOrm\Binds\SimpleBind($cell, $params[$alias]);
-                $data->addBind($alias, $bind);
-            }
-        }
-
-        $data->validate();
-
-        $this->id = $model->setFromEntity(true)->insertGetId($data->toCellNameArr());
+        $model = new \GenerCodeOrm\Model\Queue();
+        $model->user_login_id = $profile->id;
+        $model->progress = "PENDING";
+        $model->save();
+        $this->id = $model->id;
     }
 
     public function update($status) {
-        $model = $this->getModel();
-        $model->where("id", "=", $this->id);
-        return $model->setFromEntity(true)->update(["progress"=>$status]);
+        $model = new \GenerCodeOrm\Model\Queue();
+        $queue = $model->find($this->id);
+        $queue->progress = $status;
+        $queue->save();
     }
 
     public function clear() {
-        $model = $this->getModel();
-        $model->where("id", "=", $this->id);
-        return $model->setFromEntity(true)->delete();
+        $model = new \GenerCodeOrm\Model\Queue();
+        $queue = $model->find($this->id);
+        $queue->delete();
     }
 
     public function getId() {

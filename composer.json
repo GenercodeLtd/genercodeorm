@@ -16,7 +16,8 @@
         "illuminate/queue": ">=8.83.1",
         "illuminate/filesystem" : ">=8.83.24",
         "league/flysystem-aws-s3-v3": ">=1.0",
-        "illuminate/config": ">=8.83.1"
+        "illuminate/config": ">=8.83.1",
+        "illuminate/validation": "v9.52.0"
     },
     "autoload" : {
         "psr-4" : {

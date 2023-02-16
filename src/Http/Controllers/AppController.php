@@ -13,29 +13,29 @@ class AppController
     protected $app;
     protected \GenerCodeOrm\Hooks $hooks;
     protected \GenerCodeOrm\Profile $profile;
+    protected $alias;
 
     public function __construct(
     ) {
         $this->app = app();
         $this->profile = $this->app->get("profile");
+        $this->profile = new \PressToJam\Profile\AccountsProfile();
+        $this->profile->id = 1;
        // var_dump($this->profile);
        // exit;
         $this->hooks = $this->app->make(\GenerCodeOrm\Hooks::class);
     }
 
-    protected function checkPermission($name, $perm)
+    protected function checkPermission($perm)
     {
-        if (!$this->profile->hasPermission($name, $perm)) {
-            throw new Exceptions\UserAuthException("No " . $perm . " permission for " . $name);
+        if (!$this->profile->hasPermission($this->alias, $perm)) {
+            throw new Exceptions\UserAuthException("No " . $perm . " permission for " . $this->alias);
         }
     }
 
-    protected function trigger($name, $method, $res)
+    protected function trigger($method, $res)
     {
-        return $this->hooks->trigger($name, $method, $res);
+        return $this->hooks->trigger($this->alias, $method, $res);
     }
 
-    protected function model($name) {
-        return app()->makeWith(Builder::class, ["name"=>$name]);
-    }
 }
