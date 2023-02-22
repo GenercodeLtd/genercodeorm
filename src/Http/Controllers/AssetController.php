@@ -91,6 +91,7 @@ class AssetController extends AppController
         $model= $this->model($name);
 
         $src = $this->fetchSrc($model, $name, $field, $id);
+        $src = str_replace("%id", $id, $src);
         if ($src) {
             $fileHandler = app()->make(FileHandler::class);
             return [

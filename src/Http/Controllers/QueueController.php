@@ -19,7 +19,7 @@ class QueueController extends AppController
         $repo = new Repository("queue");
         $repo->apply(["--id"=>$id, "__fields"=>["progress"]]);
         $row = $repo->getActive();
-        if (!$row) return "success";
+        if (!$row OR !property_exists($row, "progress")) return "success";
         else return $row->progress;
     }
 
