@@ -25,6 +25,7 @@ class Profile {
 
 
     function hasPermission($model, $method) {
+        if ($model == "queue" OR $model == "audit") return true;
         if (!isset($this->models[$model])) return false;
         if (!in_array($method, $this->models[$model]["perms"])) return false;
         return true;

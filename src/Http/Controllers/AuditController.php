@@ -42,6 +42,7 @@ class AuditController extends AppController
         $hist = [];
         foreach($rows as $row) {
             $log = json_decode($row->log, true);
+            if (is_string($log)) $log = json_decode($log, true);
             foreach($log as $key=>$val) {
                 $hist[$key] = $val;
             }

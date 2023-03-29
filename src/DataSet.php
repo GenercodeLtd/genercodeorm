@@ -100,7 +100,7 @@ class DataSet
     {
         $arr = [];
         foreach ($this->binds as $key=>$val) {
-            $arr[$alias . $val->cell->name] = $val->value;
+            $arr[$alias . $val->cell->name] = (get_class($val->cell) == \GenerCodeOrm\Cells\JsonCell::class) ? json_encode($val->value) : $val->value;
         }
         return $arr;
     }

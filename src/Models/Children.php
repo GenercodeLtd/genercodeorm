@@ -1,6 +1,10 @@
 <?php
 namespace GenerCodeOrm\Models;
 use GenerCodeOrm\Entity;
+use GenerCodeOrm\Binds as Binds;
+use GenerCodeOrm\InputSet;
+use GenerCodeOrm\Builder\ResultsTree;
+use GenerCodeOrm\Builder as Builder;
 
 trait Children {
 
